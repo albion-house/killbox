@@ -2400,6 +2400,19 @@ textarea {
   background: linear-gradient(180deg, rgba(88,48,14,.98), rgba(24,14,8,.98));
   box-shadow: 0 3px 0 #080503, inset 0 0 16px rgba(255, 206, 80, .16);
 }
+#start .albionHouseLink {
+  margin-top: 12px;
+  color: #f0c96b;
+  font-size: clamp(11px, 1.2vw, 14px);
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-decoration: none;
+  opacity: .82;
+  pointer-events: auto;
+  transition: opacity .15s ease;
+}
+#start .albionHouseLink:hover,
+#start .albionHouseLink:focus-visible { opacity: 1; text-decoration: underline; }
 #start .arenaPick {
   gap: 7px;
   margin: 0;
@@ -4471,6 +4484,7 @@ h2,
           <div class="loadoutTitle">
             <h1>Killbox</h1>
             <div class="loadoutVersion" id="loadoutVersion">7.9.0</div>
+            <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
             <button id="playLastRun" class="secondary wide">Play Last Run</button>
