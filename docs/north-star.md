@@ -1,6 +1,6 @@
 # KILLBOX NORTH STAR
 
-## Core Vision
+## Rift Vision
 
 Killbox is a strange, readable, chaotic co-op survival adventure about fighting through dangerous spaces, protecting a living Rift, and creating ridiculous stories with another player.
 
@@ -117,13 +117,13 @@ Expedition should become the mode that best supports the long-term dream.
 
 It should feel like a dungeon crawl mixed with tower defense and twin-stick shooting.
 
-Expedition should alternate between fast arcade run-and-gun overworld sections and stronghold assaults.
+Expedition should alternate between fast arcade run-and-gun overworld sections and dungeon assaults.
 
-The overworld is not downtime between strongholds.
+The overworld is not downtime between dungeons.
 
 The overworld is one half of the game.
 
-In stronghold assaults, players deploy the Core, establish a foothold, explore, build defenses, defeat a boss, and activate a Relay before pushing deeper north.
+In dungeon assaults, players deploy the Rift, establish a foothold, explore, build defenses, defeat a boss, and activate a Relay before pushing deeper north.
 
 The player pushes into unknown territory, then temporarily turns part of it into civilization.
 

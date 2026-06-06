@@ -2,23 +2,23 @@
 
 ## Locked-In Terms
 
-### Core
+### Rift
 The portable civilization engine.
 
-- Carry the Core
-- Deploy the Core
-- Protect the Core
-- Move the Core
-- Install the Core into a Relay
+- Carry the Rift
+- Deploy the Rift
+- Protect the Rift
+- Move the Rift
+- Install the Rift into a Relay
 
-The Core is the heart of Expedition gameplay.
+The Rift is the heart of Expedition gameplay.
 
 ### Relay
 A permanent network expansion point.
 
 Relays are discovered throughout Expedition maps.
 
-Installing the Core into a Relay expands the network and advances progression.
+Installing the Rift into a Relay expands the network and advances progression.
 
 Desired feeling:
 "We found another Relay."
@@ -35,7 +35,7 @@ Examples:
 Meaning:
 Choose a permanent upgrade.
 
-### Surges
+### Powerups
 Temporary power spikes.
 
 Examples:
@@ -58,10 +58,10 @@ Represents:
 - Civilization
 - Territory
 
-The Core functions as the player's Hearth.
+The Rift functions as the player's Hearth.
 
 ### Network
-The collection of active Relays connected through the Core.
+The collection of active Relays connected through the Rift.
 
 Example messaging:
 - Network Expanded
@@ -75,7 +75,7 @@ Fantasy:
 Carry civilization into hostile territory.
 Establish footholds.
 Expand the network.
-Protect the Core.
+Protect the Rift.
 
 ## Terms To Avoid
 
@@ -94,9 +94,9 @@ Killbox is moving toward strange technology, exploration, facilities, biomechani
 
 Does a new term feel like it belongs alongside:
 
-Core
+Rift
 Relay
 Boons
-Surges
+Powerups
 
 If not, reconsider it.
