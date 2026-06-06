@@ -36,6 +36,8 @@
 - [x] 5.2 Add `npm run dev:tailscale` to start explicitly network-reachable multiplayer services and print the configured Tailscale client join URL and Colyseus endpoint.
 - [x] 5.3 Ensure committed browser-delivered assets do not contain a reusable room secret and clearly display the active bind and advertised addresses.
 - [x] 5.4 Document same-machine setup, environment configuration, Tailscale host and join steps, reachability checks, Tailscale IP fallback, room-secret handling, and shutdown behavior under `docs/`.
+- [x] 5.5 Reclaim the configured server and client ports before starting Tailscale mode so orphaned development processes do not block startup on the fixed advertised ports.
+- [x] 5.6 Add a `play-tailscale` mise task that loads host endpoints and the room secret from a local untracked `.env` file (template provided as `.env.example`).
 
 ## 6. End-to-End Validation
 
@@ -45,3 +47,4 @@
 - [x] 6.4 Perform the documented same-machine two-client flow and complete one cooperative wave.
 - [x] 6.5 Create the related `design-multi-agent-multiplayer-validation` follow-up change for validating multiplayer efficacy without requiring a second computer.
 - [x] 6.6 Run OpenSpec validation for `add-tailscale-multiplayer-prototype` and resolve all reported issues.
+- [x] 6.7 Perform a real two-machine Tailscale remote playtest (separate hosts on a private tailnet) and complete cooperative waves with synchronized authoritative state and remote-built towers. (Verified 2026-06-06; this exceeds the original same-machine-only validation requirement.)

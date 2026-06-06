@@ -23,6 +23,12 @@ node_modules/
 dist/
 *.log
 
+# Local env (room secret, Tailscale endpoints) — keep .env.example tracked
+.env
+.env.*
+!.env.example
+mise.local.toml
+
 !src/assets/icons/
 !src/assets/icons/**/
 !src/assets/icons/**/*.png

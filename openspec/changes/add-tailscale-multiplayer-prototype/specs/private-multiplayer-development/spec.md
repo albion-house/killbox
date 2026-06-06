@@ -33,6 +33,19 @@ The repository SHALL provide developer commands for starting the server, client,
 - **THEN** the required multiplayer services bind to explicitly configured network-reachable interfaces
 - **AND** the command prints a Tailscale-reachable client join URL or equivalent connection hint
 
+#### Scenario: Developer hosts a Tailscale session from a local env file
+- **WHEN** the developer supplies `KILLBOX_PUBLIC_URL`, `KILLBOX_CLIENT_PUBLIC_URL`, and `KILLBOX_ROOM_SECRET` in a local untracked env file and runs the `play-tailscale` task
+- **THEN** the task loads that configuration and starts the Tailscale multiplayer services
+- **AND** the room secret and host endpoints are not committed to the repository
+
+### Requirement: Reclaim configured ports before hosting
+When starting Tailscale multiplayer mode, the prototype SHALL free its configured server and client ports before binding so that a previously orphaned development process does not block startup on the fixed advertised ports.
+
+#### Scenario: Stale process holds a configured port
+- **WHEN** the developer starts Tailscale multiplayer mode and a prior development process is still listening on the configured server or client port
+- **THEN** the startup reclaims the configured ports
+- **AND** the multiplayer services bind on the expected fixed ports without manual cleanup
+
 ### Requirement: Configure multiplayer networking without source edits
 The multiplayer prototype SHALL support environment-based configuration for server binding, public connection information, room access, and Tailscale mode.
 

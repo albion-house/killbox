@@ -10,3 +10,8 @@ run = "node scripts/serve-local.mjs"
 [tasks.playwright-install]
 description = "Install Playwright browser binaries required by smoke tests"
 run = "npx playwright install --with-deps"
+
+[tasks.play-tailscale]
+description = "Host the multiplayer prototype over Tailscale (reads endpoints/secret from .env)"
+env._.file = ".env"
+run = "npm run dev:tailscale"
