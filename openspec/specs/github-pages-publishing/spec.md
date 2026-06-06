@@ -4,6 +4,14 @@ Provide automatic GitHub Pages publishing so the latest pushed version of the ga
 
 ## Requirements
 
+### Requirement: Publish at the repository Pages URL
+The system SHALL publish the playable game at `https://albion-house.github.io/killbox/`.
+
+#### Scenario: Visitor opens the Pages URL
+- **WHEN** a visitor opens `https://albion-house.github.io/killbox/`
+- **THEN** GitHub Pages serves the repository's published static site
+- **AND** the visitor can reach the playable game through the landing redirect
+
 ### Requirement: Publish on pushed commits
 The system SHALL start a GitHub Pages publication workflow for each commit pushed to the origin repository.
 
@@ -11,6 +19,13 @@ The system SHALL start a GitHub Pages publication workflow for each commit pushe
 - **WHEN** a commit is pushed to the origin repository
 - **THEN** a GitHub Actions workflow starts for that pushed commit
 - **AND** the workflow attempts to publish the project to GitHub Pages
+
+### Requirement: Allow manual republication
+The system SHALL allow maintainers to manually start the GitHub Pages publication workflow when repository settings, transfers, or other GitHub-side changes require republishing without a source change.
+
+#### Scenario: Maintainer requests republication
+- **WHEN** a maintainer starts the Pages publication workflow from GitHub Actions
+- **THEN** the workflow attempts to publish the current default-branch site artifact to GitHub Pages
 
 ### Requirement: Deploy only successful site artifacts
 The system SHALL publish to GitHub Pages only after preparing a valid static site artifact from the repository's `src/` directory.
