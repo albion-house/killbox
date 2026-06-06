@@ -2617,6 +2617,19 @@ textarea {
   line-height: 1;
   margin-top: 1px;
 }
+#start .loadoutGrid .pickerTile .fireCopy {
+  display: grid;
+  gap: 2px;
+  margin-top: 2px;
+  color: #d7c8a5;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.05;
+}
+#start .loadoutGrid .pickerTile .fireCopy span {
+  color: #f0c96b;
+  letter-spacing: .02em;
+}
 #start .loadoutGrid .pickerTile .slotBadge {
   top: 7px;
   right: 7px;
@@ -5257,11 +5270,11 @@ const TRINKETS = {
     name: 'Goblin Coin Purse',
     shortName: 'Coins',
     icon: miniTrinketIcon('goblinCoinPurse'),
-    description: 'A greedy charm that amplifies kill rewards.',
+    description: 'A greedy charm that pays out a burst of gold on demand.',
     passiveDescription: '+10% gold from enemy kills.',
-    activeDescription: '+50% gold from enemy kills for 15s.',
+    activeDescription: 'Gain 75-200 gold immediately.',
     cooldown: 55,
-    duration: 15,
+    duration: 0,
     lastUsed: -9999,
   },
   lastStandBeacon: {
@@ -5346,6 +5359,13 @@ const LOADOUT_WEAPON_COPY = {
   storm: 'Chain lightning',
   freeze: 'Freezing spreadshot',
 };
+const WEAPON_ABILITY_NAMES = {
+  ranger: { primary: 'Micro Rounds', secondary: 'Charge Burst' },
+  crossbow: { primary: 'Heavy Bolts', secondary: 'Hammerfall' },
+  blunderbuss: { primary: 'Scrap Blast', secondary: 'Iron Guard' },
+  storm: { primary: 'Chain Lightning', secondary: 'Pulse Nova' },
+  freeze: { primary: 'Cryo Spray', secondary: 'Ice Halo' },
+};
 const WEAPON_FIRE_COPY = {
   ranger: { primary: 'Rapid armor-piercing micro bolts.', secondary: 'Hold to charge, release a piercing burst.' },
   crossbow: { primary: 'Heavy siege bolt that pierces enemies.', secondary: 'Stun bolt that shocks and knocks back a cone.' },
@@ -5353,6 +5373,9 @@ const WEAPON_FIRE_COPY = {
   storm: { primary: 'Lightning arc that chains through nearby enemies.', secondary: 'Point-blank arc pulse that stuns and damages.' },
   freeze: { primary: 'Freezing spreadshot that chills enemies.', secondary: 'Freeze pulse around the hero.' },
 };
+function weaponAbilityNames(k) {
+  return WEAPON_ABILITY_NAMES[k] || { primary: 'Primary Fire', secondary: 'Secondary Fire' };
+}
 function weaponFireCopy(k) {
   return WEAPON_FIRE_COPY[k] || { primary: WEAPONS[k]?.desc || 'Primary fire.', secondary: 'No secondary fire.' };
 }
@@ -5508,8 +5531,8 @@ const LOADOUT_INSPECTOR_COPY = {
   goblinCoinPurse: {
     name: 'GOBLIN COIN',
     role: 'Trinket',
-    desc: 'Greedy economy charm that turns kills into better future choices.',
-    stats: [['Passive', '+10% gold'], ['Active', '+50% kill gold'], ['Duration', '15s'], ['Cooldown', '120s'], ['Weak Against', 'Immediate danger']],
+    desc: 'Greedy economy charm that pays out gold immediately.',
+    stats: [['Passive', '+10% gold'], ['Active', '75-200 gold'], ['Duration', 'Immediate'], ['Cooldown', '55s'], ['Weak Against', 'Immediate danger']],
   },
   lastStandBeacon: {
     name: 'LAST STAND',
@@ -5522,7 +5545,7 @@ const LOADOUT_TRINKET_COPY = {
   healingFlask: ['Emergency heal', '90s cooldown'],
   overclockIdol: ['Boost defenses', '120s cooldown'],
   battleFrenzyTotem: ['Hero haste', '90s cooldown'],
-  goblinCoinPurse: ['More gold', '120s cooldown'],
+  goblinCoinPurse: ['75-200 gold', '55s cooldown'],
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
@@ -5771,6 +5794,11 @@ function isExpeditionRun() { return !!S.started && isExpeditionLevel(S.levelId);
 function expeditionConfig() { return LEVELS[S.levelId]?.expedition || null; }
 function occupied(c, r) { return S.barriers.some(b => b.c === c && b.r === r) || S.barrels.some(b => b.c === c && b.r === r) || S.towers.some(t => t.c === c && t.r === r); }
 function blocked(c, r) { return isExpeditionRoomBlockedCell(c, r) || S.barriers.some(b => b.c === c && b.r === r) || S.towers.some(t => t.onRoad && !TOWERS[t.type].trap && t.c === c && t.r === r); }
+function riftBlockingOccupied(c, r) {
+  return S.barriers.some(b => b.c === c && b.r === r)
+    || S.barrels.some(b => b.c === c && b.r === r)
+    || S.towers.some(t => t.c === c && t.r === r && !TOWERS[t.type]?.trap);
+}
 function canHeroEnterCell(c, r) {
   if (c < 0 || r < 0 || c >= COLS || r >= ROWS || isBlockedTerrain(c, r)) return false;
   if (isExpeditionRoomBlockedCell(c, r)) return false;
@@ -5818,6 +5846,62 @@ function routePath(start, goal) {
     }
   }
   return [];
+}
+
+function riftAccessPathExists() {
+  if (!isExpeditionRun()) return true;
+  const ex = S.expedition;
+  if (!ex?.riftActivated || ex.riftCarried || !ex.rift) return true;
+  const target = cellAt(ex.rift.x, ex.rift.y);
+  if (target.c < 0 || target.r < 0 || target.c >= COLS || target.r >= ROWS) return true;
+  if (!isRoad(target.c, target.r) || isBlockedTerrain(target.c, target.r)) return true;
+
+  const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+  const starts = [];
+  for (const sp of SPAWN_POINTS || []) {
+    if (sp && isRoad(sp.c, sp.r) && !isBlockedTerrain(sp.c, sp.r)) starts.push({ c: sp.c, r: sp.r });
+  }
+  const cfg = expeditionConfig();
+  for (const room of cfg?.rooms || []) {
+    if (!room || room.id === 'rift') continue;
+    const [x1, y1, x2, y2] = room.rect || [];
+    for (let c = x1; c <= x2; c++) {
+      starts.push({ c, r: y1 });
+      starts.push({ c, r: y2 });
+    }
+    for (let r = y1; r <= y2; r++) {
+      starts.push({ c: x1, r });
+      starts.push({ c: x2, r });
+    }
+  }
+
+  const validRiftCell = (c, r) => {
+    if (c < 0 || r < 0 || c >= COLS || r >= ROWS) return false;
+    if (!isRoad(c, r) || isBlockedTerrain(c, r) || isExpeditionRoomBlockedCell(c, r)) return false;
+    if (c === target.c && r === target.r) return true;
+    return !riftBlockingOccupied(c, r);
+  };
+
+  const q = [];
+  const seen = new Set();
+  for (const s of starts) {
+    if (!validRiftCell(s.c, s.r)) continue;
+    const k = key(s.c, s.r);
+    if (seen.has(k)) continue;
+    seen.add(k);
+    q.push({ c: s.c, r: s.r });
+  }
+  while (q.length) {
+    const n = q.shift();
+    if (n.c === target.c && n.r === target.r) return true;
+    for (const [dc, dr] of dirs) {
+      const c = n.c + dc, r = n.r + dr, k = key(c, r);
+      if (seen.has(k) || !validRiftCell(c, r)) continue;
+      seen.add(k);
+      q.push({ c, r });
+    }
+  }
+  return false;
 }
 
 function rebuildPath() {
@@ -7719,11 +7803,10 @@ function useTrinket(id) {
     floatText('FRENZY', S.hero.x - 24, S.hero.y - 22, '#f0c96b');
     used = true;
   } else if (id === 'goblinCoinPurse') {
-    S.mods.coinPurseUntil = now + 15;
+    const gold = awardGoldCache(undefined, S.hero.x, S.hero.y, 'goblinCoinPurse');
     shockwave(S.hero.x, S.hero.y, '#f0c96b', 104, .24);
     burst(S.hero.x, S.hero.y, '#f0c96b', 12, 'spark', 120);
-    floatText('GOLD!', S.hero.x - 18, S.hero.y - 22, '#f0c96b');
-    console.log('[trinket] goblinCoinPurse activated', { until: S.mods.coinPurseUntil });
+    console.log('[trinket] goblinCoinPurse awarded', { amount: gold, totalGold: Math.floor(S.gold) });
     used = true;
   } else if (id === 'lastStandBeacon') {
     S.mods.lastStandUntil = now + 8;
@@ -7986,7 +8069,8 @@ function renderSetupPickers() {
   const tileMarkup = (k, kind) => {
     if (kind === 'weapon') {
       const w = WEAPONS[k];
-      return `${orderBadge(k)}<span class="icon">${miniWeaponIcon(k)}</span><span class="name">${w.shortName || w.name}</span><span class="meta">${LOADOUT_WEAPON_COPY[k] || w.desc || 'Weapon'}</span>`;
+      const ability = weaponAbilityNames(k);
+      return `${orderBadge(k)}<span class="icon">${miniWeaponIcon(k)}</span><span class="name">${w.shortName || w.name}</span><span class="fireCopy"><span>${ability.primary}</span><span>${ability.secondary}</span></span>`;
     }
     if (kind === 'tower') {
       const t = TOWERS[k];
@@ -8174,8 +8258,9 @@ function updateLoadoutInspector() {
   }
   const stats = (copy.stats || []).map(([label, value]) => `<div class="loadoutStat"><span>${label}</span><b>${value}</b></div>`).join('');
   const fire = WEAPONS[k] ? weaponFireCopy(k) : null;
-  const fireStats = fire
-    ? `<div class="loadoutStats"><div class="loadoutStat"><span>Primary</span><b>${fire.primary}</b></div><div class="loadoutStat"><span>Secondary</span><b>${fire.secondary}</b></div></div>`
+  const ability = WEAPONS[k] ? weaponAbilityNames(k) : null;
+  const fireStats = fire && ability
+    ? `<div class="loadoutStats"><div class="loadoutStat"><span>Primary</span><b>${ability.primary}</b></div><div class="loadoutStat"><span>Secondary</span><b>${ability.secondary}</b></div></div><div class="selMeta"><b>How it works</b><br><b>${ability.primary}:</b> ${fire.primary}<br><b>${ability.secondary}:</b> ${fire.secondary}</div>`
     : '';
   panel.innerHTML = `<div class="selGrid"><div class="selIcon"><span class="icon">${loadoutFeatureIcon(k)}</span></div><div><div class="selTitle">${copy.name}</div><div class="selRole">${copy.role}</div><div class="selDesc">${copy.desc}</div>${fireStats}${stats ? `<div class="loadoutStats">${stats}</div>` : ''}</div></div>`;
 }
@@ -8794,6 +8879,7 @@ function renderCodices() {
     Object.entries(WEAPONS).forEach(([k, w]) => {
       const copy = LOADOUT_INSPECTOR_COPY[k];
       const fire = weaponFireCopy(k);
+      const ability = weaponAbilityNames(k);
       const row = document.createElement('div');
       row.className = 'enemyCard';
       row.innerHTML = `
@@ -8801,8 +8887,8 @@ function renderCodices() {
         <div class="enemyText">
           <b>${w.shortName || w.name}</b>
           <span>${copy?.desc || w.desc || 'Weapon'}</span>
-          <span><b>Primary:</b> ${fire.primary}</span>
-          <span><b>Secondary:</b> ${fire.secondary}</span>
+          <span><b>Primary:</b> ${ability.primary} — ${fire.primary}</span>
+          <span><b>Secondary:</b> ${ability.secondary} — ${fire.secondary}</span>
         </div>`;
       weaponList.appendChild(row);
     });
@@ -10121,13 +10207,16 @@ function place(px, py) {
     const b = { c, r, x: cx(c), y: cy(r), hp: 520, max: 520, sold: d.c * .55 };
     S.barriers.push(b);
     if (!rebuildPath()) { S.barriers.pop(); rebuildPath(); return toast('That would fully block the route.'); }
+    if (!riftAccessPathExists()) { S.barriers.pop(); rebuildPath(); return toast('The Rift needs one open path.'); }
     spendGold(d.c);
     playSfx('place');
     boom(b.x, b.y, d.fill, 5);
 
   } else if (S.selected === 'barrel') {
+    const barrel = { c, r, x: cx(c), y: cy(r), hp: 35, rad: 22, sold: 0 };
+    S.barrels.push(barrel);
+    if (!riftAccessPathExists()) { S.barrels.pop(); return toast('The Rift needs one open path.'); }
     spendGold(d.c);
-    S.barrels.push({ c, r, x: cx(c), y: cy(r), hp: 35, rad: 22, sold: 0 });
     playSfx('place');
     boom(cx(c), cy(r), '#8b4424', 10);
 
@@ -10150,6 +10239,10 @@ function place(px, py) {
     if (onRoad && !d.trap && !rebuildPath()) {
       S.towers.pop(); rebuildPath();
       return toast('That tower would fully block the route.');
+    }
+    if (!riftAccessPathExists()) {
+      S.towers.pop(); rebuildPath();
+      return toast('The Rift needs one open path.');
     }
     spendGold(d.c);
     playSfx('place');
@@ -10276,6 +10369,7 @@ function weaponTooltipHTML(k) {
   const level = getHotbarUpgradeCount(k);
   const stats = getWeaponStatLine(k) || {};
   const fire = weaponFireCopy(k);
+  const ability = weaponAbilityNames(k);
   const mods = getHotbarWeaponModifiers(k);
   const history = (S.hero.upgrades || []).filter(id => {
     const up = HERO_UPGRADES[id];
@@ -10288,7 +10382,7 @@ function weaponTooltipHTML(k) {
     <div class="loadoutStat"><span>Crit chance</span><b>${Math.round(stats.crit * 100)}%</b></div>
     <div class="loadoutStat"><span>Pierce</span><b>${stats.pierce || '0'}</b></div>
     <div class="loadoutStat"><span>Chains</span><b>${stats.chain || '0'}</b></div>
-  </div><div class="selMeta"><b>Primary</b><br>${fire.primary}<br><b>Secondary</b><br>${fire.secondary}</div>${mods.length ? `<div class="selMeta"><b>Active modifiers</b><br>${mods.join(' · ')}</div>` : ''}
+  </div><div class="selMeta"><b>Primary</b><br>${ability.primary}: ${fire.primary}<br><b>Secondary</b><br>${ability.secondary}: ${fire.secondary}</div>${mods.length ? `<div class="selMeta"><b>Active modifiers</b><br>${mods.join(' · ')}</div>` : ''}
   ${history.length ? `<div class="selWeak"><b>Upgrade history</b><br>${history.join(' · ')}</div>` : ''}
   <div class="selFlavor"><b>Next upgrade</b><br>${next}</div></div></div>`;
 }
