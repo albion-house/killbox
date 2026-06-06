@@ -72,7 +72,18 @@ export KILLBOX_ROOM_SECRET='replace-with-a-private-value'
 npm run dev:tailscale
 ```
 
-`dev:tailscale` sets the server and client bind addresses to `0.0.0.0` unless explicitly overridden. It prints the active advertised endpoints, and the server prints the current room ID and join URL.
+`dev:tailscale` sets the server and client bind addresses to `0.0.0.0` unless explicitly overridden. It prints the active advertised endpoints, and the server prints the current room ID and join URL. Before binding, it reclaims its configured server and client ports, so a previous run that was force-killed and left an orphaned process will not block startup with a "port already in use" error.
+
+### Hosting from a local env file (recommended)
+
+To avoid exporting variables every session and to keep the room secret out of your shell history, copy `.env.example` to `.env` (which is gitignored), fill in this machine's Tailscale endpoints and a private secret, then run the mise task:
+
+```sh
+cp .env.example .env   # then edit the values
+mise run play-tailscale
+```
+
+`play-tailscale` loads `.env` and runs `dev:tailscale`. The `.env` file holds `KILLBOX_PUBLIC_URL`, `KILLBOX_CLIENT_PUBLIC_URL`, and `KILLBOX_ROOM_SECRET`; it must never be committed.
 
 Supported configuration:
 
@@ -104,3 +115,12 @@ Supported configuration:
 If the Tailscale DNS name does not resolve, replace it in both public URLs with the host's Tailscale IPv4 address. If `/health` is unreachable, check Tailscale connectivity, ACLs, and the host firewall before debugging the game.
 
 Stop the client and server with `Ctrl-C`. When all clients leave, the current room is disposed; requesting `/config` creates a fresh singleton room.
+
+## Playing the Game
+
+A couple of things are easy to miss once two players are connected:
+
+- **Use the join URL the server prints, not the bare client URL.** The printed URL carries `?server=...&room=...` query parameters that auto-fill the Colyseus server and room fields. Opening `http://<host>:5173/` directly leaves the fields at their `127.0.0.1` defaults, which a remote player cannot reach. Only the room secret is entered by hand.
+- **The room ID changes every time the server restarts.** Copy the fresh `Client join URL` from the `[server]` output after each start; an old room ID will not match the current singleton room.
+- **Towers can only be built during the build phase.** The phase loop is `lobby → (both Ready) → build → (Start wave) → combat → reward → (Choose reward) → build → ...`. Build/upgrade/sell commands are rejected outside the build phase; `Cast volley` only works during combat; `Choose reward` only works in the reward phase and advances back to build.
+- **There is no "restart" — the game runs continuous, escalating waves.** Each wave spawns more and tougher enemies, and it only ends on defeat (base health reaches 0). For a truly fresh game (wave 0, full base, starting supplies), restart the server (or have all clients disconnect to dispose the in-memory room), then rejoin the new room.
