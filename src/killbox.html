@@ -5097,7 +5097,7 @@ const WEAPONS = {
     },
   },
   crossbow: {
-    name: 'Boltcaster', shortName: 'Boltcaster', icon: '⟶', desc: 'Siege-grade bolt engine for piercing heavy shots.',
+    name: 'Boltcaster', shortName: 'Boltcaster', icon: '⟶', desc: 'Originaly a tool for firing hot rivets into solid steel and concrete.',
     primaryCooldown: 0.58, secondaryCooldown: 6.0,
     primaryFire(h, aim) {
       const speed = 720, range = 720, dmg = 46 + h.level * 5;
@@ -5411,14 +5411,14 @@ const LOADOUT_WEAPON_COPY = {
 const WEAPON_ABILITY_NAMES = {
   ranger: { primary: 'Micro Rounds', secondary: 'Charge Burst' },
   crossbow: { primary: 'Heavy Bolts', secondary: 'Hammerfall' },
-  blunderbuss: { primary: 'Scrap Blast', secondary: 'Iron Guard' },
+  blunderbuss: { primary: 'Scatter Shot', secondary: 'Iron Guard' },
   storm: { primary: 'Chain Lightning', secondary: 'Pulse Nova' },
   freeze: { primary: 'Cryo Spray', secondary: 'Ice Halo' },
 };
 const WEAPON_FIRE_COPY = {
   ranger: { primary: 'Rapid armor-piercing micro bolts.', secondary: 'Hold to charge, release a piercing burst.' },
   crossbow: { primary: 'Heavy siege bolt that pierces enemies.', secondary: 'Stun bolt that shocks and knocks back a cone.' },
-  blunderbuss: { primary: 'Wide close-range scrap blast.', secondary: 'Temporary shield for dangerous close fights.' },
+  blunderbuss: { primary: 'Wide close-range scatter shot.', secondary: 'Temporary shield for dangerous close fights.' },
   storm: { primary: 'Lightning arc that chains through nearby enemies.', secondary: 'Point-blank arc pulse that stuns and damages.' },
   freeze: { primary: 'Freezing spreadshot that chills enemies.', secondary: 'Freeze pulse around the hero.' },
 };
@@ -5479,12 +5479,12 @@ const LOADOUT_INSPECTOR_COPY = {
     name: 'BLUNDERBUSS',
     role: 'Weapon',
     identity: 'BRAWLER',
-    desc: 'Unleashes a devastating spread of scrap shot at point-blank range.',
+    desc: 'Unleashes a devastating spread of scatter shot at point-blank range.',
     quickStats: [['Damage', '7/10'], ['Fire Rate', '3/10'], ['Range', '2/10']],
-    flavor: 'Assembled from shipyard scrap, riot gear, and somebody\'s very bad idea of crowd control.',
+    flavor: 'A sailboat captain’s close-quarters weapon. Built for boarding actions, confined decks, and fast decisions.',
     abilities: ['Scrap Blast', 'Iron Guard'],
     mechanics: [
-      'Scrap Blast fires a wide close-range blast.',
+      'Scatter Shot fires a wide close-range blast.',
       'Iron Guard surrounds the hero with a temporary protective ring.',
       'Best for fighting close, surviving pressure, and clearing enemies that get too near.',
     ],
@@ -8361,7 +8361,7 @@ function updateLoadoutInspector() {
     const mechanics = (copy.mechanics || [])
       .map(line => `<div>${line}</div>`)
       .join('');
-    panel.innerHTML = `<div class="selGrid weaponInspector"><div class="selIcon"><span class="icon">${loadoutFeatureIcon(k)}</span></div><div><div class="selTitle">${copy.name}</div><div class="selRole">${copy.identity}</div>${quickStats ? `<div class="weaponSectionLabel">Quick Stats</div><div class="weaponQuickStats">${quickStats}</div>` : ''}<div class="selFlavor"><b>World Flavor</b><br>${copy.flavor || copy.desc}</div>${abilities ? `<div class="weaponSectionLabel">Abilities</div><div class="weaponAbilities">${abilities}</div>` : ''}<div class="selMeta"><b>Mechanics</b><br>${mechanics}</div></div></div>`;
+    panel.innerHTML = `<div class="selGrid weaponInspector"><div class="selIcon"><span class="icon">${loadoutFeatureIcon(k)}</span></div><div><div class="selTitle">${copy.name}</div><div class="selRole">${copy.identity}</div>${quickStats ? `<div class="weaponSectionLabel">Quick Stats</div><div class="weaponQuickStats">${quickStats}</div>` : ''}<div class="selFlavor"><b>Origin</b><br>${copy.flavor || copy.desc}</div>${abilities ? `<div class="weaponSectionLabel">Abilities</div><div class="weaponAbilities">${abilities}</div>` : ''}<div class="selMeta"><b>Mechanics</b><br>${mechanics}</div></div></div>`;
     return;
   }
   const stats = (copy.stats || []).map(([label, value]) => `<div class="loadoutStat"><span>${label}</span><b>${value}</b></div>`).join('');
