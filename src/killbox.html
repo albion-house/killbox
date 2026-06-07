@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Killbox 7.9.0-expedition-prototype</title>
+<title>Killbox 7.9.1-weapons-first</title>
 <style>
 /* ── Design tokens ─────────────────────────────────────────────── */
 :root {
@@ -2567,6 +2567,55 @@ textarea {
   text-align: right;
   font-size: 14px;
 }
+#start .weaponInspector {
+  text-align: left;
+}
+#start .weaponInspector .selIcon {
+  width: min(190px, 78%);
+  height: 190px;
+}
+#start .weaponInspector .selIcon .icon {
+  font-size: 92px;
+}
+#start .weaponInspector .weaponQuickStats,
+#start .weaponInspector .weaponAbilities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+#start .weaponInspector .weaponSectionLabel {
+  margin-top: 12px;
+  color: #74dcff;
+  font: 900 12px/1 Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+#start .weaponInspector .weaponQuickStat,
+#start .weaponInspector .weaponAbility {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 7px;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 4px;
+  background: rgba(7,8,9,.5);
+  color: #d9c79f;
+  font: 800 12px/1.1 Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+#start .weaponInspector .weaponQuickStat b,
+#start .weaponInspector .weaponAbility b {
+  color: #fff0bd;
+  font-size: 13px;
+}
+#start .weaponInspector .selFlavor,
+#start .weaponInspector .selMeta {
+  margin-top: 12px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(143, 100, 52, .45);
+  font-size: 14px;
+  line-height: 1.35;
+}
 #start .loadoutGrid {
   flex: 1 1 auto;
   min-height: 0;
@@ -3218,7 +3267,7 @@ kbd {
   font-size: 12px; line-height: 1.5;
 }
 
-/* ── Killbox 7.9.0-expedition-prototype ───────────────────── */
+/* ── Killbox 7.9.1-weapons-first ───────────────────── */
 /* Changelog: tightened loadout/hotbar card layout and replaced duplicate icon fallbacks. */
 #hireEngineer, #mpBox { display: none !important; }
 .debugHidden { display: none !important; }
@@ -4381,7 +4430,7 @@ h2,
           <kbd>U</kbd> upgrade &nbsp;
           <kbd>1</kbd>–<kbd>8</kbd> build
         </p>
-        <div class="sidebarFooter">Killbox <span id="sidebarVersion">7.9.0</span>. Still rude.</div>
+        <div class="sidebarFooter">Killbox <span id="sidebarVersion">7.9.1</span>. Still rude.</div>
       </div>
     </details>
     <details class="warRoomSection">
@@ -4408,8 +4457,8 @@ h2,
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.9.0</b>
-      <span id="warRoomBuildName">Expedition Prototype</span>
+      <b id="warRoomVersion">v7.9.1</b>
+      <span id="warRoomBuildName">Weapons First</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -4496,7 +4545,7 @@ h2,
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">7.9.0</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.9.1 Weapons First</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -5399,31 +5448,76 @@ const LOADOUT_INSPECTOR_COPY = {
   ranger: {
     name: 'REPEATER',
     role: 'Weapon',
+    identity: 'AGILE PRECISION',
     desc: 'Fires a stream of armor-piercing micro bolts.',
+    quickStats: [['Damage', '3/10'], ['Fire Rate', '10/10'], ['Range', '5/10'], ['Control', '2/10']],
+    flavor: 'Recovered from a military timeline that no longer exists. The serial numbers refer to battles nobody recorded.',
+    abilities: ['Micro Rounds', 'Charge Burst'],
+    mechanics: [
+      'Micro Rounds fire rapid armor-piercing bolts.',
+      'Charge Burst is held, charged, and released as a piercing shot.',
+      'Best for staying mobile and thinning fast enemies before they reach the line.',
+    ],
     stats: [['Damage', 'Medium'], ['Fire Rate', 'Very Fast'], ['Range', 'Long'], ['Special', 'Charged piercing burst'], ['Best Against', 'Fast enemies'], ['Weak Against', 'Armored frontliners']],
   },
   crossbow: {
     name: 'BOLTCASTER',
     role: 'Weapon',
+    identity: 'BRUTE FORCE',
     desc: 'Launches reinforced siege bolts that punch through multiple enemies.',
+    quickStats: [['Damage', '9/10'], ['Fire Rate', '2/10'], ['Range', '9/10'], ['Control', '5/10']],
+    flavor: 'A siege-grade bolt engine built for doors that were not supposed to open.',
+    abilities: ['Heavy Bolts', 'Hammerfall'],
+    mechanics: [
+      'Heavy Bolts fire slow, high-impact shots that pierce enemies.',
+      'Hammerfall fires a stun bolt that shocks and knocks back enemies in a cone.',
+      'Best for heavy targets, straight lanes, and stopping dangerous pushes.',
+    ],
     stats: [['Damage', 'High'], ['Fire Rate', 'Slow'], ['Range', 'Long'], ['Special', 'Stun bolt'], ['Best Against', 'Heavy enemies'], ['Weak Against', 'Swarms']],
   },
   blunderbuss: {
     name: 'BLUNDERBUSS',
     role: 'Weapon',
+    identity: 'BRAWLER',
     desc: 'Unleashes a devastating spread of scrap shot at point-blank range.',
+    quickStats: [['Damage', '7/10'], ['Fire Rate', '3/10'], ['Range', '2/10'], ['Control', '6/10'], ['Survival', '8/10']],
+    flavor: 'Assembled from shipyard scrap, riot gear, and somebody\'s very bad idea of crowd control.',
+    abilities: ['Scrap Blast', 'Iron Guard'],
+    mechanics: [
+      'Scrap Blast fires a wide close-range blast.',
+      'Iron Guard surrounds the hero with a temporary protective ring.',
+      'Best for fighting close, surviving pressure, and clearing enemies that get too near.',
+    ],
     stats: [['Damage', 'High up close'], ['Fire Rate', 'Fast'], ['Range', 'Short'], ['Knockback', 'Medium'], ['Special', 'Temporary shield'], ['Weak Against', 'Long lanes']],
   },
   storm: {
     name: 'ARC EMITTER',
     role: 'Weapon',
+    identity: 'WEIRD SCIENCE',
     desc: 'Projects unstable arcs of electricity that leap between nearby enemies.',
+    quickStats: [['Damage', '6/10'], ['Fire Rate', '5/10'], ['Range', '5/10'], ['Control', '8/10'], ['Risk', '6/10']],
+    flavor: 'Built by researchers attempting to weaponize chain reactions. The project was abandoned after the reactions started choosing targets.',
+    abilities: ['Chain Lightning', 'Pulse Nova'],
+    mechanics: [
+      'Chain Lightning arcs between nearby enemies.',
+      'Pulse Nova releases an electrical burst around the hero.',
+      'Best for clustered enemies and chaotic rooms.',
+    ],
     stats: [['Damage', 'Medium'], ['Fire Rate', 'Fast'], ['Range', 'Medium'], ['Chains', 'Up to 4 targets'], ['Best Against', 'Grouped enemies'], ['Weak Against', 'Spread enemies']],
   },
   freeze: {
     name: 'FREEZE GUN',
     role: 'Weapon',
+    identity: 'CONTROL',
     desc: 'A recovered 1980s Japanese prototype that unleashes a freezing spreadshot to slow and freeze advancing enemies.',
+    quickStats: [['Damage', '4/10'], ['Fire Rate', '6/10'], ['Range', '4/10'], ['Control', '10/10'], ['Survival', '6/10']],
+    flavor: 'A 1980s Japanese prototype designed for industrial accident containment. It was not designed for this.',
+    abilities: ['Cryo Spray', 'Ice Halo'],
+    mechanics: [
+      'Cryo Spray slows and freezes enemies in front of the hero.',
+      'Ice Halo releases a freezing burst around the hero and knocks nearby enemies back.',
+      'Best for slowing crowds, buying time, and controlling space.',
+    ],
     stats: [['Damage', 'Low'], ['Fire Rate', 'Fast'], ['Range', 'Medium'], ['Spread', 'Wide freezing cone'], ['Origin', '1980s Japan'], ['Weak Against', 'Boss damage']],
   },
   archer: {
@@ -5549,8 +5643,8 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const BUILD_VERSION = '7.9.0';
-const BUILD_NAME = 'Expedition Prototype';
+const BUILD_VERSION = '7.9.1';
+const BUILD_NAME = 'Weapons First';
 function upgradeIcon(id, kind = 'generic') {
   const up = HERO_UPGRADES[id] || TRAP_UPGRADES[id] || BOSS_UPGRADES[id] || {};
   const explicit = up.targetIcon || up.targetItem || up.targetIconAlt || up.targetItemAlt;
@@ -7990,7 +8084,7 @@ function ui() {
   if ($('devAudioState')) $('devAudioState').textContent = AUDIO.muted ? 'OFF' : 'ON';
   if ($('devVolumeState')) $('devVolumeState').textContent = `${Math.round(AUDIO.volume * 100)}%`;
   if ($('devVolume') && document.activeElement !== $('devVolume')) $('devVolume').value = Math.round(AUDIO.volume * 100);
-  if ($('loadoutVersion')) $('loadoutVersion').textContent = S.version;
+  if ($('loadoutVersion')) $('loadoutVersion').textContent = `v${S.version} ${S.buildName || BUILD_NAME}`;
   if ($('sidebarVersion')) $('sidebarVersion').textContent = S.version;
   if ($('warRoomVersion')) $('warRoomVersion').textContent = `v${S.version}`;
   if ($('warRoomBuildName')) $('warRoomBuildName').textContent = S.buildName || BUILD_NAME;
@@ -8254,6 +8348,20 @@ function updateLoadoutInspector() {
   if (!copy) {
     const label = WEAPONS[k]?.name || TOWERS[k]?.n || TRINKETS[k]?.name || shortTowerName(k) || k;
     panel.innerHTML = `<div class="selGrid"><div class="selIcon"><span class="icon">${loadoutFeatureIcon(k)}</span></div><div><div class="selTitle">${label}</div><div class="selRole">Unknown trick</div><div class="selDesc">No battle note on file.</div></div></div>`;
+    return;
+  }
+  if (WEAPONS[k] && copy.identity) {
+    const abilityNames = copy.abilities || Object.values(weaponAbilityNames(k));
+    const quickStats = (copy.quickStats || [])
+      .map(([label, value]) => `<span class="weaponQuickStat">${label} <b>${value}</b></span>`)
+      .join('');
+    const abilities = abilityNames
+      .map(name => `<span class="weaponAbility"><b>${name}</b></span>`)
+      .join('');
+    const mechanics = (copy.mechanics || [])
+      .map(line => `<div>${line}</div>`)
+      .join('');
+    panel.innerHTML = `<div class="selGrid weaponInspector"><div class="selIcon"><span class="icon">${loadoutFeatureIcon(k)}</span></div><div><div class="selTitle">${copy.name}</div><div class="selRole">${copy.identity}</div>${quickStats ? `<div class="weaponSectionLabel">Quick Stats</div><div class="weaponQuickStats">${quickStats}</div>` : ''}<div class="selFlavor"><b>World Flavor</b><br>${copy.flavor || copy.desc}</div>${abilities ? `<div class="weaponSectionLabel">Abilities</div><div class="weaponAbilities">${abilities}</div>` : ''}<div class="selMeta"><b>Mechanics</b><br>${mechanics}</div></div></div>`;
     return;
   }
   const stats = (copy.stats || []).map(([label, value]) => `<div class="loadoutStat"><span>${label}</span><b>${value}</b></div>`).join('');
