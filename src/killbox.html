@@ -4458,7 +4458,7 @@ h2,
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.15.3</b>
+      <b id="warRoomVersion">v7.15.4</b>
       <span id="warRoomBuildName">Containment</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
@@ -4546,7 +4546,7 @@ h2,
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.15.3 Containment</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.15.4 Containment</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -5807,7 +5807,7 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const BUILD_VERSION = '7.15.3';
+const BUILD_VERSION = '7.15.4';
 const BUILD_NAME = 'Containment';
 function upgradeIcon(id, kind = 'generic') {
   const up = HERO_UPGRADES[id] || TRAP_UPGRADES[id] || BOSS_UPGRADES[id] || {};
@@ -7359,30 +7359,34 @@ function blackoutContainmentPressureCells(room) {
 
 function expeditionLabSkullCells(room) {
   if (!room || room.id !== 'lab') return [];
-  const [x1, y1, x2, y2] = room.rect || [];
   const reserved = blackoutContainmentOpenCells(room);
-  const cells = new Map();
-  const add = cell => {
-    if (!cell) return;
-    const c = Number.isFinite(cell.c) ? cell.c : null;
-    const r = Number.isFinite(cell.r) ? cell.r : null;
-    if (c == null || r == null) return;
-    const k = key(c, r);
-    if (reserved.has(k) || cells.has(k)) return;
-    cells.set(k, { c, r });
-  };
-  for (const cell of room.skullCells || []) add(cell);
-  const terminal = room.terminal || { c: Math.floor((x1 + x2) / 2), r: Math.floor((y1 + y2) / 2) };
-  for (let r = y1; r <= y2; r++) {
-    for (let c = x1; c <= x2; c++) {
-      const d = Math.abs(c - terminal.c) + Math.abs(r - terminal.r);
-      const denseCore = d <= 5;
-      const denseHemisphere = c <= terminal.c + 1;
-      const checker = ((c + r) & 1) === 0;
-      if (denseCore || denseHemisphere || checker) add({ c, r });
-    }
-  }
-  return [...cells.values()];
+  const cells = [
+    { c: 40, r: 15 },
+    { c: 40, r: 16 },
+    { c: 40, r: 17 },
+    { c: 41, r: 15 },
+    { c: 41, r: 16 },
+    { c: 41, r: 22 },
+    { c: 41, r: 23 },
+    { c: 42, r: 15 },
+    { c: 42, r: 16 },
+    { c: 42, r: 22 },
+    { c: 42, r: 23 },
+    { c: 43, r: 16 },
+    { c: 43, r: 22 },
+    { c: 44, r: 18 },
+    { c: 44, r: 19 },
+    { c: 45, r: 18 },
+    { c: 45, r: 19 },
+    { c: 46, r: 18 },
+    { c: 46, r: 19 },
+    { c: 47, r: 18 },
+    { c: 47, r: 19 },
+    { c: 48, r: 18 },
+    { c: 48, r: 19 },
+    { c: 49, r: 19 },
+  ];
+  return cells.filter(cell => !reserved.has(key(cell.c, cell.r)));
 }
 
 function spawnExpeditionLabSkulls(room) {
