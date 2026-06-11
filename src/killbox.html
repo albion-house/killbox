@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Killbox 7.14.1-dim-rift</title>
+<title>Killbox 7.15.0-blackout-room</title>
 <style>
 /* ── Design tokens ─────────────────────────────────────────────── */
 :root {
@@ -3267,7 +3267,7 @@ kbd {
   font-size: 12px; line-height: 1.5;
 }
 
-/* ── Killbox 7.14.1-dim-rift ───────────────────── */
+/* ── Killbox 7.15.0-blackout-room ───────────────────── */
 /* Changelog: tightened loadout/hotbar card layout and replaced duplicate icon fallbacks. */
 #hireEngineer, #mpBox { display: none !important; }
 .debugHidden { display: none !important; }
@@ -4431,7 +4431,7 @@ h2,
           <kbd>U</kbd> upgrade &nbsp;
           <kbd>1</kbd>–<kbd>8</kbd> build
         </p>
-        <div class="sidebarFooter">Killbox <span id="sidebarVersion">7.14.1</span>. Still rude.</div>
+        <div class="sidebarFooter">Killbox <span id="sidebarVersion">7.15.0</span>. Still rude.</div>
       </div>
     </details>
     <details class="warRoomSection">
@@ -4458,8 +4458,8 @@ h2,
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.14.1</b>
-      <span id="warRoomBuildName">Dim Rift</span>
+      <b id="warRoomVersion">v7.15.0</b>
+      <span id="warRoomBuildName">Blackout Room</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -4546,7 +4546,7 @@ h2,
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.14.1 Dim Rift</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.15.0 Blackout Room</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -5037,7 +5037,36 @@ const LEVELS = {
         { id: 'entry', name: 'Entry', rect: [1, 19, 6, 24], color: '#6f6253' },
         { id: 'security', name: 'Security Checkpoint', rect: [6, 18, 14, 25], color: '#7a6f5c' },
         { id: 'barracks', name: 'Barracks', rect: [21, 16, 32, 25], color: '#6a4a3d' },
-        { id: 'lab', name: 'Laboratory Wing', rect: [38, 13, 51, 25], color: '#49656b', darkRoom: true },
+        {
+          id: 'lab',
+          name: 'Blackout Containment',
+          rect: [38, 13, 51, 25],
+          color: '#49656b',
+          darkRoom: true,
+          terminal: { c: 49, r: 16 },
+          lavaRects: [
+            [43, 14, 44, 18],
+            [43, 21, 44, 24],
+            [47, 16, 48, 20],
+            [47, 23, 48, 24],
+          ],
+          skullCells: [
+            { c: 40, r: 15 },
+            { c: 40, r: 16 },
+            { c: 40, r: 17 },
+            { c: 41, r: 18 },
+            { c: 41, r: 20 },
+            { c: 41, r: 21 },
+            { c: 42, r: 22 },
+            { c: 44, r: 19 },
+            { c: 45, r: 19 },
+            { c: 46, r: 19 },
+            { c: 48, r: 21 },
+            { c: 49, r: 22 },
+            { c: 50, r: 22 },
+            { c: 46, r: 24 },
+          ],
+        },
         { id: 'chapel', name: 'Chapel', rect: [26, 5, 42, 13], color: '#5d526b' },
         { id: 'reactor', name: 'Reactor Complex', rect: [48, 26, 61, 36], color: '#6b5a39' },
         { id: 'flesh', name: 'Flesh Garden', rect: [18, 32, 37, 40], color: '#6f3d4a' },
@@ -5057,6 +5086,12 @@ const EXPEDITION_PROTOTYPE_TUNING = {
     playerLightRadius: 155,
     riftLightRadius: 250,
     softEdge: 95,
+  },
+  blackoutContainment: {
+    lavaEntryHealthRatio: 0.34,
+    lavaTickSeconds: 2.0,
+    lavaTickDamageRatio: 0.18,
+    terminalInteractRadius: 86,
   },
 };
 function expeditionRoomScale() {
@@ -5097,6 +5132,9 @@ function scaledExpeditionLevel(level) {
       rooms: (level.expedition.rooms || []).map(room => ({
         ...room,
         rect: scaleExpeditionRect(room.rect, scale),
+        terminal: scaleExpeditionPoint(room.terminal, scale),
+        lavaRects: (room.lavaRects || []).map(rect => scaleExpeditionRect(rect, scale)),
+        skullCells: (room.skullCells || []).map(point => scaleExpeditionPoint(point, scale)),
       })),
     } : level.expedition,
   };
@@ -5701,8 +5739,8 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const BUILD_VERSION = '7.14.1';
-const BUILD_NAME = 'Dim Rift';
+const BUILD_VERSION = '7.15.0';
+const BUILD_NAME = 'Blackout Room';
 function upgradeIcon(id, kind = 'generic') {
   const up = HERO_UPGRADES[id] || TRAP_UPGRADES[id] || BOSS_UPGRADES[id] || {};
   const explicit = up.targetIcon || up.targetItem || up.targetIconAlt || up.targetItemAlt;
@@ -5988,10 +6026,18 @@ function heroSolidDefenseCollisionAt(x, y, fromX = S.hero?.x, fromY = S.hero?.y)
 function canHeroEnterCell(c, r) {
   if (c < 0 || r < 0 || c >= COLS || r >= ROWS || isBlockedTerrain(c, r)) return false;
   if (isExpeditionRoomBlockedCell(c, r)) return false;
+  if (expeditionBlockingSkullAtCell(c, r)) return false;
   if (isExpeditionLevel()) return isRoad(c, r);
   return true;
 }
-function canEnemyEnterCell(c, r) { return c >= 0 && r >= 0 && c < COLS && r < ROWS && isRoad(c, r) && !isBlockedTerrain(c, r) && !blocked(c, r); }
+function canEnemyEnterCell(c, r) {
+  return c >= 0 && r >= 0 && c < COLS && r < ROWS
+    && isRoad(c, r)
+    && !isBlockedTerrain(c, r)
+    && !blocked(c, r)
+    && !expeditionBlockingSkullAtCell(c, r)
+    && !expeditionRoomLavaCell(c, r);
+}
 function canBuildOnCell(c, r) { return c >= 0 && r >= 0 && c < COLS && r < ROWS && !isBlockedTerrain(c, r); }
 function valid(c, r) { return canEnemyEnterCell(c, r); }
 function cellAt(x, y) { return { c: Math.floor((x - OX) / G), r: Math.floor((y - OY) / G) }; }
@@ -6278,6 +6324,9 @@ function createExpeditionState(levelId = S.levelId) {
     roomBlockers: [],
     roomObjective: null,
     roomNests: [],
+    roomTerminalStates: {},
+    roomTerminalPrompt: '',
+    roomTerminalPromptTime: 0,
   };
 }
 
@@ -6360,6 +6409,46 @@ function expeditionRoomContainsCell(room, c, r) {
 function expeditionRoomContainsPoint(room, x, y) {
   const cell = cellAt(x, y);
   return expeditionRoomContainsCell(room, cell.c, cell.r);
+}
+
+function activeExpeditionBlockingSkulls() {
+  return (S.cornerSkulls || []).filter(skull => skull && !skull.dead && skull.blocksMovement && skull.cell);
+}
+
+function expeditionBlockingSkullAtCell(c, r) {
+  return activeExpeditionBlockingSkulls().find(skull => skull.cell.c === c && skull.cell.r === r) || null;
+}
+
+function expeditionRoomTerminalCell(room) {
+  return room?.terminal || null;
+}
+
+function expeditionRoomTerminalState(roomId) {
+  return S.expedition?.roomTerminalStates?.[roomId] || 'offline';
+}
+
+function expeditionRoomTerminalPowered(roomId) {
+  return expeditionRoomTerminalState(roomId) === 'powered';
+}
+
+function expeditionRoomLavaRects(room) {
+  return Array.isArray(room?.lavaRects) ? room.lavaRects : [];
+}
+
+function expeditionRoomLavaCell(c, r, room = null) {
+  const rooms = room ? [room] : (expeditionConfig()?.rooms || []);
+  for (const candidate of rooms) {
+    for (const rect of expeditionRoomLavaRects(candidate)) {
+      const [x1, y1, x2, y2] = rect;
+      if (c >= x1 && c <= x2 && r >= y1 && r <= y2) return { room: candidate, rect };
+    }
+  }
+  return null;
+}
+
+function expeditionPointInLava(x, y, room = null) {
+  const cell = cellAt(x, y);
+  return expeditionRoomLavaCell(cell.c, cell.r, room);
 }
 
 function isExpeditionRoomBlockedCell(c, r) {
@@ -6494,7 +6583,7 @@ function expeditionEncounterDef(room) {
     entry:       { objective: 'clear', label: 'Clear Entry Breach', roomType: 'runner', enemies: ['grunt', 'grunt', 'runner'] },
     security:    { objective: 'elite', label: 'Clear Security Wing', enemies: ['grunt', 'shield', 'warden'], elite: 'warden' },
     barracks:    { objective: 'clear', label: 'Clear Barracks', roomType: 'shield', enemies: ['grunt', 'runner', 'sapper', 'shield'] },
-    lab:         { objective: 'elite', label: 'Clear Laboratory Wing', enemies: ['runner', 'healer', 'hexcaller'], elite: 'hexcaller' },
+    lab:         { objective: 'terminal', label: 'Restore Containment Power', terminalPrompt: 'Press E to restore power.', enemies: [] },
     chapel:      { objective: 'clear', label: 'Clear Chapel', roomType: 'healer', enemies: ['grunt', 'shield', 'healer'] },
     reactor:     { objective: 'elite', label: 'Clear Reactor Complex', enemies: ['runner', 'brute', 'sapper'], elite: 'brute' },
     flesh:       { objective: 'nest', label: 'Clear Flesh Garden', roomType: 'bomber', enemies: ['runner', 'runner', 'bomber'], nest: true },
@@ -6682,24 +6771,27 @@ function startExpeditionRoomEncounter(room) {
   ex.activeRoomId = room.id;
   ex.roomObjective = { roomId: room.id, type: def.objective, label: def.label };
   ex.roomBlockers = expeditionRoomDoorBlockers(room);
+  ex.roomTerminalStates[room.id] = ex.roomTerminalStates?.[room.id] || 'offline';
   primeExpeditionRoomBoundarySides(room);
   spawnExpeditionLabSkulls(room);
   if (def.nest) spawnExpeditionRoomNest(room);
-  const enemies = expeditionEncounterEnemies(def);
-  const spawnCells = expeditionRoomSpawnCells(room, enemies.length);
-  let eliteSpawned = false;
-  const spawned = enemies
-    .map((type, i) => {
-      const elite = type === def.elite && !eliteSpawned;
-      if (elite) eliteSpawned = true;
-      return spawnExpeditionRoomEnemy(type, room, spawnCells[i % spawnCells.length], elite);
-    })
-    .filter(Boolean);
-  assignExpeditionRoomTargets(spawned, room);
+  if (def.objective !== 'terminal') {
+    const enemies = expeditionEncounterEnemies(def);
+    const spawnCells = expeditionRoomSpawnCells(room, enemies.length);
+    let eliteSpawned = false;
+    const spawned = enemies
+      .map((type, i) => {
+        const elite = type === def.elite && !eliteSpawned;
+        if (elite) eliteSpawned = true;
+        return spawnExpeditionRoomEnemy(type, room, spawnCells[i % spawnCells.length], elite);
+      })
+      .filter(Boolean);
+    assignExpeditionRoomTargets(spawned, room);
+  }
   ex.message = def.label;
   ex.messageTime = 6;
-  maybeShowMissionHint(def.label.includes('Relay') ? 'Activate the Relay.' : 'Clear the room.', `expedition-room-${room.id}`, 4);
-  announceWave(`${room.name.toUpperCase()}: ${def.label.toUpperCase()}`, 'danger', 1);
+  maybeShowMissionHint(def.objective === 'terminal' ? (def.terminalPrompt || 'Press E to restore power.') : def.label.includes('Relay') ? 'Activate the Relay.' : 'Clear the room.', `expedition-room-${room.id}`, 4);
+  announceWave(`${room.name.toUpperCase()}: ${def.label.toUpperCase()}`, def.objective === 'terminal' ? 'resting' : 'danger', 1);
   shockwave(S.hero.x, S.hero.y, '#ffcf6a', 110, .26);
   rebuildPath();
   return true;
@@ -6737,6 +6829,7 @@ function updateExpeditionRoomEncounter() {
   const cfg = expeditionConfig();
   if (!isExpeditionRun() || !ex || !cfg || ex.completed) return;
   if (ex.activeRoomId) {
+    if (ex.roomObjective?.type === 'terminal') return;
     const live = S.enemies.filter(e => !e.dead && e.expeditionRoomId === ex.activeRoomId);
     if (ex.roomObjective?.type === 'elite') {
       if (!live.some(e => e.eliteRoomTarget)) completeExpeditionRoomEncounter(ex.activeRoomId);
@@ -6832,6 +6925,30 @@ function tryToggleExpeditionRiftCarry() {
   return true;
 }
 
+function tryActivateExpeditionRoomTerminal() {
+  const ex = S.expedition;
+  const room = activeLockedExpeditionRoom() || expeditionRoomAtHero();
+  if (!isExpeditionRun() || !ex || !room || ex.activeRoomId !== room.id) return false;
+  if (ex.roomObjective?.type !== 'terminal' || expeditionRoomTerminalPowered(room.id)) return false;
+  const terminal = expeditionRoomTerminalCell(room);
+  if (!terminal) return false;
+  const radius = EXPEDITION_PROTOTYPE_TUNING.blackoutContainment.terminalInteractRadius || 86;
+  const tx = cx(terminal.c), ty = cy(terminal.r);
+  if (dist(S.hero.x, S.hero.y, tx, ty) > radius) return false;
+  ex.roomTerminalStates[room.id] = 'powered';
+  ex.message = 'Power restored.';
+  ex.messageTime = 5;
+  ex.prompt = '';
+  ex.promptTime = 0;
+  showMissionHint('Containment power restored.', `expedition-terminal-${room.id}`, 3.2);
+  announceWave(`${room.name.toUpperCase()} ONLINE`, 'resting', .9);
+  shockwave(tx, ty, '#8edcff', 170, .34);
+  burst(tx, ty, '#e8f6ff', 18, 'spark', 180);
+  playSfx('secondaryReady');
+  completeExpeditionRoomEncounter(room.id);
+  return true;
+}
+
 function expeditionSpawnCell() {
   const cfg = expeditionConfig();
   const vents = levelDef(S.levelId)?.spawns || [];
@@ -6906,6 +7023,18 @@ function updateExpedition(dt) {
     ex.messageTime = Math.max(ex.messageTime || 0, 2.4);
   }
   updateExpeditionRoomEncounter();
+  if (ex.activeRoomId && ex.roomObjective?.type === 'terminal') {
+    const activeRoom = (cfg.rooms || []).find(candidate => candidate.id === ex.activeRoomId) || null;
+    const terminal = expeditionRoomTerminalCell(activeRoom);
+    if (terminal && !expeditionRoomTerminalPowered(ex.activeRoomId)) {
+      const radius = EXPEDITION_PROTOTYPE_TUNING.blackoutContainment.terminalInteractRadius || 86;
+      const tx = cx(terminal.c), ty = cy(terminal.r);
+      if (dist(S.hero.x, S.hero.y, tx, ty) <= radius) {
+        ex.prompt = 'Press E to restore power.';
+        ex.promptTime = .25;
+      }
+    }
+  }
 
   const riftDist = dist(S.hero.x, S.hero.y, cx(cfg.rift.c), cy(cfg.rift.r));
   if (!ex.riftFound && riftDist < 260) {
@@ -7070,6 +7199,7 @@ function resetCornerSkulls() {
 
 function expeditionLabSkullCells(room) {
   if (!room || room.id !== 'lab') return [];
+  if (room.skullCells?.length) return room.skullCells;
   return [
     { c: 40, r: 15 },
     { c: 48, r: 15 },
@@ -7087,10 +7217,21 @@ function spawnExpeditionLabSkulls(room) {
     ...createCornerSkull(`expeditionLabSkull${i}`, cx(cell.c), cy(cell.r), i * 1.13),
     expeditionRoomId: room.id,
     expeditionLabSkull: true,
+    containmentSkull: true,
+    blocksMovement: true,
     cell,
   }));
   S.cornerSkulls.push(...skulls);
   return skulls;
+}
+
+function destroyContainmentSkull(skull) {
+  if (!skull || skull.dead) return;
+  skull.dead = true;
+  burst(skull.x, skull.y, '#f3e3cf', 14, 'spark', 110);
+  burst(skull.x, skull.y, '#ff8a5a', 8, 'spark', 80);
+  boom(skull.x, skull.y, '#ff8a5a', 5);
+  floatText('PATH OPEN', skull.x - 30, skull.y - 24, '#ffe09c');
 }
 
 function spawnCornerGhost(skull) {
@@ -12653,6 +12794,54 @@ function hurtHero(dmg, cause = 'enemy shot', source = null) {
   ui();
 }
 
+function blackoutContainmentTuning() {
+  return EXPEDITION_PROTOTYPE_TUNING.blackoutContainment || {};
+}
+
+function applyBlackoutContainmentLavaToHero(dt) {
+  if (!isExpeditionRun() || !S.hero) return;
+  const lava = expeditionPointInLava(S.hero.x, S.hero.y);
+  if (!lava) {
+    S.hero.lavaCellKey = '';
+    S.hero.lavaDamageTick = 0;
+    return;
+  }
+  const hero = S.hero;
+  const cell = cellAt(hero.x, hero.y);
+  const lavaKey = key(cell.c, cell.r);
+  const tune = blackoutContainmentTuning();
+  if (hero.lavaCellKey !== lavaKey) {
+    hero.lavaCellKey = lavaKey;
+    hero.lavaDamageTick = tune.lavaTickSeconds || 2;
+    const damage = Math.max(1, Math.round((hero.hp || hero.max || 1) * (tune.lavaEntryHealthRatio || .34)));
+    hurtHero(damage, 'lava', { x: hero.x, y: hero.y });
+    floatText('LAVA', hero.x - 16, hero.y - 28, '#ffb15b');
+    burst(hero.x, hero.y, '#ff7f2a', 8, 'ember', 90);
+  } else {
+    hero.lavaDamageTick = Math.max(0, (hero.lavaDamageTick || 0) - dt);
+    if (hero.lavaDamageTick <= 0) {
+      hero.lavaDamageTick = tune.lavaTickSeconds || 2;
+      const damage = Math.max(10, Math.round((hero.max || hero.hp || 1) * (tune.lavaTickDamageRatio || .18)));
+      hurtHero(damage, 'lava', { x: hero.x, y: hero.y });
+    }
+  }
+}
+
+function applyBlackoutContainmentLavaToEnemy(e, dt) {
+  if (!isExpeditionRun() || !e || e.dead) return;
+  if (!expeditionPointInLava(e.x, e.y)) {
+    e.lavaTick = 0;
+    return;
+  }
+  e.lavaTick = Math.max(0, (e.lavaTick || 0) - dt);
+  e.slow = Math.max(e.slow || 0, .48);
+  if (e.lavaTick > 0) return;
+  e.lavaTick = .45;
+  hit(e, Math.max(8, (e.max || 20) * .12), null, false);
+  burst(e.x, e.y, '#ff7f2a', 4, 'ember', 40);
+  if (e.hp <= 0) kill(e, null, false);
+}
+
 function explodeBarrel(b) {
   if (b.dead) return;
   b.dead = true;
@@ -12744,6 +12933,7 @@ function heroStep(dt) {
   } else {
     h.scavengerHazardTick = 0;
   }
+  applyBlackoutContainmentLavaToHero(dt);
 
   h.inv     -= dt;
   h.cool    -= dt;
@@ -15935,7 +16125,14 @@ function projectiles(dt) {
     if (!s.dead && Array.isArray(S.cornerSkulls)) {
       for (const skull of S.cornerSkulls) {
         if (!skull.dead && dist(s.x, s.y, skull.x, skull.y) < (skull.rad || 17) + 5) {
-          if (s.weapon && !s.p2) {
+          if (skull.containmentSkull && s.weapon && !s.p2) {
+            skull.hp = Math.max(0, (skull.hp || 10) - 1);
+            skull.crack = Math.min(5, (skull.crack || 0) + 1);
+            skull.flash = 1;
+            boom(skull.x, skull.y, '#ff8a5a', 3);
+            floatText(`${skull.hp}/10`, skull.x - 12, skull.y - 22, '#ffffff');
+            if (skull.hp <= 0) destroyContainmentSkull(skull);
+          } else if (s.weapon && !s.p2) {
             skull.hp = Math.max(0, (skull.hp || 10) - 1);
             skull.crack = Math.min(5, (skull.crack || 0) + 1);
             skull.flash = 1;
@@ -16970,6 +17167,7 @@ function step(dt) {
   for (const e of S.enemies) {
     const oldX = e.x, oldY = e.y;
     enemyStep(e, dt);
+    applyBlackoutContainmentLavaToEnemy(e, dt);
     maybeWoundedTrail(e, oldX, oldY, dt);
   }
 
@@ -17382,6 +17580,26 @@ function drawExpeditionDressing(t) {
       ctx.font = 'bold 13px Georgia';
       ctx.fillText(room.name.toUpperCase(), x + 12, y + 22);
     }
+    if (room.id === 'lab') {
+      const powered = expeditionRoomTerminalPowered(room.id) || expeditionRoomState(room.id) === 'cleared';
+      for (const rect of expeditionRoomLavaRects(room)) {
+        const [lx1, ly1, lx2, ly2] = rect;
+        const lx = OX + lx1 * G;
+        const ly = OY + ly1 * G;
+        const lw = (lx2 - lx1 + 1) * G;
+        const lh = (ly2 - ly1 + 1) * G;
+        ctx.globalAlpha = powered ? .8 : .95;
+        ctx.fillStyle = powered ? '#ff7f2a' : '#ff5a2a';
+        ctx.fillRect(lx, ly, lw, lh);
+        ctx.globalAlpha = .42 + Math.sin(t * 7 + lx1) * .08;
+        ctx.fillStyle = '#ffd36b';
+        ctx.fillRect(lx + 6, ly + 8, lw - 12, lh - 16);
+        ctx.globalAlpha = .95;
+        ctx.strokeStyle = '#3b1208';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(lx + 2, ly + 2, lw - 4, lh - 4);
+      }
+    }
   }
 
   // Room identity props. These are simple canvas dressing, not gameplay systems.
@@ -17524,6 +17742,7 @@ function drawExpeditionObjects(t) {
   const ex = S.expedition;
   const cfg = expeditionConfig();
   if (!isExpeditionRun() || !ex || !cfg) return;
+  const activeRoom = (cfg.rooms || []).find(room => room.id === ex.activeRoomId) || expeditionRoomAtHero();
   const staticX = cx(cfg.rift.c);
   const staticY = cy(cfg.rift.r);
   const nearRift = ex.riftActivated || ex.riftFound || dist(S.hero.x, S.hero.y, staticX, staticY) < 360;
@@ -17597,6 +17816,38 @@ function drawExpeditionObjects(t) {
     ctx.fillText('EXTRACTION', exX, exY + 6);
     ctx.restore();
   }
+
+  const terminalRoom = (cfg.rooms || []).find(room => room.id === 'lab');
+  const terminal = expeditionRoomTerminalCell(terminalRoom);
+  if (terminal) {
+    const powered = expeditionRoomTerminalPowered(terminalRoom.id) || expeditionRoomState(terminalRoom.id) === 'cleared';
+    const tx = cx(terminal.c), ty = cy(terminal.r);
+    ctx.save();
+    ctx.translate(tx, ty);
+    ctx.fillStyle = '#1a1410';
+    ctx.fillRect(-24, -18, 48, 36);
+    ctx.strokeStyle = powered ? '#9fffc8' : '#8edcff';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(-24, -18, 48, 36);
+    ctx.fillStyle = powered ? '#9fffc8' : '#5cc6ff';
+    ctx.fillRect(-14, -8, 28, 16);
+    ctx.globalAlpha = powered ? .55 : .35 + Math.sin(t * 6) * .08;
+    ctx.fillStyle = powered ? '#d8ffd8' : '#9fe7ff';
+    ctx.beginPath();
+    ctx.arc(0, 0, powered ? 44 : 34, 0, 7);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    if (activeRoom?.id === terminalRoom.id && !powered && ex.roomObjective?.type === 'terminal') {
+      ctx.fillStyle = '#fff4d0';
+      ctx.strokeStyle = '#120805';
+      ctx.lineWidth = 4;
+      ctx.font = 'bold 11px Georgia';
+      ctx.textAlign = 'center';
+      ctx.strokeText('TERMINAL', 0, -28);
+      ctx.fillText('TERMINAL', 0, -28);
+    }
+    ctx.restore();
+  }
 }
 
 function expeditionDarkRoomTuning(room) {
@@ -17621,7 +17872,7 @@ function drawExpeditionDarkRooms(t) {
   const ex = S.expedition;
   const cfg = expeditionConfig();
   if (!isExpeditionRun() || !ex || !cfg) return;
-  const rooms = (cfg.rooms || []).filter(room => room.darkRoom);
+  const rooms = (cfg.rooms || []).filter(room => room.darkRoom && !expeditionRoomTerminalPowered(room.id) && expeditionRoomState(room.id) !== 'cleared');
   if (!rooms.length) return;
 
   ctx.save();
@@ -20749,7 +21000,7 @@ addEventListener('keydown', e => {
     return;
   }
   keys[e.key] = true; keys[e.key.toLowerCase()] = true; keys[e.code] = true;
-  if (e.key.toLowerCase() === 'e' && (tryToggleExpeditionRiftCarry() || tryActivateExpeditionRift())) { e.preventDefault(); return; }
+  if (e.key.toLowerCase() === 'e' && (tryActivateExpeditionRoomTerminal() || tryToggleExpeditionRiftCarry() || tryActivateExpeditionRift())) { e.preventDefault(); return; }
   const tKeys = S.loadout && S.loadout.length ? S.loadout : [];
   if (e.key >= '1' && e.key <= String(LOADOUT_MAX_SLOTS)) {
     const idx = +e.key - 1;
