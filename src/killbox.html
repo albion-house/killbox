@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Killbox 7.12.2-traona-fixes</title>
+<title>Killbox 7.14.1-dim-rift</title>
 <style>
 /* ── Design tokens ─────────────────────────────────────────────── */
 :root {
@@ -3267,7 +3267,7 @@ kbd {
   font-size: 12px; line-height: 1.5;
 }
 
-/* ── Killbox 7.12.2-traona-fixes ───────────────────── */
+/* ── Killbox 7.14.1-dim-rift ───────────────────── */
 /* Changelog: tightened loadout/hotbar card layout and replaced duplicate icon fallbacks. */
 #hireEngineer, #mpBox { display: none !important; }
 .debugHidden { display: none !important; }
@@ -4431,7 +4431,7 @@ h2,
           <kbd>U</kbd> upgrade &nbsp;
           <kbd>1</kbd>–<kbd>8</kbd> build
         </p>
-        <div class="sidebarFooter">Killbox <span id="sidebarVersion">7.12.2</span>. Still rude.</div>
+        <div class="sidebarFooter">Killbox <span id="sidebarVersion">7.14.1</span>. Still rude.</div>
       </div>
     </details>
     <details class="warRoomSection">
@@ -4458,8 +4458,8 @@ h2,
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.12.2</b>
-      <span id="warRoomBuildName">Traona Fixes</span>
+      <b id="warRoomVersion">v7.14.1</b>
+      <span id="warRoomBuildName">Dim Rift</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -4546,7 +4546,7 @@ h2,
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.12.2 Traona Fixes</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.14.1 Dim Rift</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -5037,7 +5037,7 @@ const LEVELS = {
         { id: 'entry', name: 'Entry', rect: [1, 19, 6, 24], color: '#6f6253' },
         { id: 'security', name: 'Security Checkpoint', rect: [6, 18, 14, 25], color: '#7a6f5c' },
         { id: 'barracks', name: 'Barracks', rect: [21, 16, 32, 25], color: '#6a4a3d' },
-        { id: 'lab', name: 'Laboratory Wing', rect: [38, 13, 51, 25], color: '#49656b' },
+        { id: 'lab', name: 'Laboratory Wing', rect: [38, 13, 51, 25], color: '#49656b', darkRoom: true },
         { id: 'chapel', name: 'Chapel', rect: [26, 5, 42, 13], color: '#5d526b' },
         { id: 'reactor', name: 'Reactor Complex', rect: [48, 26, 61, 36], color: '#6b5a39' },
         { id: 'flesh', name: 'Flesh Garden', rect: [18, 32, 37, 40], color: '#6f3d4a' },
@@ -5051,6 +5051,13 @@ const LEVELS = {
 const EXPEDITION_PROTOTYPE_TUNING = {
   roomScale: 2.0,
   enemyDensity: 1.5,
+  darkRooms: {
+    darknessAlpha: .82,
+    floorReadabilityAlpha: .18,
+    playerLightRadius: 155,
+    riftLightRadius: 250,
+    softEdge: 95,
+  },
 };
 function expeditionRoomScale() {
   return Math.max(1, Number(EXPEDITION_PROTOTYPE_TUNING.roomScale) || 1);
@@ -5694,8 +5701,8 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const BUILD_VERSION = '7.12.2';
-const BUILD_NAME = 'Traona Fixes';
+const BUILD_VERSION = '7.14.1';
+const BUILD_NAME = 'Dim Rift';
 function upgradeIcon(id, kind = 'generic') {
   const up = HERO_UPGRADES[id] || TRAP_UPGRADES[id] || BOSS_UPGRADES[id] || {};
   const explicit = up.targetIcon || up.targetItem || up.targetIconAlt || up.targetItemAlt;
@@ -6720,6 +6727,7 @@ function completeExpeditionRoomEncounter(roomId) {
   announceWave(`${room.name.toUpperCase()} CLEARED`, 'resting', .9);
   shockwave(S.hero.x, S.hero.y, '#b9d84f', 120, .3);
   burst(S.hero.x, S.hero.y, '#f0c96b', 16, 'spark', 160);
+  dropExpeditionRoomClearReward(room);
   rebuildPath();
   return true;
 }
@@ -7379,6 +7387,44 @@ function enemySeparationRadius(e) {
 }
 function enemyStuckLimit(e) {
   return isLargeEnemy(e) ? 0.42 : 1.1;
+}
+function enemyHeroPushStrength(e) {
+  if (!e || e.dead) return 0;
+  if (e.type === 'runner') return 74;
+  if (['grunt', 'slinger', 'healer', 'hexcaller', 'phase', 'sapper', 'bomber', 'splitter'].includes(e.type)) return 92;
+  if (['shield', 'warden', 'hunter'].includes(e.type)) return 122;
+  if (isLargeEnemy(e)) return e.type === 'slimeking' ? 210 : e.type === 'ogre' || e.type === 'siege' ? 178 : 156;
+  return 96;
+}
+function applyEnemyPushbackToHero(dt, canMoveTo) {
+  if (!S.started || S.gameOver || !S.hero || S.hero.spawnState === 'spawning' || S.hero.ghostGrabbed) return;
+  const h = S.hero;
+  const heroRad = 14 * (h.heroScale || 1);
+  let px = 0, py = 0, pressure = 0;
+  for (const e of S.enemies) {
+    if (!e || e.dead || (e.phaseActive || 0) > 0) continue;
+    const enemyRad = Math.max(e.rad || 10, enemyNavRadius(e));
+    const range = heroRad + enemyRad + 11;
+    const dRaw = dist(h.x, h.y, e.x, e.y);
+    if (dRaw >= range) continue;
+    const d = dRaw || 0.001;
+    const depth = 1 - d / range;
+    const strength = enemyHeroPushStrength(e) * (0.45 + depth * 0.85);
+    const fallback = Math.sin((e.x + e.y + performance.now()) * .01) >= 0 ? 1 : -1;
+    px += (dRaw ? (h.x - e.x) / d : fallback) * strength * depth;
+    py += (dRaw ? (h.y - e.y) / d : 0) * strength * depth;
+    pressure += depth;
+  }
+  const mag = Math.hypot(px, py);
+  if (mag <= 0) return;
+  const cap = (118 + Math.min(110, pressure * 34)) * dt;
+  const scale = Math.min(cap, mag * dt) / mag;
+  const mx = px * scale;
+  const my = py * scale;
+  const nx = clamp(h.x + mx, OX + 16, OX + COLS * G - 16);
+  const ny = clamp(h.y + my, OY + 16, OY + ROWS * G - 16);
+  if (mx && canMoveTo(nx, h.y)) h.x = nx;
+  if (my && canMoveTo(h.x, ny)) h.y = ny;
 }
 function reseedLargeEnemyPath(e, reason = 'stuck') {
   if (!isLargeEnemy(e)) return false;
@@ -12673,6 +12719,7 @@ function heroStep(dt) {
   const ny = clamp(h.y + my, OY + 16, OY + ROWS * G - 16);
   if (mx && tryMove(nx, h.y)) h.x = nx;
   if (my && tryMove(h.x, ny)) h.y = ny;
+  applyEnemyPushbackToHero(dt, tryMove);
   const inSlime = S.firePatches.some(f => f.slime && dist(h.x, h.y, f.x, f.y) < f.r + 14);
   const inPermanentSlime = scarAt(h.x, h.y, 'slime');
   if (inPermanentSlime) h.slimeScarVisualUntil = Math.max(h.slimeScarVisualUntil || 0, now + .35);
@@ -13573,6 +13620,89 @@ function dropExpeditionEliteReward(e) {
   floatText('TREASURE TEETH', e.x - 44, e.y - 42, '#ffcf6a');
   shockwave(e.x, e.y, powerupColor(type), 92, .28);
   console.log('[expedition] elite reward dropped', { enemy: e.type, reward: type });
+}
+
+function expeditionRoomRewardProfile(room) {
+  const def = expeditionEncounterDef(room);
+  const specialRooms = new Set(['lab', 'rift']);
+  const highThreatTypes = new Set(['brute', 'hexcaller', 'healer']);
+  if (specialRooms.has(room?.id)) {
+    return { tier: 3, label: 'SPECIAL ROOM REWARD', goldChance: .9, goldMin: 140, goldRange: 115 };
+  }
+  if (def.elite || def.nest || highThreatTypes.has(def.roomType || def.elite)) {
+    return { tier: 2, label: 'DANGER ROOM REWARD', goldChance: .72, goldMin: 90, goldRange: 90 };
+  }
+  return { tier: 1, label: 'ROOM REWARD', goldChance: .38, goldMin: 45, goldRange: 55 };
+}
+
+function expeditionRoomClearRewardType(profile) {
+  const tier = profile?.tier || 1;
+  const healthBias = S.hero.hp < S.hero.max * .45 ? 2.4 : S.hero.hp < S.hero.max * .75 ? 1.45 : 1;
+  const weights = tier >= 3 ? [
+    { type: 'frenzy', weight: 14 },
+    { type: 'haste', weight: 13 },
+    { type: 'freeze', weight: 12 },
+    { type: 'asColdAsLife', weight: 10 },
+    { type: 'rift', weight: 9 },
+    { type: 'bomb', weight: 11 },
+    { type: 'reset', weight: 9 },
+    { type: 'thunder', weight: 12 },
+    { type: 'orbital', weight: 12 },
+    { type: 'stampede', weight: 10 },
+    { type: 'bullethell', weight: 8 },
+    { type: 'blackhole', weight: 8 },
+    { type: 'tinyarmy', weight: 7 },
+    { type: 'goblinunion', weight: 7 },
+    { type: 'health', weight: 9 * healthBias },
+    { type: 'gold', weight: 7 },
+  ] : tier >= 2 ? [
+    { type: 'gold', weight: 22 },
+    { type: 'health', weight: 18 * healthBias },
+    { type: 'frenzy', weight: 13 },
+    { type: 'haste', weight: 12 },
+    { type: 'freeze', weight: 11 },
+    { type: 'asColdAsLife', weight: 8 },
+    { type: 'rift', weight: 8 },
+    { type: 'bomb', weight: 8 },
+    { type: 'reset', weight: 6 },
+    { type: 'thunder', weight: 5 },
+    { type: 'orbital', weight: 5 },
+    { type: 'stampede', weight: 4 },
+  ] : [
+    { type: 'gold', weight: 36 },
+    { type: 'health', weight: 28 * healthBias },
+    { type: 'frenzy', weight: 6 },
+    { type: 'haste', weight: 6 },
+    { type: 'freeze', weight: 5 },
+    { type: 'rift', weight: 3 },
+  ];
+  const total = weights.reduce((n, w) => n + w.weight, 0);
+  let roll = Math.random() * total;
+  for (const w of weights) {
+    roll -= w.weight;
+    if (roll <= 0) return w.type;
+  }
+  return 'gold';
+}
+
+function dropExpeditionRoomClearReward(room) {
+  if (!isExpeditionRun() || !room) return;
+  const profile = expeditionRoomRewardProfile(room);
+  const type = expeditionRoomClearRewardType(profile);
+  let x = clamp(S.hero.x + (Math.random() - .5) * 72, OX + 24, OX + COLS * G - 24);
+  let y = clamp(S.hero.y + (Math.random() - .5) * 72, OY + 24, OY + ROWS * G - 24);
+  const cell = cellAt(x, y);
+  if (!canHeroEnterCell(cell.c, cell.r)) {
+    x = S.hero.x;
+    y = S.hero.y;
+  }
+  dropPowerup(x, y, type);
+  if (profile.tier >= 3) dropPowerup(x + 24, y - 18, expeditionRoomClearRewardType(profile));
+  if (Math.random() < profile.goldChance) awardGoldCache(profile.goldMin + Math.random() * profile.goldRange, x + 10, y - 10, `room clear:${room.id}:tier${profile.tier}`);
+  floatText(profile.label, x - 50, y - 34, profile.tier >= 3 ? '#f0b8ff' : profile.tier >= 2 ? '#ffcf6a' : '#f4c24f');
+  shockwave(x, y, powerupColor(type), profile.tier >= 3 ? 136 : profile.tier >= 2 ? 118 : 96, .3);
+  burst(x, y, profile.tier >= 3 ? '#f0b8ff' : '#f0c96b', 10 + profile.tier * 4, 'spark', 130 + profile.tier * 35);
+  console.log('[expedition] room reward dropped', { room: room.id, reward: type, tier: profile.tier });
 }
 
 function dropPowerup(x, y, type = 'health', full = false) {
@@ -17141,6 +17271,7 @@ function draw(t) {
   S.parts.forEach(drawParticle);
   S.healthOrbs.forEach(o => drawHealthOrb(o, t));
   drawTempEffects(t);
+  drawExpeditionDarkRooms(t);
 
   // Floating text
   for (const q of S.texts) {
@@ -17466,6 +17597,80 @@ function drawExpeditionObjects(t) {
     ctx.fillText('EXTRACTION', exX, exY + 6);
     ctx.restore();
   }
+}
+
+function expeditionDarkRoomTuning(room) {
+  return {
+    ...(EXPEDITION_PROTOTYPE_TUNING.darkRooms || {}),
+    ...(room?.darkness || {}),
+  };
+}
+
+function drawExpeditionDarkLight(maskCtx, x, y, radius, softEdge) {
+  const inner = Math.max(24, radius - softEdge);
+  const g = maskCtx.createRadialGradient(x, y, inner, x, y, radius);
+  g.addColorStop(0, 'rgba(0,0,0,1)');
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  maskCtx.fillStyle = g;
+  maskCtx.beginPath();
+  maskCtx.arc(x, y, radius, 0, 7);
+  maskCtx.fill();
+}
+
+function drawExpeditionDarkRooms(t) {
+  const ex = S.expedition;
+  const cfg = expeditionConfig();
+  if (!isExpeditionRun() || !ex || !cfg) return;
+  const rooms = (cfg.rooms || []).filter(room => room.darkRoom);
+  if (!rooms.length) return;
+
+  ctx.save();
+  for (const room of rooms) {
+    const [x1, y1, x2, y2] = room.rect || [];
+    const x = OX + x1 * G;
+    const y = OY + y1 * G;
+    const w = (x2 - x1 + 1) * G;
+    const h = (y2 - y1 + 1) * G;
+    const tune = expeditionDarkRoomTuning(room);
+    const mask = drawExpeditionDarkRooms.maskCanvas || (drawExpeditionDarkRooms.maskCanvas = document.createElement('canvas'));
+    const maskCtx = drawExpeditionDarkRooms.maskCtx || (drawExpeditionDarkRooms.maskCtx = mask.getContext('2d'));
+    const maskW = Math.max(1, Math.ceil(w));
+    const maskH = Math.max(1, Math.ceil(h));
+    if (mask.width !== maskW || mask.height !== maskH) {
+      mask.width = maskW;
+      mask.height = maskH;
+    }
+    maskCtx.clearRect(0, 0, maskW, maskH);
+    maskCtx.globalCompositeOperation = 'source-over';
+    maskCtx.globalAlpha = tune.darknessAlpha ?? .82;
+    maskCtx.fillStyle = '#020407';
+    maskCtx.fillRect(0, 0, maskW, maskH);
+
+    maskCtx.globalCompositeOperation = 'destination-out';
+    maskCtx.globalAlpha = 1;
+    drawExpeditionDarkLight(maskCtx, S.hero.x - x, S.hero.y - y, tune.playerLightRadius || 155, tune.softEdge || 95);
+    if (ex.riftActivated && ex.rift) {
+      drawExpeditionDarkLight(maskCtx, ex.rift.x - x, ex.rift.y - y, tune.riftLightRadius || 355, tune.softEdge || 95);
+    }
+    maskCtx.globalCompositeOperation = 'source-over';
+    maskCtx.globalAlpha = 1;
+
+    ctx.drawImage(mask, x, y);
+    ctx.globalAlpha = tune.floorReadabilityAlpha ?? .18;
+    ctx.fillStyle = room.color || '#49656b';
+    ctx.fillRect(x, y, w, h);
+    ctx.globalAlpha = .58;
+    ctx.strokeStyle = '#9eb6bd';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(x + 4, y + 4, w - 8, h - 8);
+    ctx.globalAlpha = .24 + Math.sin(t * 3) * .04;
+    ctx.strokeStyle = '#8edcff';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([16, 12]);
+    ctx.strokeRect(x + 14, y + 14, w - 28, h - 28);
+    ctx.setLineDash([]);
+  }
+  ctx.restore();
 }
 
 function drawExpeditionHud(t) {
