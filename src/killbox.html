@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Killbox 7.9.1-weapons-first</title>
+<title>Killbox 7.9.2-rift-carry</title>
 <style>
 /* ── Design tokens ─────────────────────────────────────────────── */
 :root {
@@ -3267,7 +3267,7 @@ kbd {
   font-size: 12px; line-height: 1.5;
 }
 
-/* ── Killbox 7.9.1-weapons-first ───────────────────── */
+/* ── Killbox 7.9.2-rift-carry ───────────────────── */
 /* Changelog: tightened loadout/hotbar card layout and replaced duplicate icon fallbacks. */
 #hireEngineer, #mpBox { display: none !important; }
 .debugHidden { display: none !important; }
@@ -4430,7 +4430,7 @@ h2,
           <kbd>U</kbd> upgrade &nbsp;
           <kbd>1</kbd>–<kbd>8</kbd> build
         </p>
-        <div class="sidebarFooter">Killbox <span id="sidebarVersion">7.9.1</span>. Still rude.</div>
+        <div class="sidebarFooter">Killbox <span id="sidebarVersion">7.9.2</span>. Still rude.</div>
       </div>
     </details>
     <details class="warRoomSection">
@@ -4457,8 +4457,8 @@ h2,
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.9.1</b>
-      <span id="warRoomBuildName">Weapons First</span>
+      <b id="warRoomVersion">v7.9.2</b>
+      <span id="warRoomBuildName">Rift Carry</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -4545,7 +4545,7 @@ h2,
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.9.1 Weapons First</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.9.2 Rift Carry</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -5643,8 +5643,8 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const BUILD_VERSION = '7.9.1';
-const BUILD_NAME = 'Weapons First';
+const BUILD_VERSION = '7.9.2';
+const BUILD_NAME = 'Rift Carry';
 function upgradeIcon(id, kind = 'generic') {
   const up = HERO_UPGRADES[id] || TRAP_UPGRADES[id] || BOSS_UPGRADES[id] || {};
   const explicit = up.targetIcon || up.targetItem || up.targetIconAlt || up.targetItemAlt;
@@ -5886,6 +5886,9 @@ function isBlockedTerrain(c, r) { return blockedTerrain.has(key(c, r)); }
 function isExpeditionLevel(levelId = LEVEL_ID) { return LEVELS[levelId]?.mode === 'expedition'; }
 function isExpeditionRun() { return !!S.started && isExpeditionLevel(S.levelId); }
 function expeditionConfig() { return LEVELS[S.levelId]?.expedition || null; }
+function isCarryingExpeditionRift() {
+  return !!(isExpeditionRun() && S.expedition?.riftActivated && S.expedition?.riftCarried);
+}
 function occupied(c, r) { return S.barriers.some(b => b.c === c && b.r === r) || S.barrels.some(b => b.c === c && b.r === r) || S.towers.some(t => t.c === c && t.r === r); }
 function blocked(c, r) { return isExpeditionRoomBlockedCell(c, r) || S.barriers.some(b => b.c === c && b.r === r) || S.towers.some(t => t.onRoad && !TOWERS[t.type].trap && t.c === c && t.r === r); }
 function riftBlockingOccupied(c, r) {
@@ -6218,7 +6221,7 @@ function resetExpeditionState() {
 
 function isWithinExpeditionRiftBuildRadius(px, py) {
   if (!isExpeditionRun()) return true;
-  if (S.expedition?.riftCarried) return false;
+  if (isCarryingExpeditionRift()) return false;
   const cfg = expeditionConfig();
   const radius = cfg?.buildRadius || 260;
   const rift = S.expedition?.rift;
@@ -6475,7 +6478,7 @@ function damageExpeditionRift(e, dt) {
   const ex = S.expedition;
   const rift = ex?.rift;
   const cfg = expeditionConfig();
-  if (!isExpeditionRun() || !rift || ex?.riftCarried || !e || e.dead || e.expeditionTarget !== 'rift') return false;
+  if (!isExpeditionRun() || !rift || isCarryingExpeditionRift() || !e || e.dead || e.expeditionTarget !== 'rift') return false;
   const d = dist(e.x, e.y, rift.x, rift.y);
   if (d >= (e.rad || 12) + 42) return false;
   if (S.devRiftNoHpLoss) {
@@ -6750,7 +6753,7 @@ function updateExpedition(dt) {
   }
 
   const rift = ex.rift;
-  if (ex.riftCarried) {
+  if (isCarryingExpeditionRift()) {
     rift.x = S.hero.x;
     rift.y = S.hero.y;
   }
@@ -6761,7 +6764,7 @@ function updateExpedition(dt) {
     ex.reinforceTimer = 2.8 + Math.random() * 3.2;
   }
 
-  if (!ex.riftCarried) {
+  if (!isCarryingExpeditionRift()) {
     for (const e of S.enemies) damageExpeditionRift(e, dt);
   }
   if (rift.hp <= 0) {
@@ -6769,7 +6772,7 @@ function updateExpedition(dt) {
     return;
   }
 
-  if (!ex.riftCarried && dist(rift.x, rift.y, cx(cfg.extraction.c), cy(cfg.extraction.r)) < 90) completeExpedition();
+  if (!isCarryingExpeditionRift() && dist(rift.x, rift.y, cx(cfg.extraction.c), cy(cfg.extraction.r)) < 90) completeExpedition();
 }
 
 function clearWorldForDebugWarp() {
@@ -8435,14 +8438,14 @@ function developerOverlayText() {
   const ex = S.expedition;
   const roomId = ex?.activeRoomId || expeditionRoomAtHero()?.id || 'none';
   const roomState = roomId !== 'none' ? expeditionRoomState(roomId) : 'none';
-  const coreHp = ex?.rift ? `${Math.round(ex.rift.hp)} / ${Math.round(ex.rift.max)}` : 'n/a';
+  const riftHp = ex?.rift ? `${Math.round(ex.rift.hp)} / ${Math.round(ex.rift.max)}` : 'n/a';
   const hunters = S.enemies.filter(e => !e.dead && e.expeditionTarget === 'rift').length;
   return [
     `MISSION: ${isExpeditionRun() ? 'EXPEDITION' : 'ARENA'}`,
     `LEVEL: ${S.levelId}`,
     `ROOM: ${String(roomId).toUpperCase()}`,
     `ROOM STATE: ${String(roomState).toUpperCase()}`,
-    `CORE HP: ${coreHp}${ex?.riftCarried ? ' CARRIED' : ''}`,
+    `RIFT HP: ${riftHp}${ex?.riftCarried ? ' CARRYING RIFT' : ''}`,
     `ENEMIES: ${S.enemies.filter(e => !e.dead).length}`,
     `RIFT HUNTERS: ${hunters}`,
     `MONEY: ${Math.floor(S.gold)}`,
@@ -8466,7 +8469,7 @@ function renderWarRoomStatus() {
   const roomState = roomId !== 'none' ? expeditionRoomState(roomId) : 'none';
   const objective = missionObjectiveText();
   const bossActive = !!(S.bossActive || S.bossSpawned || S.enemies.some(e => !e.dead && (e.type === 'slimeking' || e.boss)));
-  const coreHp = ex?.rift ? `${Math.round(ex.rift.hp)} / ${Math.round(ex.rift.max)}` : 'n/a';
+  const riftHp = ex?.rift ? `${Math.round(ex.rift.hp)} / ${Math.round(ex.rift.max)}` : 'n/a';
   const rows = expeditionMode
     ? [
         ['Mission', 'EXPEDITION'],
@@ -8474,7 +8477,7 @@ function renderWarRoomStatus() {
         ['State', String(roomState).toUpperCase()],
         ['Enemies', String(enemies)],
         ['Hunters', String(hunters)],
-        ['Rift HP', `${coreHp}${ex?.riftCarried ? ' CARRIED' : ''}`],
+        ['Rift HP', `${riftHp}${ex?.riftCarried ? ' CARRYING RIFT' : ''}`],
         ['Objective', objective],
       ]
     : [
@@ -9874,7 +9877,7 @@ function renderWaveStatus() {
   if (!box || !text) return;
   box.classList.remove('resting', 'danger');
   if (isExpeditionRun()) {
-    text.textContent = S.expedition?.riftActivated ? 'Escort' : 'Explore';
+    text.textContent = isCarryingExpeditionRift() ? 'Carrying' : S.expedition?.riftActivated ? 'Escort' : 'Explore';
     if (S.expedition?.riftActivated) box.classList.add('danger');
   } else if (!S.started) {
     text.textContent = 'Ready';
@@ -10272,7 +10275,7 @@ function canBuild(px, py) {
   if (!canBuildOnCell(c, r)) return false;
   if (isExpeditionRoomBlockedCell(c, r)) return false;
   if (WEAPONS[S.selected] || isTrinketItem(S.selected)) return false;
-  if (isExpeditionRun() && S.expedition?.riftCarried) return false;
+  if (isCarryingExpeditionRift()) return false;
   if (!isWithinExpeditionRiftBuildRadius(px, py)) return false;
   if (SPAWN_POINTS.some(sp => sp && c === sp.c && r === sp.r)) return false;
   if ((c === GOAL.c && r === GOAL.r)) return false;
@@ -10305,7 +10308,7 @@ function place(px, py) {
   const d = TOWERS[S.selected];
   if (!d) return;
   if (WEAPONS[S.selected] || isTrinketItem(S.selected)) return;
-  if (isExpeditionRun() && S.expedition?.riftCarried) return toast('Deploy the Rift first.');
+  if (isCarryingExpeditionRift()) return toast('Deploy the Rift first.');
   if (!isWithinExpeditionRiftBuildRadius(px, py)) return toast('Too far from the Rift.');
   if (!canBuild(px, py)) return;
   const { c, r } = getSnappedBuildTile(px, py);
@@ -12509,10 +12512,19 @@ function heroStep(dt) {
   if (prevSecondaryCd > 0 && h.secondaryCd <= 0) playSfx('secondaryReady');
   if (h.charging) h.charge = Math.min(1, h.charge + dt * 0.62);
 
-  if (mouse.down && h.weaponCd <= 0 && canHeroUseWeapon() && !h.charging && !S.selected && !h.ghostGrabbed) shootHero();
+  if (isCarryingExpeditionRift()) {
+    h.charging = false;
+    h.charge = 0;
+    if (mouse.down && !S.selected && !h.ghostGrabbed) showRiftCarryFireBlockedFeedback();
+  }
+  if (!isCarryingExpeditionRift() && mouse.down && h.weaponCd <= 0 && canHeroUseWeapon() && !h.charging && !S.selected && !h.ghostGrabbed) shootHero();
 }
 
 function shootHero() {
+  if (isCarryingExpeditionRift()) {
+    showRiftCarryFireBlockedFeedback();
+    return;
+  }
   if (!canHeroUseWeapon()) return;
   const h = S.hero;
   const w = WEAPONS[h.weapon] || WEAPONS.blunderbuss;
@@ -12548,8 +12560,25 @@ function canHeroUseWeapon() {
     && (S.phase === 'combat' || isExpeditionRun());
 }
 
+function showRiftCarryFireBlockedFeedback() {
+  const h = S.hero;
+  if (!h) return;
+  const now = performance.now() / 1000;
+  h.riftCarryFireFeedbackUntil = Math.max(h.riftCarryFireFeedbackUntil || 0, now + .65);
+  h.charging = false;
+  h.charge = 0;
+  if ((h.riftCarryFireFeedbackCd || 0) > now) return;
+  h.riftCarryFireFeedbackCd = now + .45;
+  floatText('HANDS FULL', h.x - 34, h.y - 36, '#8edcff');
+  playSfx('secondaryReady');
+}
+
 function weaponSecondaryDown() {
   const h = S.hero;
+  if (isCarryingExpeditionRift()) {
+    showRiftCarryFireBlockedFeedback();
+    return;
+  }
   if (!canHeroUseWeapon()) return;
   const w = WEAPONS[h.weapon] || WEAPONS.blunderbuss;
   const m = getMouseWorldPosition();
@@ -12571,6 +12600,14 @@ function weaponSecondaryDown() {
 
 function weaponSecondaryUp() {
   const h = S.hero;
+  if (isCarryingExpeditionRift()) {
+    showRiftCarryFireBlockedFeedback();
+    if (h) {
+      h.charging = false;
+      h.charge = 0;
+    }
+    return;
+  }
   if (h.weapon !== 'ranger' || !h.charging) return;
   if (!canHeroUseWeapon()) {
     h.charging = false;
@@ -16898,12 +16935,12 @@ function drawExpeditionObjects(t) {
     }
     ctx.fillStyle = '#1a070f';
     ctx.fillRect(ex.rift.x - 58, ex.rift.y - 90, 116, 8);
-    ctx.fillStyle = pct > .45 ? '#e6b8ff' : '#ff7b7b';
+    ctx.fillStyle = ex.riftCarried ? '#8edcff' : pct > .45 ? '#e6b8ff' : '#ff7b7b';
     ctx.fillRect(ex.rift.x - 58, ex.rift.y - 90, 116 * pct, 8);
     ctx.fillStyle = '#fff4ff';
     ctx.font = 'bold 11px Georgia';
     ctx.textAlign = 'center';
-    ctx.fillText('CORE', ex.rift.x, ex.rift.y - 98);
+    ctx.fillText(ex.riftCarried ? 'CARRYING RIFT' : 'RIFT', ex.rift.x, ex.rift.y - 98);
     ctx.restore();
 
     const exX = cx(cfg.extraction.c);
@@ -16968,11 +17005,11 @@ function drawExpeditionHud(t) {
   ctx.fillText(`${ex.discoveredCount || 0} cells mapped`, x + 10, y + h - 10);
   ctx.restore();
 
-  const title = ex.riftActivated ? (ex.riftCarried ? 'CARRYING THE CORE' : 'ESCORT THE CORE') : 'FIND THE CORE';
+  const title = ex.riftActivated ? (ex.riftCarried ? 'CARRYING RIFT' : 'ESCORT THE RIFT') : 'FIND THE RIFT';
   const body = ex.roomObjective?.label
     ? `ROOM SEALED: ${ex.roomObjective.label}`
     : ex.riftActivated
-      ? ex.riftCarried ? 'Deploy the Rift to build defenses.' : 'Press E near the Rift to carry it.'
+      ? ex.riftCarried ? 'Hands full. Cannot fire.' : 'Press E near the Rift to carry it.'
       : 'No compass. No marker. Build defenses that may save the return trip.';
   ctx.save();
   ctx.textAlign = 'center';
@@ -16997,6 +17034,13 @@ function drawExpeditionHud(t) {
     ctx.fillStyle = '#f0b8ff';
     ctx.strokeText(ex.prompt, W / 2, H - 178);
     ctx.fillText(ex.prompt, W / 2, H - 178);
+  }
+  if ((S.hero?.riftCarryFireFeedbackUntil || 0) > performance.now() / 1000) {
+    const feedbackY = (ex.messageTime || 0) > 0 && ex.message ? 172 : 146;
+    ctx.font = '900 16px Arial';
+    ctx.fillStyle = '#8edcff';
+    ctx.strokeText('Hands full. Cannot fire.', W / 2, feedbackY);
+    ctx.fillText('Hands full. Cannot fire.', W / 2, feedbackY);
   }
   ctx.restore();
 }
