@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Killbox 7.15.0-blackout-room</title>
+<title>Killbox 7.15.1-blind-paths</title>
 <style>
 /* ── Design tokens ─────────────────────────────────────────────── */
 :root {
@@ -3267,7 +3267,7 @@ kbd {
   font-size: 12px; line-height: 1.5;
 }
 
-/* ── Killbox 7.15.0-blackout-room ───────────────────── */
+/* ── Killbox 7.15.1-blind-paths ───────────────────── */
 /* Changelog: tightened loadout/hotbar card layout and replaced duplicate icon fallbacks. */
 #hireEngineer, #mpBox { display: none !important; }
 .debugHidden { display: none !important; }
@@ -4431,7 +4431,7 @@ h2,
           <kbd>U</kbd> upgrade &nbsp;
           <kbd>1</kbd>–<kbd>8</kbd> build
         </p>
-        <div class="sidebarFooter">Killbox <span id="sidebarVersion">7.15.0</span>. Still rude.</div>
+        <div class="sidebarFooter">Killbox <span id="sidebarVersion">7.15.1</span>. Still rude.</div>
       </div>
     </details>
     <details class="warRoomSection">
@@ -4458,8 +4458,8 @@ h2,
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.15.0</b>
-      <span id="warRoomBuildName">Blackout Room</span>
+      <b id="warRoomVersion">v7.15.1</b>
+      <span id="warRoomBuildName">Blind Paths</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -4546,7 +4546,7 @@ h2,
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.15.0 Blackout Room</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.15.1 Blind Paths</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -5043,28 +5043,94 @@ const LEVELS = {
           rect: [38, 13, 51, 25],
           color: '#49656b',
           darkRoom: true,
-          terminal: { c: 49, r: 16 },
+          darkness: {
+            darknessAlpha: .95,
+            floorReadabilityAlpha: .08,
+            playerLightRadius: 78,
+            riftLightRadius: 250,
+            softEdge: 65,
+          },
+          terminal: { c: 48, r: 16 },
           lavaRects: [
-            [43, 14, 44, 18],
-            [43, 21, 44, 24],
-            [47, 16, 48, 20],
-            [47, 23, 48, 24],
+            [38, 13, 51, 14],
+            [50, 15, 51, 23],
+            [40, 24, 51, 25],
+            [38, 15, 39, 18],
+            [38, 23, 39, 23],
+            [42, 16, 44, 17],
+            [42, 20, 44, 21],
+            [46, 15, 46, 15],
+            [46, 17, 46, 19],
+            [47, 18, 49, 18],
+            [45, 22, 47, 23],
+            [48, 20, 49, 22],
           ],
           skullCells: [
             { c: 40, r: 15 },
             { c: 40, r: 16 },
             { c: 40, r: 17 },
+            { c: 40, r: 18 },
+            { c: 40, r: 22 },
+            { c: 40, r: 23 },
+            { c: 41, r: 15 },
+            { c: 41, r: 16 },
+            { c: 41, r: 17 },
             { c: 41, r: 18 },
-            { c: 41, r: 20 },
-            { c: 41, r: 21 },
+            { c: 41, r: 19 },
+            { c: 41, r: 22 },
+            { c: 41, r: 23 },
+            { c: 42, r: 15 },
+            { c: 42, r: 16 },
+            { c: 42, r: 17 },
+            { c: 42, r: 18 },
+            { c: 42, r: 19 },
+            { c: 42, r: 21 },
             { c: 42, r: 22 },
+            { c: 42, r: 23 },
+            { c: 43, r: 15 },
+            { c: 43, r: 16 },
+            { c: 43, r: 17 },
+            { c: 43, r: 18 },
+            { c: 43, r: 19 },
+            { c: 43, r: 20 },
+            { c: 43, r: 21 },
+            { c: 43, r: 22 },
+            { c: 43, r: 23 },
             { c: 44, r: 19 },
+            { c: 44, r: 15 },
+            { c: 44, r: 16 },
+            { c: 44, r: 17 },
+            { c: 44, r: 18 },
+            { c: 44, r: 20 },
+            { c: 44, r: 21 },
+            { c: 44, r: 22 },
+            { c: 44, r: 23 },
             { c: 45, r: 19 },
+            { c: 45, r: 15 },
+            { c: 45, r: 16 },
+            { c: 45, r: 17 },
+            { c: 45, r: 18 },
+            { c: 45, r: 20 },
+            { c: 45, r: 21 },
+            { c: 45, r: 23 },
             { c: 46, r: 19 },
+            { c: 46, r: 20 },
+            { c: 46, r: 21 },
+            { c: 46, r: 22 },
+            { c: 46, r: 23 },
+            { c: 47, r: 19 },
+            { c: 47, r: 20 },
             { c: 48, r: 21 },
+            { c: 47, r: 21 },
+            { c: 47, r: 22 },
+            { c: 47, r: 23 },
+            { c: 48, r: 19 },
+            { c: 48, r: 23 },
+            { c: 49, r: 19 },
+            { c: 49, r: 20 },
+            { c: 49, r: 21 },
             { c: 49, r: 22 },
-            { c: 50, r: 22 },
-            { c: 46, r: 24 },
+            { c: 49, r: 23 },
           ],
         },
         { id: 'chapel', name: 'Chapel', rect: [26, 5, 42, 13], color: '#5d526b' },
@@ -5739,8 +5805,8 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const BUILD_VERSION = '7.15.0';
-const BUILD_NAME = 'Blackout Room';
+const BUILD_VERSION = '7.15.1';
+const BUILD_NAME = 'Blind Paths';
 function upgradeIcon(id, kind = 'generic') {
   const up = HERO_UPGRADES[id] || TRAP_UPGRADES[id] || BOSS_UPGRADES[id] || {};
   const explicit = up.targetIcon || up.targetItem || up.targetIconAlt || up.targetItemAlt;
