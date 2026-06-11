@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Killbox 7.12.1-tunnel-rooms</title>
+<title>Killbox 7.12.2-traona-fixes</title>
 <style>
 /* ── Design tokens ─────────────────────────────────────────────── */
 :root {
@@ -3267,7 +3267,7 @@ kbd {
   font-size: 12px; line-height: 1.5;
 }
 
-/* ── Killbox 7.12.1-tunnel-rooms ───────────────────── */
+/* ── Killbox 7.12.2-traona-fixes ───────────────────── */
 /* Changelog: tightened loadout/hotbar card layout and replaced duplicate icon fallbacks. */
 #hireEngineer, #mpBox { display: none !important; }
 .debugHidden { display: none !important; }
@@ -4431,7 +4431,7 @@ h2,
           <kbd>U</kbd> upgrade &nbsp;
           <kbd>1</kbd>–<kbd>8</kbd> build
         </p>
-        <div class="sidebarFooter">Killbox <span id="sidebarVersion">7.12.1</span>. Still rude.</div>
+        <div class="sidebarFooter">Killbox <span id="sidebarVersion">7.12.2</span>. Still rude.</div>
       </div>
     </details>
     <details class="warRoomSection">
@@ -4458,8 +4458,8 @@ h2,
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.12.1</b>
-      <span id="warRoomBuildName">Tunnel Rooms</span>
+      <b id="warRoomVersion">v7.12.2</b>
+      <span id="warRoomBuildName">Traona Fixes</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -4546,7 +4546,7 @@ h2,
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.12.1 Tunnel Rooms</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.12.2 Traona Fixes</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -5042,7 +5042,7 @@ const LEVELS = {
         { id: 'reactor', name: 'Reactor Complex', rect: [48, 26, 61, 36], color: '#6b5a39' },
         { id: 'flesh', name: 'Flesh Garden', rect: [18, 32, 37, 40], color: '#6f3d4a' },
         { id: 'rift', name: 'Rift Chamber', rect: [45, 2, 62, 14], color: '#483d77' },
-        { id: 'maintenance', name: 'Maintenance Tunnels', rect: [6, 33, 18, 37], color: '#3f4e52' },
+        { id: 'maintenance', name: 'Maintenance Tunnels', rect: [6, 33, 18, 40], color: '#3f4e52' },
         { id: 'extraction', name: 'Extraction Pad', rect: [2, 34, 9, 40], color: '#516b58' },
       ],
     },
@@ -5694,8 +5694,8 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const BUILD_VERSION = '7.12.1';
-const BUILD_NAME = 'Tunnel Rooms';
+const BUILD_VERSION = '7.12.2';
+const BUILD_NAME = 'Traona Fixes';
 function upgradeIcon(id, kind = 'generic') {
   const up = HERO_UPGRADES[id] || TRAP_UPGRADES[id] || BOSS_UPGRADES[id] || {};
   const explicit = up.targetIcon || up.targetItem || up.targetIconAlt || up.targetItemAlt;
@@ -6436,7 +6436,16 @@ function waitBehindLockedDoor(e, rb = null) {
   e.slow = Math.max(e.slow || 0, .45);
   if (rb && (e.lockedDoorRetargetAt || 0) <= now) {
     e.lockedDoorRetargetAt = now + .9;
-    retargetExpeditionEnemy(e, 'room-blocker');
+    const start = cellAt(e.x, e.y);
+    e.path = [
+      { c: start.c, r: start.r, x: e.x, y: e.y },
+      { c: rb.c, r: rb.r, x: rb.x, y: rb.y },
+    ];
+    e.node = 0;
+    e.off = 0;
+    e.navStuck = 0;
+    e.wildMode = 'path';
+    e.wildTimer = .2;
   }
   return true;
 }
@@ -6444,6 +6453,19 @@ function waitBehindLockedDoor(e, rb = null) {
 function enemyWaitingBehindLockedDoor(e) {
   if (!isExpeditionRun() || !S.expedition?.activeRoomId || !S.expedition?.roomBlockers?.length || !e || e.dead) return false;
   return (e.lockedDoorWaitUntil || 0) > performance.now() / 1000;
+}
+
+function maybeWaitAtLockedExpeditionDoor(e) {
+  const room = activeLockedExpeditionRoom();
+  const blockers = S.expedition?.roomBlockers || [];
+  if (!room || !blockers.length || !e || e.dead || e.expeditionRoomId === room.id) return false;
+  const target = expeditionEnemyTargetCell(e);
+  if (!expeditionRoomContainsCell(room, target.c, target.r) || expeditionRoomContainsPoint(room, e.x, e.y)) return false;
+  const rb = blockers
+    .map(b => ({ b, d: dist(e.x, e.y, b.x, b.y) }))
+    .sort((a, b) => a.d - b.d)[0];
+  if (!rb || rb.d > 180) return false;
+  return waitBehindLockedDoor(e, rb.b);
 }
 
 function expeditionRoomCanThreatenRift(room) {
@@ -10448,7 +10470,6 @@ function canBuild(px, py) {
   if (!isWithinExpeditionRiftBuildRadius(px, py)) return false;
   if (SPAWN_POINTS.some(sp => sp && c === sp.c && r === sp.r)) return false;
   if ((c === GOAL.c && r === GOAL.r)) return false;
-  if (S.selected === 'cauldron' && isRoad(c, r)) return false;
   if (S.selected === 'barrier' || S.selected === 'barrel')
     return isRoad(c, r) && !occupied(c, r);
   if (d.trap) {
@@ -10478,7 +10499,7 @@ function place(px, py) {
   if (!d) return;
   if (WEAPONS[S.selected] || isTrinketItem(S.selected)) return;
   if (isCarryingExpeditionRift()) return toast('Deploy the Rift first.');
-  if (!isWithinExpeditionRiftBuildRadius(px, py)) return toast('Too far from the Rift.');
+  if (!isWithinExpeditionRiftBuildRadius(px, py)) return toast('Dude, you can only plant inside the Rift Ring.');
   if (!canBuild(px, py)) return;
   const { c, r } = getSnappedBuildTile(px, py);
   if (!S.devUnlimitedGold && S.gold < d.c) return toast('Not enough gold.');
@@ -14931,6 +14952,12 @@ function updateBroodCarrierBehavior(e, dt) {
     child.val = Math.max(1, Math.floor((e.val || 8) * .18));
     child.broodling = true;
     child.wild = true;
+    child.expeditionRoomId = e.expeditionRoomId;
+    child.expeditionEncounter = e.expeditionEncounter;
+    child.expeditionSpawn = e.expeditionSpawn;
+    child.expeditionTarget = e.expeditionTarget || child.expeditionTarget;
+    child.riftHunter = e.riftHunter;
+    child.expeditionRetargetTimer = 0;
   }
   floatText('BROOD', e.x - 20, e.y - e.rad - 22, '#b9d84f');
   burst(e.x, e.y, '#b9d84f', 10, 'goo', 120);
@@ -14969,6 +14996,7 @@ function enemyStep(e, dt) {
   if (e.burn   > 0) { e.burn   -= dt; hit(e, e.burnD   * dt, null); }
   if (e.poison > 0) { e.poison -= dt; hit(e, e.poisonD * dt, null); }
   if (e.dead) return;
+  if (maybeWaitAtLockedExpeditionDoor(e)) return;
   if (enemyWaitingBehindLockedDoor(e)) {
     e.stun = Math.max(0, (e.stun || 0) - dt);
     e.slow = Math.max(0, (e.slow || 0) - dt);
@@ -17316,21 +17344,21 @@ function drawExpeditionBuildRadius(t) {
   const y = ex.riftActivated ? ex.rift.y : staticY;
   const pulse = Math.sin(t * 2.4) * .04;
   ctx.save();
-  ctx.globalAlpha = .08;
-  ctx.fillStyle = '#8edcff';
+  ctx.globalAlpha = .10;
+  ctx.fillStyle = '#2f6f86';
   ctx.beginPath();
   ctx.arc(x, y, radius, 0, 7);
   ctx.fill();
-  ctx.globalAlpha = .42;
-  ctx.strokeStyle = '#8edcff';
-  ctx.lineWidth = 2;
+  ctx.globalAlpha = .62;
+  ctx.strokeStyle = '#4a8fa6';
+  ctx.lineWidth = 3;
   ctx.setLineDash([12, 10]);
   ctx.beginPath();
   ctx.arc(x, y, radius * (1 + pulse), 0, 7);
   ctx.stroke();
   ctx.setLineDash([]);
-  ctx.globalAlpha = .22;
-  ctx.strokeStyle = '#f0b8ff';
+  ctx.globalAlpha = .34;
+  ctx.strokeStyle = '#9f6fb5';
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.arc(x, y, radius - 8, 0, 7);
