@@ -4458,8 +4458,8 @@ h2,
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.15.2</b>
-      <span id="warRoomBuildName">Key Room</span>
+      <b id="warRoomVersion">v7.15.3</b>
+      <span id="warRoomBuildName">Containment</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -4546,7 +4546,7 @@ h2,
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.15.2 Key Room</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.15.3 Containment</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -4994,16 +4994,16 @@ const LEVELS = {
       // Laboratory wing, chapel branch, and experiment rooms
       [32, 20, 38, 22],
       [38, 13, 51, 25],
-      [42, 8, 47, 13],
-      [50, 18, 57, 23],
+      [42, 8, 47, 12],
+      [52, 18, 57, 23],
       [32, 12, 35, 20],
-      [26, 5, 42, 13],
+      [26, 5, 42, 12],
       [42, 8, 45, 11],
-      [45, 13, 50, 17],
+      [52, 13, 57, 17],
 
       // Rift chamber and reactor route
-      [45, 2, 62, 14],
-      [47, 22, 50, 28],
+      [45, 2, 62, 12],
+      [52, 22, 57, 28],
       [48, 26, 61, 36],
 
       // Flesh garden, maintenance tunnels, extraction
@@ -5032,7 +5032,7 @@ const LEVELS = {
       shortcuts: [
         [9, 27, 17, 29],
         [12, 25, 14, 34],
-        [42, 14, 44, 28],
+      [52, 14, 54, 28],
       ],
       rooms: [
         { id: 'entry', name: 'Entry', rect: [1, 19, 6, 24], color: '#6f6253' },
@@ -5051,21 +5051,20 @@ const LEVELS = {
             riftLightRadius: 250,
             softEdge: 65,
           },
-          terminal: { c: 48, r: 16 },
-          key: { c: 49, r: 16 },
+          terminal: { c: 47, r: 19 },
+          key: { c: 48, r: 19 },
           lavaRects: [
             [38, 13, 51, 14],
             [50, 15, 51, 23],
             [40, 24, 51, 25],
             [38, 15, 39, 18],
             [38, 23, 39, 23],
-            [42, 16, 44, 17],
-            [42, 20, 44, 21],
-            [46, 15, 46, 15],
-            [46, 17, 46, 19],
-            [47, 18, 49, 18],
-            [45, 22, 47, 23],
-            [48, 20, 49, 22],
+            [44, 17, 49, 17],
+            [44, 21, 49, 21],
+            [44, 18, 44, 20],
+            [49, 18, 49, 20],
+            [46, 18, 48, 18],
+            [46, 20, 48, 20],
           ],
           skullCells: [
             { c: 40, r: 15 },
@@ -5808,8 +5807,8 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const BUILD_VERSION = '7.15.2';
-const BUILD_NAME = 'Key Room';
+const BUILD_VERSION = '7.15.3';
+const BUILD_NAME = 'Containment';
 function upgradeIcon(id, kind = 'generic') {
   const up = HERO_UPGRADES[id] || TRAP_UPGRADES[id] || BOSS_UPGRADES[id] || {};
   const explicit = up.targetIcon || up.targetItem || up.targetIconAlt || up.targetItemAlt;
@@ -6663,7 +6662,7 @@ function expeditionEncounterDef(room) {
     entry:       { objective: 'clear', label: 'Clear Entry Breach', roomType: 'runner', enemies: ['grunt', 'grunt', 'runner'] },
     security:    { objective: 'elite', label: 'Clear Security Wing', enemies: ['grunt', 'shield', 'warden'], elite: 'warden' },
     barracks:    { objective: 'clear', label: 'Clear Barracks', roomType: 'shield', enemies: ['grunt', 'runner', 'sapper', 'shield'] },
-    lab:         { objective: 'terminal', label: 'Restore Containment Power', terminalPrompt: 'Press E to restore power.', enemies: [], pressureEnemies: ['hexcaller', 'hexcaller', 'hexcaller'] },
+    lab:         { objective: 'terminal', label: 'Restore Containment Power', terminalPrompt: 'Press E to restore power.', enemies: [], pressureEnemies: ['hexcaller', 'hexcaller', 'hexcaller', 'hexcaller', 'hexcaller', 'hexcaller'] },
     chapel:      { objective: 'clear', label: 'Clear Chapel', roomType: 'healer', enemies: ['grunt', 'shield', 'healer'] },
     reactor:     { objective: 'elite', label: 'Clear Reactor Complex', enemies: ['runner', 'brute', 'sapper'], elite: 'brute' },
     flesh:       { objective: 'nest', label: 'Clear Flesh Garden', roomType: 'bomber', enemies: ['runner', 'runner', 'bomber'], nest: true },
@@ -6873,10 +6872,13 @@ function startExpeditionRoomEncounter(room) {
   ensureBlackoutContainmentKey(room);
   if (def.nest) spawnExpeditionRoomNest(room);
   if (def.objective === 'terminal' && Array.isArray(def.pressureEnemies) && def.pressureEnemies.length) {
-    const spawnCells = expeditionRoomSpawnCells(room, def.pressureEnemies.length);
-    def.pressureEnemies
+    const spawnCells = room.id === 'lab'
+      ? blackoutContainmentPressureCells(room)
+      : expeditionRoomSpawnCells(room, def.pressureEnemies.length);
+    const spawned = def.pressureEnemies
       .map((type, i) => spawnExpeditionRoomEnemy(type, room, spawnCells[i % spawnCells.length], false))
       .filter(Boolean);
+    assignExpeditionRoomTargets(spawned, room);
   }
   if (def.objective !== 'terminal') {
     const enemies = expeditionEncounterEnemies(def);
@@ -7309,16 +7311,78 @@ function resetCornerSkulls() {
   S.cornerSkulls = cornerSkullPositions().map((p, i) => createCornerSkull(`cornerSkull${i}`, p.x, p.y, i * 1.7));
 }
 
+function blackoutContainmentOpenCells(room) {
+  const [x1, y1, x2, y2] = room?.rect || [];
+  const open = new Set();
+  const add = (c, r) => {
+    if (c >= x1 && c <= x2 && r >= y1 && r <= y2) open.add(key(c, r));
+  };
+  const terminal = room?.terminal || { c: Math.floor((x1 + x2) / 2), r: Math.floor((y1 + y2) / 2) };
+  const entranceR = clamp(Math.floor((y1 + y2) / 2), y1 + 1, y2 - 1);
+  add(x1, entranceR);
+  add(x1, entranceR - 1);
+  add(x1 + 1, entranceR);
+  add(terminal.c, terminal.r);
+  add(terminal.c - 1, terminal.r);
+  add(terminal.c + 1, terminal.r);
+  add(terminal.c, terminal.r - 1);
+  add(terminal.c, terminal.r + 1);
+  const leechPockets = [
+    { c: x1 + 4, r: y1 + 3 },
+    { c: x1 + 8, r: y1 + 6 },
+    { c: x1 + 7, r: y2 - 4 },
+    { c: x2 - 3, r: y1 + 5 },
+    { c: x2 - 4, r: y2 - 4 },
+    { c: terminal.c + 4, r: y2 - 4 },
+  ];
+  for (const p of leechPockets) {
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) add(p.c + dc, p.r + dr);
+    }
+  }
+  return open;
+}
+
+function blackoutContainmentPressureCells(room) {
+  const [x1, y1, x2, y2] = room?.rect || [];
+  const terminal = room?.terminal || { c: Math.floor((x1 + x2) / 2), r: Math.floor((y1 + y2) / 2) };
+  const clampCell = (c, r) => ({ c: clamp(c, x1, x2), r: clamp(r, y1, y2) });
+  return [
+    clampCell(x1 + 3, y1 + 3),
+    clampCell(x1 + 7, y1 + 6),
+    clampCell(x1 + 6, y2 - 4),
+    clampCell(terminal.c - 1, y1 + 4),
+    clampCell(terminal.c + 4, y2 - 3),
+    clampCell(x2 - 3, y1 + 5),
+  ];
+}
+
 function expeditionLabSkullCells(room) {
   if (!room || room.id !== 'lab') return [];
-  if (room.skullCells?.length) return room.skullCells;
-  return [
-    { c: 40, r: 15 },
-    { c: 48, r: 15 },
-    { c: 43, r: 19 },
-    { c: 49, r: 21 },
-    { c: 41, r: 23 },
-  ].map(cell => scaleExpeditionPoint(cell));
+  const [x1, y1, x2, y2] = room.rect || [];
+  const reserved = blackoutContainmentOpenCells(room);
+  const cells = new Map();
+  const add = cell => {
+    if (!cell) return;
+    const c = Number.isFinite(cell.c) ? cell.c : null;
+    const r = Number.isFinite(cell.r) ? cell.r : null;
+    if (c == null || r == null) return;
+    const k = key(c, r);
+    if (reserved.has(k) || cells.has(k)) return;
+    cells.set(k, { c, r });
+  };
+  for (const cell of room.skullCells || []) add(cell);
+  const terminal = room.terminal || { c: Math.floor((x1 + x2) / 2), r: Math.floor((y1 + y2) / 2) };
+  for (let r = y1; r <= y2; r++) {
+    for (let c = x1; c <= x2; c++) {
+      const d = Math.abs(c - terminal.c) + Math.abs(r - terminal.r);
+      const denseCore = d <= 5;
+      const denseHemisphere = c <= terminal.c + 1;
+      const checker = ((c + r) & 1) === 0;
+      if (denseCore || denseHemisphere || checker) add({ c, r });
+    }
+  }
+  return [...cells.values()];
 }
 
 function spawnExpeditionLabSkulls(room) {
