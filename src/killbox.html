@@ -4458,8 +4458,8 @@ h2,
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.15.1</b>
-      <span id="warRoomBuildName">Blind Paths</span>
+      <b id="warRoomVersion">v7.15.2</b>
+      <span id="warRoomBuildName">Key Room</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -4546,7 +4546,7 @@ h2,
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.15.1 Blind Paths</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.15.2 Key Room</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -5028,6 +5028,7 @@ const LEVELS = {
       riftHunterRatio: .25,
       riftHunterDamage: 22,
       extraction: { c: 5, r: 37 },
+      finalKeyRoomId: 'lab',
       shortcuts: [
         [9, 27, 17, 29],
         [12, 25, 14, 34],
@@ -5051,6 +5052,7 @@ const LEVELS = {
             softEdge: 65,
           },
           terminal: { c: 48, r: 16 },
+          key: { c: 49, r: 16 },
           lavaRects: [
             [38, 13, 51, 14],
             [50, 15, 51, 23],
@@ -5199,6 +5201,7 @@ function scaledExpeditionLevel(level) {
         ...room,
         rect: scaleExpeditionRect(room.rect, scale),
         terminal: scaleExpeditionPoint(room.terminal, scale),
+        key: scaleExpeditionPoint(room.key, scale),
         lavaRects: (room.lavaRects || []).map(rect => scaleExpeditionRect(rect, scale)),
         skullCells: (room.skullCells || []).map(point => scaleExpeditionPoint(point, scale)),
       })),
@@ -5805,8 +5808,8 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const BUILD_VERSION = '7.15.1';
-const BUILD_NAME = 'Blind Paths';
+const BUILD_VERSION = '7.15.2';
+const BUILD_NAME = 'Key Room';
 function upgradeIcon(id, kind = 'generic') {
   const up = HERO_UPGRADES[id] || TRAP_UPGRADES[id] || BOSS_UPGRADES[id] || {};
   const explicit = up.targetIcon || up.targetItem || up.targetIconAlt || up.targetItemAlt;
@@ -6393,6 +6396,7 @@ function createExpeditionState(levelId = S.levelId) {
     roomTerminalStates: {},
     roomTerminalPrompt: '',
     roomTerminalPromptTime: 0,
+    blackoutKeyCollected: false,
   };
 }
 
@@ -6478,7 +6482,7 @@ function expeditionRoomContainsPoint(room, x, y) {
 }
 
 function activeExpeditionBlockingSkulls() {
-  return (S.cornerSkulls || []).filter(skull => skull && !skull.dead && skull.blocksMovement && skull.cell);
+  return (S.cornerSkulls || []).filter(skull => skull && !skull.dead && skull.blocksMovement && skull.cell && skull.state !== 'flying');
 }
 
 function expeditionBlockingSkullAtCell(c, r) {
@@ -6489,12 +6493,22 @@ function expeditionRoomTerminalCell(room) {
   return room?.terminal || null;
 }
 
+function expeditionRoomKeyCell(room) {
+  return room?.key || room?.terminal || null;
+}
+
 function expeditionRoomTerminalState(roomId) {
   return S.expedition?.roomTerminalStates?.[roomId] || 'offline';
 }
 
 function expeditionRoomTerminalPowered(roomId) {
   return expeditionRoomTerminalState(roomId) === 'powered';
+}
+
+function expeditionHasFinalKey() {
+  const cfg = expeditionConfig();
+  if (!cfg?.finalKeyRoomId) return true;
+  return !!S.expedition?.blackoutKeyCollected;
 }
 
 function expeditionRoomLavaRects(room) {
@@ -6649,7 +6663,7 @@ function expeditionEncounterDef(room) {
     entry:       { objective: 'clear', label: 'Clear Entry Breach', roomType: 'runner', enemies: ['grunt', 'grunt', 'runner'] },
     security:    { objective: 'elite', label: 'Clear Security Wing', enemies: ['grunt', 'shield', 'warden'], elite: 'warden' },
     barracks:    { objective: 'clear', label: 'Clear Barracks', roomType: 'shield', enemies: ['grunt', 'runner', 'sapper', 'shield'] },
-    lab:         { objective: 'terminal', label: 'Restore Containment Power', terminalPrompt: 'Press E to restore power.', enemies: [] },
+    lab:         { objective: 'terminal', label: 'Restore Containment Power', terminalPrompt: 'Press E to restore power.', enemies: [], pressureEnemies: ['hexcaller', 'hexcaller', 'hexcaller'] },
     chapel:      { objective: 'clear', label: 'Clear Chapel', roomType: 'healer', enemies: ['grunt', 'shield', 'healer'] },
     reactor:     { objective: 'elite', label: 'Clear Reactor Complex', enemies: ['runner', 'brute', 'sapper'], elite: 'brute' },
     flesh:       { objective: 'nest', label: 'Clear Flesh Garden', roomType: 'bomber', enemies: ['runner', 'runner', 'bomber'], nest: true },
@@ -6697,7 +6711,7 @@ function expeditionRoomSpawnCells(room, count) {
   const [x1, y1, x2, y2] = room?.rect || [];
   for (let r = y1; r <= y2; r++) {
     for (let c = x1; c <= x2; c++) {
-      if (!isRoad(c, r) || isExpeditionRoomBlockedCell(c, r)) continue;
+      if (!isRoad(c, r) || isExpeditionRoomBlockedCell(c, r) || expeditionRoomLavaCell(c, r, room)) continue;
       const x = cx(c), y = cy(r);
       if (dist(x, y, S.hero.x, S.hero.y) < 120) continue;
       cells.push({ c, r, x, y });
@@ -6764,6 +6778,22 @@ function spawnExpeditionRoomNest(room) {
   ex.roomNests = (ex.roomNests || []).filter(n => n.roomId !== room.id || !n.dead);
   ex.roomNests.push(nest);
   return nest;
+}
+
+function ensureBlackoutContainmentKey(room) {
+  const ex = S.expedition;
+  if (!isExpeditionRun() || !ex || !room || room.id !== 'lab' || ex.blackoutKeyCollected) return null;
+  const cell = expeditionRoomKeyCell(room);
+  if (!cell) return null;
+  const existing = (S.healthOrbs || []).find(o => !o.dead && o.type === 'containmentKey' && o.expeditionRoomId === room.id);
+  if (existing) return existing;
+  dropPowerup(cx(cell.c), cy(cell.r), 'containmentKey', false);
+  const keyOrb = S.healthOrbs[S.healthOrbs.length - 1];
+  if (keyOrb) {
+    keyOrb.expeditionRoomId = room.id;
+    keyOrb.life = 9999;
+  }
+  return keyOrb || null;
 }
 
 function damageExpeditionNest(nest, amt) {
@@ -6840,7 +6870,14 @@ function startExpeditionRoomEncounter(room) {
   ex.roomTerminalStates[room.id] = ex.roomTerminalStates?.[room.id] || 'offline';
   primeExpeditionRoomBoundarySides(room);
   spawnExpeditionLabSkulls(room);
+  ensureBlackoutContainmentKey(room);
   if (def.nest) spawnExpeditionRoomNest(room);
+  if (def.objective === 'terminal' && Array.isArray(def.pressureEnemies) && def.pressureEnemies.length) {
+    const spawnCells = expeditionRoomSpawnCells(room, def.pressureEnemies.length);
+    def.pressureEnemies
+      .map((type, i) => spawnExpeditionRoomEnemy(type, room, spawnCells[i % spawnCells.length], false))
+      .filter(Boolean);
+  }
   if (def.objective !== 'terminal') {
     const enemies = expeditionEncounterEnemies(def);
     const spawnCells = expeditionRoomSpawnCells(room, enemies.length);
@@ -6885,7 +6922,8 @@ function completeExpeditionRoomEncounter(roomId) {
   announceWave(`${room.name.toUpperCase()} CLEARED`, 'resting', .9);
   shockwave(S.hero.x, S.hero.y, '#b9d84f', 120, .3);
   burst(S.hero.x, S.hero.y, '#f0c96b', 16, 'spark', 160);
-  dropExpeditionRoomClearReward(room);
+  if (room.id === 'lab') ensureBlackoutContainmentKey(room);
+  else dropExpeditionRoomClearReward(room);
   rebuildPath();
   return true;
 }
@@ -7051,6 +7089,14 @@ function spawnExpeditionEnemy(pool) {
 function completeExpedition() {
   const ex = S.expedition;
   if (!ex || ex.completed) return;
+  if (!expeditionHasFinalKey()) {
+    ex.message = 'Containment key required.';
+    ex.messageTime = 5;
+    ex.prompt = 'Find the key in Blackout Containment.';
+    ex.promptTime = 3;
+    showMissionHint('The final route needs the containment key.', 'expedition-containment-key-required', 4);
+    return;
+  }
   ex.completed = true;
   ex.message = 'Extraction complete.';
   ex.messageTime = 20;
@@ -7298,6 +7344,25 @@ function destroyContainmentSkull(skull) {
   burst(skull.x, skull.y, '#ff8a5a', 8, 'spark', 80);
   boom(skull.x, skull.y, '#ff8a5a', 5);
   floatText('PATH OPEN', skull.x - 30, skull.y - 24, '#ffe09c');
+}
+
+function activateCornerSkullFromShot(skull) {
+  if (!skull || skull.dead) return;
+  skull.hp = Math.max(0, (skull.hp || 10) - 1);
+  skull.crack = Math.min(5, (skull.crack || 0) + 1);
+  skull.flash = 1;
+  skull.state = 'flying';
+  skull.phaseT = 0;
+  skull.spiralR = Math.max(150, dist(skull.x, skull.y, S.hero.x, S.hero.y));
+  skull.orbitA = Math.atan2(skull.y - S.hero.y, skull.x - S.hero.x);
+  if (skull.containmentSkull) {
+    skull.blocksMovement = false;
+    skull.containmentActivated = true;
+  }
+  boom(skull.x, skull.y, '#ff4a3a', 4);
+  burst(skull.x, skull.y, '#ffddd8', 8, 'spark', 80);
+  floatText(`${skull.hp}/10`, skull.x - 12, skull.y - 22, '#ffffff');
+  if (skull.hp <= 0) destroyCornerSkull(skull, 'shot');
 }
 
 function spawnCornerGhost(skull) {
@@ -13986,6 +14051,7 @@ function dropPowerup(x, y, type = 'health', full = false) {
     summoncat: { r: 18, life: 12, summoncat: 18 },
     physics: { r: 16, life: 12, physics: 12 },
     wronggame: { r: 16, life: 12, wronggame: 10 },
+    containmentKey: { r: 16, life: 9999, containmentKey: true },
   }[type] || { r: 12, life: 10 };
   const now = performance.now() / 1000;
   const orb = { id: `orb-${type}-${Math.floor(now * 1000)}-${Math.floor(Math.random() * 10000)}`, born: now, x, y, type, full, ...cfg, r: full ? 20 : cfg.r, life: full ? 9999 : cfg.life };
@@ -13998,6 +14064,7 @@ function powerupColor(type, full = false) {
   const t = type === 'heal' ? 'health' : type;
   if (full) return '#ffe09c33';
   if (t === 'health') return '#b9d84f';
+  if (t === 'containmentKey') return '#ffe09c';
   if (t === 'gold') return '#f4c24f';
   if (t === 'frenzy') return '#ff6d3a';
   if (t === 'haste') return '#6ad6ff';
@@ -14020,6 +14087,7 @@ const POWERUP_DEFS = {
   freeze: { rarity: 'common', label: 'FROSTBITE', icon: '❄', desc: 'Damage slows enemies.' },
   asColdAsLife: { rarity: 'common', label: 'AS COLD AS LIFE', icon: '❄', desc: 'Your secondary weapon has no cooldown.' },
   rift: { rarity: 'common', label: 'RIFT SHIELD', icon: '◌', desc: 'The Rift absorbs the next leaks briefly.' },
+  containmentKey: { rarity: 'rare', label: 'CONTAINMENT KEY', icon: 'K', desc: 'Unlocks the final Expedition route.' },
   bomb: { rarity: 'rare', label: 'CHAIN REACTION', icon: '✹', desc: 'Enemies explode on death.' },
   reset: { rarity: 'rare', label: 'RICHOCHET', icon: '↺', desc: 'Projectiles bounce harder.' },
   thunder: { rarity: 'rare', label: 'THUNDERSTORM', icon: '⚡', desc: 'Random lightning strikes.' },
@@ -14996,6 +15064,11 @@ function playPickupFeedback(type, x, y) {
       shockwave(x, y, '#8edcff', 130, .38);
       burst(x, y, '#8edcff', 18, 'spark', 170);
       break;
+    case 'containmentKey':
+      playSfx('secondaryReady');
+      shockwave(x, y, '#ffe09c', 150, .34);
+      burst(x, y, '#fff1c0', 22, 'spark', 190);
+      break;
   }
 }
 
@@ -15046,7 +15119,16 @@ function collectHealthOrbs(dt) {
     if (!o.full) o.life -= dt;
     if (dist(o.x, o.y, S.hero.x, S.hero.y) < o.r + (o.full ? 34 : 18)) {
       const type = o.full ? 'health' : (o.type || 'health');
-      if (type === 'gold') {
+      if (type === 'containmentKey') {
+        if (S.expedition) {
+          S.expedition.blackoutKeyCollected = true;
+          S.expedition.message = 'Containment key acquired.';
+          S.expedition.messageTime = 5;
+        }
+        floatText('CONTAINMENT KEY', o.x - 54, o.y - 16, '#ffe09c');
+        shockwave(o.x, o.y, '#ffe09c', 150, .34);
+        burst(o.x, o.y, '#fff1c0', 22, 'spark', 190);
+      } else if (type === 'gold') {
         awardGoldCache(o.gold, o.x, o.y, 'collectHealthOrbs');
       } else if (type === 'frenzy') {
         const now = performance.now() / 1000;
@@ -16192,24 +16274,9 @@ function projectiles(dt) {
       for (const skull of S.cornerSkulls) {
         if (!skull.dead && dist(s.x, s.y, skull.x, skull.y) < (skull.rad || 17) + 5) {
           if (skull.containmentSkull && s.weapon && !s.p2) {
-            skull.hp = Math.max(0, (skull.hp || 10) - 1);
-            skull.crack = Math.min(5, (skull.crack || 0) + 1);
-            skull.flash = 1;
-            boom(skull.x, skull.y, '#ff8a5a', 3);
-            floatText(`${skull.hp}/10`, skull.x - 12, skull.y - 22, '#ffffff');
-            if (skull.hp <= 0) destroyContainmentSkull(skull);
+            activateCornerSkullFromShot(skull);
           } else if (s.weapon && !s.p2) {
-            skull.hp = Math.max(0, (skull.hp || 10) - 1);
-            skull.crack = Math.min(5, (skull.crack || 0) + 1);
-            skull.flash = 1;
-            skull.state = 'flying';
-            skull.phaseT = 0;
-            skull.spiralR = Math.max(150, dist(skull.x, skull.y, S.hero.x, S.hero.y));
-            skull.orbitA = Math.atan2(skull.y - S.hero.y, skull.x - S.hero.x);
-            boom(skull.x, skull.y, '#ff4a3a', 4);
-            burst(skull.x, skull.y, '#ffddd8', 8, 'spark', 80);
-            floatText(`${skull.hp}/10`, skull.x - 12, skull.y - 22, '#ffffff');
-            if (skull.hp <= 0) destroyCornerSkull(skull, 'shot');
+            activateCornerSkullFromShot(skull);
           }
           s.dead = true;
           break;
