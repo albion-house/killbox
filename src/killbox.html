@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Killbox 7.9.2-rift-carry</title>
+<title>Killbox 7.12.1-tunnel-rooms</title>
 <style>
 /* ── Design tokens ─────────────────────────────────────────────── */
 :root {
@@ -1966,7 +1966,7 @@ textarea {
 }
 .deathButtons {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 8px;
   margin-top: 8px;
 }
@@ -3267,7 +3267,7 @@ kbd {
   font-size: 12px; line-height: 1.5;
 }
 
-/* ── Killbox 7.9.2-rift-carry ───────────────────── */
+/* ── Killbox 7.12.1-tunnel-rooms ───────────────────── */
 /* Changelog: tightened loadout/hotbar card layout and replaced duplicate icon fallbacks. */
 #hireEngineer, #mpBox { display: none !important; }
 .debugHidden { display: none !important; }
@@ -4211,16 +4211,16 @@ h2,
 
 #start .card.deathCard {
   width: min(980px, calc(100vw - 24px));
-  max-height: none;
-  overflow: visible;
-  overflow-y: visible;
+  max-height: calc(100vh - 24px);
+  overflow: hidden;
+  overflow-y: auto;
   padding: clamp(10px, 1.5vw, 16px);
 }
 
 @media (max-width: 760px) {
   #start .card.deathCard {
     width: min(100vw - 18px, 620px);
-    max-height: none;
+    max-height: calc(100vh - 18px);
     padding: 6px;
   }
 
@@ -4325,6 +4325,7 @@ h2,
             <button id="devPowerupDebugToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Powerup Debug</span><span class="devBadge" id="devPowerupDebugState">OFF</span></button>
             <button id="devRiftGuardToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Rift Guard</span><span class="devBadge" id="devRiftGuardState">OFF</span></button>
             <button id="devRiftNoHpLossToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Rift No HP Loss</span><span class="devBadge" id="devRiftNoHpLossState">OFF</span></button>
+            <button id="devPlayerTowerCollisionToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Player Collision With Towers</span><span class="devBadge" id="devPlayerTowerCollisionState">ON</span></button>
             <button id="devRoomBoundsToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Room Bounds</span><span class="devBadge" id="devRoomBoundsState">OFF</span></button>
             <button id="devPathToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Pathing</span><span class="devBadge" id="devPathState">OFF</span></button>
           </div>
@@ -4430,7 +4431,7 @@ h2,
           <kbd>U</kbd> upgrade &nbsp;
           <kbd>1</kbd>–<kbd>8</kbd> build
         </p>
-        <div class="sidebarFooter">Killbox <span id="sidebarVersion">7.9.2</span>. Still rude.</div>
+        <div class="sidebarFooter">Killbox <span id="sidebarVersion">7.12.1</span>. Still rude.</div>
       </div>
     </details>
     <details class="warRoomSection">
@@ -4457,8 +4458,8 @@ h2,
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.9.2</b>
-      <span id="warRoomBuildName">Rift Carry</span>
+      <b id="warRoomVersion">v7.12.1</b>
+      <span id="warRoomBuildName">Tunnel Rooms</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -4545,7 +4546,7 @@ h2,
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.9.2 Rift Carry</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.12.1 Tunnel Rooms</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -5041,12 +5042,62 @@ const LEVELS = {
         { id: 'reactor', name: 'Reactor Complex', rect: [48, 26, 61, 36], color: '#6b5a39' },
         { id: 'flesh', name: 'Flesh Garden', rect: [18, 32, 37, 40], color: '#6f3d4a' },
         { id: 'rift', name: 'Rift Chamber', rect: [45, 2, 62, 14], color: '#483d77' },
-        { id: 'maintenance', name: 'Maintenance Tunnels', rect: [6, 34, 18, 37], color: '#3f4e52' },
+        { id: 'maintenance', name: 'Maintenance Tunnels', rect: [6, 33, 18, 37], color: '#3f4e52' },
         { id: 'extraction', name: 'Extraction Pad', rect: [2, 34, 9, 40], color: '#516b58' },
       ],
     },
   },
 };
+const EXPEDITION_PROTOTYPE_TUNING = {
+  roomScale: 2.0,
+  enemyDensity: 1.5,
+};
+function expeditionRoomScale() {
+  return Math.max(1, Number(EXPEDITION_PROTOTYPE_TUNING.roomScale) || 1);
+}
+function scaleExpeditionCoord(v, scale = expeditionRoomScale()) {
+  return Math.floor(v * scale);
+}
+function scaleExpeditionRect(rect, scale = expeditionRoomScale()) {
+  return [
+    Math.floor(rect[0] * scale),
+    Math.floor(rect[1] * scale),
+    Math.max(Math.floor(rect[0] * scale), Math.ceil((rect[2] + 1) * scale) - 1),
+    Math.max(Math.floor(rect[1] * scale), Math.ceil((rect[3] + 1) * scale) - 1),
+  ];
+}
+function scaleExpeditionPoint(point, scale = expeditionRoomScale()) {
+  return point ? { ...point, c: scaleExpeditionCoord(point.c, scale), r: scaleExpeditionCoord(point.r, scale) } : point;
+}
+function scaledExpeditionLevel(level) {
+  if (!level || level.mode !== 'expedition') return level;
+  const scale = expeditionRoomScale();
+  if (scale === 1) return level;
+  return {
+    ...level,
+    cols: Math.ceil((level.cols || 30) * scale),
+    rows: Math.ceil((level.rows || 15) * scale),
+    roadRects: (level.roadRects || []).map(rect => scaleExpeditionRect(rect, scale)),
+    blockedRects: (level.blockedRects || []).map(rect => scaleExpeditionRect(rect, scale)),
+    spawns: (level.spawns || []).map(point => scaleExpeditionPoint(point, scale)),
+    goal: scaleExpeditionPoint(level.goal, scale),
+    heroSpawn: scaleExpeditionPoint(level.heroSpawn, scale),
+    expedition: level.expedition ? {
+      ...level.expedition,
+      rift: scaleExpeditionPoint(level.expedition.rift, scale),
+      extraction: scaleExpeditionPoint(level.expedition.extraction, scale),
+      shortcuts: (level.expedition.shortcuts || []).map(rect => scaleExpeditionRect(rect, scale)),
+      rooms: (level.expedition.rooms || []).map(room => ({
+        ...room,
+        rect: scaleExpeditionRect(room.rect, scale),
+      })),
+    } : level.expedition,
+  };
+}
+function levelDef(levelId) {
+  const id = levelId in LEVELS ? levelId : 'field';
+  return scaledExpeditionLevel(LEVELS[id] || LEVELS.field);
+}
 const road = new Set();
 const blockedTerrain = new Set();
 function roadRect(x1, y1, x2, y2) { for (let y = y1; y <= y2; y++) for (let x = x1; x <= x2; x++) road.add(key(x, y)); }
@@ -5643,8 +5694,8 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const BUILD_VERSION = '7.9.2';
-const BUILD_NAME = 'Rift Carry';
+const BUILD_VERSION = '7.12.1';
+const BUILD_NAME = 'Tunnel Rooms';
 function upgradeIcon(id, kind = 'generic') {
   const up = HERO_UPGRADES[id] || TRAP_UPGRADES[id] || BOSS_UPGRADES[id] || {};
   const explicit = up.targetIcon || up.targetItem || up.targetIconAlt || up.targetItemAlt;
@@ -5813,7 +5864,7 @@ const S = {
   synergyLog: [],
   runStats: { heroKills: 0, towerKills: 0, otherKills: 0, leaked: 0, powerups: 0, goldEarned: 0, bonusGold: 0, interestGold: 0, wavesCleared: 0 },
   selected: null, sel: null, menuOpen: false, aiEngineerOwned: false, placeDir: 1,
-  devToolsOpen: false, devHotkeyHelp: false, devUnlimitedGold: false, devInvincible: false, devShowInfo: false, devRiftGuard: false, devRiftNoHpLoss: false, devShowRoomBounds: false, devShowPathing: false,
+  devToolsOpen: false, devHotkeyHelp: false, devUnlimitedGold: false, devInvincible: false, devShowInfo: false, devRiftGuard: false, devRiftNoHpLoss: false, devPlayerTowerCollision: true, devShowRoomBounds: false, devShowPathing: false,
   balanceReportLogged: false,
   powerupDebugMode: false, powerupDebugLog: [],
   devArenaChoice: 'field',
@@ -5885,7 +5936,7 @@ function isRoad(c, r) { return road.has(key(c, r)); }
 function isBlockedTerrain(c, r) { return blockedTerrain.has(key(c, r)); }
 function isExpeditionLevel(levelId = LEVEL_ID) { return LEVELS[levelId]?.mode === 'expedition'; }
 function isExpeditionRun() { return !!S.started && isExpeditionLevel(S.levelId); }
-function expeditionConfig() { return LEVELS[S.levelId]?.expedition || null; }
+function expeditionConfig() { return levelDef(S.levelId)?.expedition || null; }
 function isCarryingExpeditionRift() {
   return !!(isExpeditionRun() && S.expedition?.riftActivated && S.expedition?.riftCarried);
 }
@@ -5895,6 +5946,37 @@ function riftBlockingOccupied(c, r) {
   return S.barriers.some(b => b.c === c && b.r === r)
     || S.barrels.some(b => b.c === c && b.r === r)
     || S.towers.some(t => t.c === c && t.r === r && !TOWERS[t.type]?.trap);
+}
+function playerTowerCollisionEnabled() {
+  return !!S.devPlayerTowerCollision;
+}
+function solidDefenseCollisionRadius(o, kind = '') {
+  if (!o || o.dead) return 0;
+  if (kind === 'barrier') return 28;
+  if (kind === 'barrel') return o.rad || 22;
+  const d = TOWERS[o.type];
+  if (!d || d.trap) return 0;
+  return o.onRoad ? 26 : 24;
+}
+function heroSolidDefenseCollisionAt(x, y, fromX = S.hero?.x, fromY = S.hero?.y) {
+  if (!playerTowerCollisionEnabled()) return null;
+  const heroRad = 14 * (S.hero?.heroScale || 1);
+  const solids = [
+    ...S.barriers.map(o => ({ o, kind: 'barrier' })),
+    ...S.barrels.map(o => ({ o, kind: 'barrel' })),
+    ...S.towers.map(o => ({ o, kind: 'tower' })),
+  ];
+  for (const { o, kind } of solids) {
+    const rad = solidDefenseCollisionRadius(o, kind);
+    if (!rad) continue;
+    const min = heroRad + rad;
+    const nextD = dist(x, y, o.x, o.y);
+    if (nextD >= min) continue;
+    const currentD = Number.isFinite(fromX) && Number.isFinite(fromY) ? dist(fromX, fromY, o.x, o.y) : Infinity;
+    if (currentD < min && nextD > currentD) continue;
+    return o;
+  }
+  return null;
 }
 function canHeroEnterCell(c, r) {
   if (c < 0 || r < 0 || c >= COLS || r >= ROWS || isBlockedTerrain(c, r)) return false;
@@ -6008,7 +6090,7 @@ function rebuildPath() {
 }
 
 function applyLevel(levelId, opts = {}) {
-  const lvl = LEVELS[levelId] || LEVELS.field;
+  const lvl = levelDef(levelId);
   LEVEL_ID = levelId in LEVELS ? levelId : 'field';
   COLS = lvl.cols || 30;
   ROWS = lvl.rows || 15;
@@ -6088,7 +6170,7 @@ function levelRouteExists(level, roads, start, goal) {
 }
 
 function validateLevelLayout(levelId) {
-  const lvl = LEVELS[levelId];
+  const lvl = levelDef(levelId);
   if (!lvl) return { ok: false, reason: 'Unknown arena.' };
   const cols = lvl.cols || 30;
   const rows = lvl.rows || 15;
@@ -6156,7 +6238,7 @@ function switchArena(levelId) {
 }
 
 function createExpeditionState(levelId = S.levelId) {
-  const lvl = LEVELS[levelId];
+  const lvl = levelDef(levelId);
   const cfg = lvl?.expedition;
   if (!cfg) return null;
   const riftX = cx(cfg.rift.c);
@@ -6180,6 +6262,10 @@ function createExpeditionState(levelId = S.levelId) {
     reinforceTimer: 0,
     rift: { x: riftX, y: riftY, hp: 900, max: 900 },
     riftCarried: false,
+    riftWarnState: 0,
+    riftWarnPulse: 0,
+    riftWarnFlash: 0,
+    riftWarnBeep: 0,
     roomStates: {},
     activeRoomId: null,
     roomBlockers: [],
@@ -6332,8 +6418,32 @@ function enforceExpeditionRoomBoundary(e, prevX = e?.x, prevY = e?.y) {
   e.kx = 0;
   e.ky = 0;
   e.slow = Math.max(e.slow || 0, .35);
-  retargetExpeditionEnemy(e, 'locked-room-boundary');
+  const now = performance.now() / 1000;
+  if ((e.lockedDoorRetargetAt || 0) <= now) {
+    e.lockedDoorRetargetAt = now + .75;
+    retargetExpeditionEnemy(e, 'locked-room-boundary');
+  }
   return true;
+}
+
+function waitBehindLockedDoor(e, rb = null) {
+  if (!isExpeditionRun() || !S.expedition?.activeRoomId || !S.expedition?.roomBlockers?.length || !e || e.dead) return false;
+  const now = performance.now() / 1000;
+  e.lockedDoorWaitUntil = Math.max(e.lockedDoorWaitUntil || 0, now + .38 + Math.random() * .22);
+  e.kx = 0;
+  e.ky = 0;
+  e.stun = Math.max(e.stun || 0, .04);
+  e.slow = Math.max(e.slow || 0, .45);
+  if (rb && (e.lockedDoorRetargetAt || 0) <= now) {
+    e.lockedDoorRetargetAt = now + .9;
+    retargetExpeditionEnemy(e, 'room-blocker');
+  }
+  return true;
+}
+
+function enemyWaitingBehindLockedDoor(e) {
+  if (!isExpeditionRun() || !S.expedition?.activeRoomId || !S.expedition?.roomBlockers?.length || !e || e.dead) return false;
+  return (e.lockedDoorWaitUntil || 0) > performance.now() / 1000;
 }
 
 function expeditionRoomCanThreatenRift(room) {
@@ -6352,17 +6462,28 @@ function expeditionRoomState(roomId) {
 
 function expeditionEncounterDef(room) {
   const defs = {
-    entry:       { objective: 'clear', label: 'Clear Entry Breach', enemies: ['grunt', 'grunt', 'runner'] },
+    entry:       { objective: 'clear', label: 'Clear Entry Breach', roomType: 'runner', enemies: ['grunt', 'grunt', 'runner'] },
     security:    { objective: 'elite', label: 'Clear Security Wing', enemies: ['grunt', 'shield', 'warden'], elite: 'warden' },
-    barracks:    { objective: 'clear', label: 'Clear Barracks', enemies: ['grunt', 'runner', 'sapper', 'shield'] },
+    barracks:    { objective: 'clear', label: 'Clear Barracks', roomType: 'shield', enemies: ['grunt', 'runner', 'sapper', 'shield'] },
     lab:         { objective: 'elite', label: 'Clear Laboratory Wing', enemies: ['runner', 'healer', 'hexcaller'], elite: 'hexcaller' },
-    chapel:      { objective: 'clear', label: 'Clear Chapel', enemies: ['grunt', 'shield', 'healer'] },
+    chapel:      { objective: 'clear', label: 'Clear Chapel', roomType: 'healer', enemies: ['grunt', 'shield', 'healer'] },
     reactor:     { objective: 'elite', label: 'Clear Reactor Complex', enemies: ['runner', 'brute', 'sapper'], elite: 'brute' },
-    flesh:       { objective: 'nest', label: 'Clear Flesh Garden', enemies: ['runner', 'runner', 'bomber'], nest: true },
+    flesh:       { objective: 'nest', label: 'Clear Flesh Garden', roomType: 'bomber', enemies: ['runner', 'runner', 'bomber'], nest: true },
     rift:        { objective: 'elite', label: 'Secure the Rift Chamber', enemies: ['shield', 'warden', 'hexcaller'], elite: 'warden' },
-    maintenance: { objective: 'clear', label: 'Clear Maintenance Tunnels', enemies: ['grunt', 'runner', 'sapper'] },
+    maintenance: { objective: 'clear', label: 'Clear Maintenance Tunnels', roomType: 'sapper', enemies: ['grunt', 'runner', 'sapper'] },
   };
   return defs[room?.id] || { objective: 'clear', label: `Clear ${room?.name || 'room'}`, enemies: ['grunt', 'runner'] };
+}
+
+function expeditionEnemyDensity() {
+  return Math.max(1, Number(EXPEDITION_PROTOTYPE_TUNING.enemyDensity) || 1);
+}
+
+function expeditionEncounterEnemies(def) {
+  const base = Array.isArray(def?.enemies) ? def.enemies.slice() : [];
+  const targetCount = Math.max(base.length, Math.ceil(base.length * expeditionEnemyDensity()));
+  const roomType = def?.roomType || def?.elite || base[0] || 'grunt';
+  return Array.from({ length: targetCount }, () => roomType);
 }
 
 function expeditionRoomDoorBlockers(room) {
@@ -6498,6 +6619,22 @@ function damageExpeditionRift(e, dt) {
   S.lastDeathSource = { x: rift.x, y: rift.y };
   rift.hp = Math.max(0, rift.hp - base * mult * dt);
   rift.flash = Math.max(rift.flash || 0, .55);
+  if (ex && !ex.riftCarried) {
+    const pct = rift.max > 0 ? rift.hp / rift.max : 0;
+    if (pct < .1) {
+      ex.riftWarnState = 3;
+      ex.riftWarnFlash = Math.max(ex.riftWarnFlash || 0, .8);
+      ex.riftWarnBeep = 0;
+    } else if (pct < .2) {
+      ex.riftWarnState = Math.max(ex.riftWarnState || 0, 2);
+      ex.riftWarnFlash = Math.max(ex.riftWarnFlash || 0, .6);
+      ex.riftWarnBeep = 0;
+    } else if (pct < .35) {
+      ex.riftWarnState = Math.max(ex.riftWarnState || 0, 1);
+      ex.riftWarnFlash = Math.max(ex.riftWarnFlash || 0, .3);
+      ex.riftWarnBeep = 0;
+    }
+  }
   e.slow = Math.max(e.slow || 0, .35);
   e.riftBiteText = Math.max(0, (e.riftBiteText || 0) - dt);
   if (e.riftBiteText <= 0) {
@@ -6517,10 +6654,17 @@ function startExpeditionRoomEncounter(room) {
   ex.roomObjective = { roomId: room.id, type: def.objective, label: def.label };
   ex.roomBlockers = expeditionRoomDoorBlockers(room);
   primeExpeditionRoomBoundarySides(room);
+  spawnExpeditionLabSkulls(room);
   if (def.nest) spawnExpeditionRoomNest(room);
-  const spawnCells = expeditionRoomSpawnCells(room, def.enemies.length);
-  const spawned = def.enemies
-    .map((type, i) => spawnExpeditionRoomEnemy(type, room, spawnCells[i % spawnCells.length], type === def.elite))
+  const enemies = expeditionEncounterEnemies(def);
+  const spawnCells = expeditionRoomSpawnCells(room, enemies.length);
+  let eliteSpawned = false;
+  const spawned = enemies
+    .map((type, i) => {
+      const elite = type === def.elite && !eliteSpawned;
+      if (elite) eliteSpawned = true;
+      return spawnExpeditionRoomEnemy(type, room, spawnCells[i % spawnCells.length], elite);
+    })
     .filter(Boolean);
   assignExpeditionRoomTargets(spawned, room);
   ex.message = def.label;
@@ -6545,6 +6689,8 @@ function completeExpeditionRoomEncounter(roomId) {
     if (e.lockedRoomId === roomId) {
       delete e.lockedRoomId;
       delete e.lockedRoomSide;
+      delete e.lockedDoorWaitUntil;
+      delete e.lockedDoorRetargetAt;
     }
   }
   ex.message = `${room.name} cleared.`;
@@ -6658,7 +6804,7 @@ function tryToggleExpeditionRiftCarry() {
 
 function expeditionSpawnCell() {
   const cfg = expeditionConfig();
-  const vents = LEVELS[S.levelId]?.spawns || [];
+  const vents = levelDef(S.levelId)?.spawns || [];
   if (!cfg || !vents.length) return null;
   const active = S.expedition?.riftActivated;
   const candidates = active ? vents.slice(1) : vents;
@@ -6844,7 +6990,7 @@ function debugWarpToLevel(levelId) {
   }
   S.devArenaChoice = requested;
   if ($('devArenaSelect') && document.activeElement !== $('devArenaSelect')) $('devArenaSelect').value = requested;
-  const spawn = LEVELS[requested].heroSpawn || LEVELS.field.heroSpawn;
+  const spawn = levelDef(requested).heroSpawn || LEVELS.field.heroSpawn;
   S.hero.x = cx(spawn.c);
   S.hero.y = cy(spawn.r);
   S.waveCountdown = getWaveCountdownDuration(S.wave + 1);
@@ -6870,35 +7016,57 @@ function cornerSkullPositions() {
   ];
 }
 
-function resetCornerSkulls() {
-  if (!S) return;
-  S.cornerGhosts = [];
-  S.cornerSkulls = cornerSkullPositions().map((p, i) => ({
-    ...p,
-    id: `cornerSkull${i}`,
+function createCornerSkull(id, x, y, phaseT = 0) {
+  return {
+    x, y,
+    id,
     state: 'idle',
     flash: 0,
     crack: 0,
-    phaseT: i * 1.7,
+    phaseT,
     rad: 21,
     hp: 10,
     maxHp: 10,
     spiralR: 190,
-    orbitA: i * Math.PI / 2,
+    orbitA: phaseT * Math.PI / 3,
+  };
+}
+
+function resetCornerSkulls() {
+  if (!S) return;
+  S.cornerGhosts = [];
+  S.cornerSkulls = cornerSkullPositions().map((p, i) => createCornerSkull(`cornerSkull${i}`, p.x, p.y, i * 1.7));
+}
+
+function expeditionLabSkullCells(room) {
+  if (!room || room.id !== 'lab') return [];
+  return [
+    { c: 40, r: 15 },
+    { c: 48, r: 15 },
+    { c: 43, r: 19 },
+    { c: 49, r: 21 },
+    { c: 41, r: 23 },
+  ].map(cell => scaleExpeditionPoint(cell));
+}
+
+function spawnExpeditionLabSkulls(room) {
+  if (!isExpeditionRun() || !room || room.id !== 'lab') return [];
+  if (!Array.isArray(S.cornerSkulls)) S.cornerSkulls = [];
+  S.cornerSkulls = S.cornerSkulls.filter(s => !(s && s.expeditionRoomId === 'lab'));
+  const skulls = expeditionLabSkullCells(room).map((cell, i) => ({
+    ...createCornerSkull(`expeditionLabSkull${i}`, cx(cell.c), cy(cell.r), i * 1.13),
+    expeditionRoomId: room.id,
+    expeditionLabSkull: true,
+    cell,
   }));
+  S.cornerSkulls.push(...skulls);
+  return skulls;
 }
 
 function spawnCornerGhost(skull) {
   if (!skull || skull.dead) return;
   const x = Number.isFinite(skull.x) ? skull.x : cx(1);
   const y = Number.isFinite(skull.y) ? skull.y : cy(1);
-  const nearestSpawn = (SPAWN_POINTS || []).reduce((best, sp) => {
-    if (!sp) return best;
-    const sx = cx(sp.c), sy = cy(sp.r);
-    const d = dist(x, y, sx, sy);
-    if (!best || d < best.d) return { d, x: sx, y: sy, sp };
-    return best;
-  }, null);
   if (!Array.isArray(S.cornerGhosts)) S.cornerGhosts = [];
   if (S.cornerGhosts.some(g => !g.dead && g.mode === 'grab')) return;
   const ghost = {
@@ -6913,7 +7081,6 @@ function spawnCornerGhost(skull) {
     fade: 0,
     dead: false,
     targetSkullId: skull.id,
-    targetSpawn: nearestSpawn ? { x: nearestSpawn.x, y: nearestSpawn.y, sp: nearestSpawn.sp } : null,
   };
   S.cornerGhosts.push(ghost);
   console.log('[corner-skull] ghost curse spawned', { id: ghost.id, x, y, skull: skull.id });
@@ -7019,6 +7186,10 @@ function updateCornerGhosts(dt) {
         g.mode = 'grab';
         g.grabTimer = 0;
         g.grabClicks = 10;
+        g.anchorX = Number.isFinite(g.x) ? g.x : h.x;
+        g.anchorY = Number.isFinite(g.y) ? g.y : h.y;
+        g.grabHeroX = Number.isFinite(h.x) ? h.x : g.anchorX;
+        g.grabHeroY = Number.isFinite(h.y) ? h.y : g.anchorY;
         h.ghostGrabbed = true;
         h.ghostId = g.id;
         h.weaponCd = 0;
@@ -7042,27 +7213,22 @@ function updateCornerGhosts(dt) {
     } else if (g.mode === 'grab') {
       g.grabTimer += dt;
       const hero = S.hero;
-      const target = g.targetSpawn || (SPAWN_POINTS && SPAWN_POINTS[0] ? { x: cx(SPAWN_POINTS[0].c), y: cy(SPAWN_POINTS[0].r) } : null);
-      const tx = Number.isFinite(target?.x) ? target.x : g.x;
-      const ty = Number.isFinite(target?.y) ? target.y : g.y;
+      const anchorX = Number.isFinite(g.anchorX) ? g.anchorX : g.x;
+      const anchorY = Number.isFinite(g.anchorY) ? g.anchorY : g.y;
+      g.x = clamp(anchorX, OX + 16, OX + COLS * G - 16);
+      g.y = clamp(anchorY, OY + 16, OY + ROWS * G - 16);
       if (hero && !hero.dead) {
-        const dragA = Math.atan2(ty - hero.y, tx - hero.x);
-        const dragDist = 18;
-        const targetX = clamp(hero.x + Math.cos(dragA) * dragDist, OX + 18, OX + COLS * G - 18);
-        const targetY = clamp(hero.y + Math.sin(dragA) * dragDist, OY + 18, OY + ROWS * G - 18);
+        const targetX = clamp(Number.isFinite(g.grabHeroX) ? g.grabHeroX : hero.x, OX + 18, OX + COLS * G - 18);
+        const targetY = clamp(Number.isFinite(g.grabHeroY) ? g.grabHeroY : hero.y, OY + 18, OY + ROWS * G - 18);
         hero.x = targetX;
         hero.y = targetY;
+        hero.kx = 0;
+        hero.ky = 0;
         hero.ghostGrabbed = true;
         hero.weaponCd = Math.max(hero.weaponCd || 0, .15);
         hero.secondaryCd = Math.max(hero.secondaryCd || 0, .15);
         hero.charging = false;
       }
-      const driftA = Math.atan2(ty - g.y, tx - g.x);
-      const driftSp = 42;
-      g.x += Math.cos(driftA) * driftSp * dt;
-      g.y += Math.sin(driftA) * driftSp * dt;
-      g.x = clamp(g.x, OX + 16, OX + COLS * G - 16);
-      g.y = clamp(g.y, OY + 16, OY + ROWS * G - 16);
       if (g.grabClicks <= 0 || g.grabTimer >= 6) {
         if (S.hero) {
           S.hero.ghostGrabbed = false;
@@ -7239,7 +7405,7 @@ applyLevel('field', { silent: true });
 
 function getSafePlayerSpawnPoint(index = 0) {
   if (isExpeditionLevel(S.levelId)) {
-    const spawn = LEVELS[S.levelId]?.heroSpawn || LEVELS.field.heroSpawn;
+    const spawn = levelDef(S.levelId)?.heroSpawn || LEVELS.field.heroSpawn;
     return { x: cx(spawn.c), y: cy(spawn.r) };
   }
   const zones = Array.isArray(S.spawnZones) && S.spawnZones.length ? S.spawnZones : [
@@ -7541,7 +7707,7 @@ function resetRunForLevelSwitch(levelId) {
   S.cornerSkulls = [];
   S.selected = null;
   S.sel = null;
-  const spawn = LEVELS[S.levelId]?.heroSpawn || LEVELS.field.heroSpawn;
+  const spawn = levelDef(S.levelId)?.heroSpawn || LEVELS.field.heroSpawn;
   S.hero.x = cx(spawn.c);
   S.hero.y = cy(spawn.r);
   S.hero.hp = S.hero.max;
@@ -8082,6 +8248,7 @@ function ui() {
   if ($('devPowerupDebugState')) $('devPowerupDebugState').textContent = S.powerupDebugMode ? 'ON' : 'OFF';
   if ($('devRiftGuardState')) $('devRiftGuardState').textContent = S.devRiftGuard ? 'ON' : 'OFF';
   if ($('devRiftNoHpLossState')) $('devRiftNoHpLossState').textContent = S.devRiftNoHpLoss ? 'ON' : 'OFF';
+  if ($('devPlayerTowerCollisionState')) $('devPlayerTowerCollisionState').textContent = S.devPlayerTowerCollision ? 'ON' : 'OFF';
   if ($('devRoomBoundsState')) $('devRoomBoundsState').textContent = S.devShowRoomBounds ? 'ON' : 'OFF';
   if ($('devPathState')) $('devPathState').textContent = S.devShowPathing ? 'ON' : 'OFF';
   if ($('devAudioState')) $('devAudioState').textContent = AUDIO.muted ? 'OFF' : 'ON';
@@ -8103,6 +8270,7 @@ function ui() {
   if ($('devPowerupDebugToggle')) $('devPowerupDebugToggle').classList.toggle('toggleOn', S.powerupDebugMode);
   if ($('devRiftGuardToggle')) $('devRiftGuardToggle').classList.toggle('toggleOn', S.devRiftGuard);
   if ($('devRiftNoHpLossToggle')) $('devRiftNoHpLossToggle').classList.toggle('toggleOn', S.devRiftNoHpLoss);
+  if ($('devPlayerTowerCollisionToggle')) $('devPlayerTowerCollisionToggle').classList.toggle('toggleOn', S.devPlayerTowerCollision);
   if ($('devRoomBoundsToggle')) $('devRoomBoundsToggle').classList.toggle('toggleOn', S.devShowRoomBounds);
   if ($('devPathToggle')) $('devPathToggle').classList.toggle('toggleOn', S.devShowPathing);
   updateDevHotkeyHelp();
@@ -8448,6 +8616,7 @@ function developerOverlayText() {
     `RIFT HP: ${riftHp}${ex?.riftCarried ? ' CARRYING RIFT' : ''}`,
     `ENEMIES: ${S.enemies.filter(e => !e.dead).length}`,
     `RIFT HUNTERS: ${hunters}`,
+    `PLAYER TOWER COLLISION: ${S.devPlayerTowerCollision ? 'ON' : 'OFF'}`,
     `MONEY: ${Math.floor(S.gold)}`,
     `GOD: ${S.devInvincible ? 'ON' : 'OFF'}`,
     `CORE SAFE: ${S.devRiftNoHpLoss ? 'ON' : 'OFF'}`,
@@ -11291,11 +11460,9 @@ function offerRestart(reason) {
       `${deathRecapHtml(cause, q)}
        <div class="deathButtons">
          <button id="newRun" class="primary wide">Start New Game</button>
-         <button id="returnLoadout" class="wide">Return To Loadout</button>
        </div>`;
     setTimeout(() => {
       $('newRun').onclick = () => location.reload();
-      $('returnLoadout').onclick = () => exitToLoadoutScreen();
     }, 0);
   }
 }
@@ -11974,6 +12141,7 @@ function spawn(type) {
       y: Math.round(S.enemies[S.enemies.length - 1].y),
     });
   }
+  applyEnemyBehaviors(S.enemies[S.enemies.length - 1]);
   callMutagenHook('onEnemySpawn', S.enemies[S.enemies.length - 1]);
 }
 
@@ -12031,6 +12199,7 @@ function spawnEnemyAt(type, x, y, path, node = 0) {
     sapCd: 0,
   };
   S.enemies.push(ent);
+  applyEnemyBehaviors(ent);
   callMutagenHook('onEnemySpawn', ent);
   return ent;
 }
@@ -12353,6 +12522,7 @@ function kill(e, tower, byHero = false) {
     const label = e.type === 'slimeking' ? `${g}g` : `${g}g`;
     floatText(label, e.x - Math.min(28, String(label).length * 4), e.y - 18, '#ffe09c33');
   }
+  dropExpeditionEliteReward(e);
   if (e.type === 'slimeking') {
     S.bossActive = false;
     S.bossDeathPause = Math.max(S.bossDeathPause || 0, 3);
@@ -12476,7 +12646,7 @@ function heroStep(dt) {
   const my = dy / l * spd * dt;
   const tryMove = (nx, ny) => {
     const cc = cellAt(nx, ny);
-    return canHeroEnterCell(cc.c, cc.r);
+    return canHeroEnterCell(cc.c, cc.r) && !heroSolidDefenseCollisionAt(nx, ny, h.x, h.y);
   };
   const nx = clamp(h.x + mx, OX + 16, OX + COLS * G - 16);
   const ny = clamp(h.y + my, OY + 16, OY + ROWS * G - 16);
@@ -12494,6 +12664,17 @@ function heroStep(dt) {
     }
   } else {
     h.slimeDamageTick = 0;
+  }
+  const inScavengerHazard = S.firePatches.some(f => f.scavenger && dist(h.x, h.y, f.x, f.y) < f.r + 12);
+  if (inScavengerHazard) {
+    h.slimeDebuffUntil = Math.max(h.slimeDebuffUntil || 0, now + .45);
+    h.scavengerHazardTick = Math.max(0, (h.scavengerHazardTick || 0) - dt);
+    if (h.scavengerHazardTick <= 0) {
+      h.scavengerHazardTick = .6;
+      hurtHero(1 + Math.floor(S.wave * .08), 'scavenger scrap');
+    }
+  } else {
+    h.scavengerHazardTick = 0;
   }
 
   h.inv     -= dt;
@@ -13323,6 +13504,54 @@ function dropRandomPowerup(e, byHero = false) {
     if (roll <= 0) { type = w.type; break; }
   }
   dropPowerup(e.x + (Math.random() - .5) * 28, e.y + (Math.random() - .5) * 28, type);
+}
+
+function expeditionEliteRewardType() {
+  const healthBias = S.hero.hp < S.hero.max * .4 ? 2.2 : S.hero.hp < S.hero.max * .7 ? 1.4 : 1;
+  const weights = [
+    { type: 'health', weight: 18 * healthBias },
+    { type: 'frenzy', weight: 14 },
+    { type: 'haste', weight: 12 },
+    { type: 'freeze', weight: 10 },
+    { type: 'asColdAsLife', weight: 8 },
+    { type: 'bomb', weight: 8 },
+    { type: 'reset', weight: 6 },
+    { type: 'rift', weight: 6 },
+    { type: 'thunder', weight: 12 },
+    { type: 'orbital', weight: 12 },
+    { type: 'stampede', weight: 10 },
+    { type: 'bullethell', weight: 10 },
+    { type: 'blackhole', weight: 10 },
+    { type: 'tinyarmy', weight: 9 },
+    { type: 'goblinunion', weight: 9 },
+  ];
+  if (Math.random() < .35) weights.push(
+    { type: 'kittens', weight: 7 },
+    { type: 'goose', weight: 7 },
+    { type: 'bees', weight: 7 },
+    { type: 'summoncat', weight: 7 },
+    { type: 'physics', weight: 7 },
+    { type: 'wronggame', weight: 7 }
+  );
+  const total = weights.reduce((n, w) => n + w.weight, 0);
+  let roll = Math.random() * total;
+  for (const w of weights) {
+    roll -= w.weight;
+    if (roll <= 0) return w.type;
+  }
+  return weights[0].type;
+}
+
+function dropExpeditionEliteReward(e) {
+  if (!isExpeditionRun() || !e || e.expeditionRewardDropped) return;
+  if (!e.eliteRoomTarget && !isLargeEnemy(e)) return;
+  e.expeditionRewardDropped = true;
+  awardGoldCache(undefined, e.x, e.y, 'expedition elite');
+  const type = expeditionEliteRewardType();
+  dropPowerup(e.x + (Math.random() - .5) * 34, e.y + (Math.random() - .5) * 34, type);
+  floatText('TREASURE TEETH', e.x - 44, e.y - 42, '#ffcf6a');
+  shockwave(e.x, e.y, powerupColor(type), 92, .28);
+  console.log('[expedition] elite reward dropped', { enemy: e.type, reward: type });
 }
 
 function dropPowerup(x, y, type = 'health', full = false) {
@@ -14523,9 +14752,201 @@ function runSummaryHtml() {
 
 // ── Enemy AI ──────────────────────────────────────────────────────
 
+const ENEMY_BEHAVIOR_TYPES = {
+  warden: ['beacon'],
+  phase: ['phasewalker'],
+  sapper: ['scavenger'],
+  hexcaller: ['riftLeech'],
+  brute: ['broodCarrier'],
+};
+
+function applyEnemyBehaviors(e) {
+  if (!e || e.behaviors) return e;
+  const types = ENEMY_BEHAVIOR_TYPES[e.type] || [];
+  e.behaviors = [...types];
+  if (e.behaviors.includes('beacon')) e.beaconPulse = 1.2 + Math.random() * .8;
+  if (e.behaviors.includes('phasewalker')) e.phasewalkCd = 2.4 + Math.random() * 1.4;
+  if (e.behaviors.includes('scavenger')) e.scavengerDropCd = 1.2 + Math.random() * 1.2;
+  if (e.behaviors.includes('riftLeech')) e.leechCd = .8 + Math.random() * .8;
+  if (e.behaviors.includes('broodCarrier')) {
+    e.broodCd = 2.0 + Math.random() * 1.4;
+    e.spd *= .82;
+  }
+  return e;
+}
+
+function enemyHasBehavior(e, behavior) {
+  return Array.isArray(e?.behaviors) && e.behaviors.includes(behavior);
+}
+
+function updateEnemyBehaviorTimers(e, dt) {
+  e.beaconBuffUntil = Math.max(0, (e.beaconBuffUntil || 0) - dt);
+  e.beaconSizeUntil = Math.max(0, (e.beaconSizeUntil || 0) - dt);
+  e.beaconPulse = Math.max(0, (e.beaconPulse || 0) - dt);
+  e.phasewalkCd = Math.max(0, (e.phasewalkCd || 0) - dt);
+  e.scavengerDropCd = Math.max(0, (e.scavengerDropCd || 0) - dt);
+  e.leechCd = Math.max(0, (e.leechCd || 0) - dt);
+  e.broodCd = Math.max(0, (e.broodCd || 0) - dt);
+}
+
+function enemyBehaviorSpeedMult(e) {
+  let mult = 1;
+  if ((e.beaconBuffUntil || 0) > 0) mult *= 1.24;
+  if (enemyHasBehavior(e, 'broodCarrier')) mult *= .82;
+  return mult;
+}
+
+function updateBeaconBehavior(e, dt) {
+  if (!enemyHasBehavior(e, 'beacon') || e.beaconPulse > 0) return;
+  e.beaconPulse = 4.6 + Math.random() * 1.5;
+  const buff = Math.random();
+  const nearby = S.enemies.filter(o => o && !o.dead && o !== e && dist(e.x, e.y, o.x, o.y) < 150);
+  for (const o of nearby) {
+    o.beaconBuffUntil = Math.max(o.beaconBuffUntil || 0, 3.1);
+    if (buff < .34) o.slow = Math.max(0, (o.slow || 0) - .4);
+    else if (buff < .67) o.shoot = Math.min(o.shoot || 0, .2);
+    else o.beaconSizeUntil = Math.max(o.beaconSizeUntil || 0, 3.1);
+    o.hexWard = Math.max(o.hexWard || 0, .9);
+    boom(o.x, o.y, '#ffcf6a33', 3);
+  }
+  floatText('BEACON', e.x - 24, e.y - e.rad - 25, '#ffcf6a');
+  shockwave(e.x, e.y, '#ffcf6a', 150, .32);
+  burst(e.x, e.y, '#fff0b8', 10, 'spark', 150);
+}
+
+function updatePhasewalkerBehavior(e, dt) {
+  if (!enemyHasBehavior(e, 'phasewalker')) return false;
+  if (e.phasewalkWarn > 0) {
+    e.phasewalkWarn = Math.max(0, e.phasewalkWarn - dt);
+    e.slow = Math.max(e.slow || 0, .28);
+    if (e.phasewalkWarn <= 0) {
+      const target = phasewalkerTargetPoint(e);
+      if (target) {
+        shockwave(e.x, e.y, '#d7c8ff', 44, .18);
+        burst(e.x, e.y, '#f2e7ff', 7, 'spark', 90);
+        e.x = target.x;
+        e.y = target.y;
+        e.node = Math.max(0, target.node ?? e.node ?? 0);
+        e.phaseActive = Math.max(e.phaseActive || 0, .85);
+        e.phasewalkCd = 6.5 + Math.random() * 2.5;
+        e.navStuck = 0;
+        e.wildTimer = .1;
+        floatText('REAPPEAR', e.x - 30, e.y - e.rad - 20, '#d7c8ff');
+        shockwave(e.x, e.y, '#d7c8ff', 54, .2);
+      }
+    }
+    return true;
+  }
+  if (e.phasewalkCd <= 0 && dist(e.x, e.y, S.hero.x, S.hero.y) < 360) {
+    e.phasewalkWarn = .75;
+    e.stun = Math.max(e.stun || 0, .05);
+    floatText('PHASING', e.x - 28, e.y - e.rad - 20, '#d7c8ff');
+    shockwave(e.x, e.y, '#d7c8ff', 38, .16);
+    return true;
+  }
+  return false;
+}
+
+function phasewalkerTargetPoint(e) {
+  const path = enemyPath(e);
+  const start = Math.max(0, e.node || 0);
+  for (let tries = 0; tries < 8; tries++) {
+    const idx = Math.min(path.length - 1, start + 2 + Math.floor(Math.random() * 5));
+    const p = path[idx];
+    if (!p) break;
+    const x = p.x + (Math.random() - .5) * 90;
+    const y = p.y + (Math.random() - .5) * 90;
+    const cell = cellAt(x, y);
+    if (canEnemyEnterCell(cell.c, cell.r) && dist(x, y, S.hero.x, S.hero.y) > 90) return { x, y, node: idx };
+  }
+  return null;
+}
+
+function updateScavengerBehavior(e, dt) {
+  if (!enemyHasBehavior(e, 'scavenger')) return false;
+  const hd = dist(e.x, e.y, S.hero.x, S.hero.y);
+  if (e.scavengerDropCd <= 0) {
+    e.scavengerDropCd = 2.1 + Math.random() * 1.4;
+    S.firePatches.push({ x: e.x, y: e.y, r: 32, life: 4.5, maxLife: 4.5, dps: 2.6 + S.wave * .08, scavenger: true });
+    floatText('SCRAP', e.x - 18, e.y - e.rad - 20, '#ff9b32');
+    boom(e.x, e.y, '#ff9b3233', 5);
+  }
+  if (hd < 210 && hd > 0) {
+    const prevX = e.x, prevY = e.y;
+    const a = Math.atan2(e.y - S.hero.y, e.x - S.hero.x);
+    e.x = clamp(e.x + Math.cos(a) * e.spd * G * dt * 1.2, OX + 16, OX + COLS * G - 16);
+    e.y = clamp(e.y + Math.sin(a) * e.spd * G * dt * 1.2, OY + 16, OY + ROWS * G - 16);
+    e.slow = Math.max(e.slow || 0, .08);
+    enforceExpeditionRoomBoundary(e, prevX, prevY);
+    return true;
+  }
+  return false;
+}
+
+function updateRiftLeechBehavior(e, dt) {
+  if (!enemyHasBehavior(e, 'riftLeech')) return;
+  const hd = dist(e.x, e.y, S.hero.x, S.hero.y);
+  const active = (e.leechUntil || 0) > 0 && hd < 270;
+  if (!active && e.leechCd <= 0 && hd < 230) {
+    e.leechUntil = 3.4;
+    e.leechCd = 6.5 + Math.random() * 1.8;
+    floatText('TETHER', e.x - 22, e.y - e.rad - 24, '#f0b8ff');
+    shockwave(e.x, e.y, '#f0b8ff', 72, .22);
+  }
+  if ((e.leechUntil || 0) > 0) {
+    e.leechUntil = Math.max(0, e.leechUntil - dt);
+    if (hd > 270 || !lineOfSightCells(e.x, e.y, S.hero.x, S.hero.y)) {
+      e.leechUntil = 0;
+      floatText('TETHER BROKEN', S.hero.x - 44, S.hero.y - 34, '#8edcff');
+      return;
+    }
+    S.hero.slimeDebuffUntil = Math.max(S.hero.slimeDebuffUntil || 0, performance.now() / 1000 + .35);
+    e.hp = Math.min(e.max || e.hp, e.hp + (6 + S.wave * .16) * dt);
+    if (Math.random() < dt * 3) S.parts.push({ kind: 'bolt', x: e.x, y: e.y, x2: S.hero.x, y2: S.hero.y, life: .12, maxLife: .12, c: '#f0b8ff', w: 3 });
+  }
+}
+
+function lineOfSightCells(ax, ay, bx, by) {
+  const steps = Math.max(1, Math.ceil(dist(ax, ay, bx, by) / (G * .5)));
+  for (let i = 1; i < steps; i++) {
+    const t = i / steps;
+    const c = cellAt(ax + (bx - ax) * t, ay + (by - ay) * t);
+    if (isBlockedTerrain(c.c, c.r) || isExpeditionRoomBlockedCell(c.c, c.r)) return false;
+  }
+  return true;
+}
+
+function updateBroodCarrierBehavior(e, dt) {
+  if (!enemyHasBehavior(e, 'broodCarrier') || e.broodCd > 0) return;
+  e.broodCd = 5.8 + Math.random() * 2.2;
+  const path = enemyPath(e);
+  const node = Math.max(0, Math.min(e.node || 0, path.length - 1));
+  const count = 2 + (Math.random() < .35 ? 1 : 0);
+  for (let i = 0; i < count; i++) {
+    const child = spawnEnemyAt('runner', e.x + (i - .5) * 18, e.y + (Math.random() - .5) * 22, path, node);
+    if (!child) continue;
+    child.hp = child.max = Math.max(10, Math.floor((e.max || 80) * .12));
+    child.rad = 8;
+    child.spd *= 1.08;
+    child.val = Math.max(1, Math.floor((e.val || 8) * .18));
+    child.broodling = true;
+    child.wild = true;
+  }
+  floatText('BROOD', e.x - 20, e.y - e.rad - 22, '#b9d84f');
+  burst(e.x, e.y, '#b9d84f', 10, 'goo', 120);
+  shockwave(e.x, e.y, '#b9d84f', 68, .2);
+}
+
+function updateEnemyBehaviors(e, dt) {
+  updateBeaconBehavior(e, dt);
+  updateRiftLeechBehavior(e, dt);
+  updateBroodCarrierBehavior(e, dt);
+}
+
 // Main enemy update dispatcher
 function enemyStep(e, dt) {
   e.flash = Math.max(0, e.flash - dt);
+  updateEnemyBehaviorTimers(e, dt);
   e.heroPressure = Math.max(0, (e.heroPressure || 0) - dt * 0.55);
   e.springResist = Math.max(0, (e.springResist || 0) - dt);
   if (e.springResist <= 0) e.springChain = Math.max(0, (e.springChain || 0) - dt * 1.2);
@@ -14547,6 +14968,13 @@ function enemyStep(e, dt) {
   // DoT effects
   if (e.burn   > 0) { e.burn   -= dt; hit(e, e.burnD   * dt, null); }
   if (e.poison > 0) { e.poison -= dt; hit(e, e.poisonD * dt, null); }
+  if (e.dead) return;
+  if (enemyWaitingBehindLockedDoor(e)) {
+    e.stun = Math.max(0, (e.stun || 0) - dt);
+    e.slow = Math.max(0, (e.slow || 0) - dt);
+    return;
+  }
+  updateEnemyBehaviors(e, dt);
   if (e.dead) return;
 
   if (e.type === 'phase' && e.phaseCd <= 0 && (e.phaseActive || 0) <= 0) {
@@ -14585,6 +15013,8 @@ function enemyStep(e, dt) {
   }
 
   const expeditionTargetedChase = updateExpeditionEnemyTarget(e, dt);
+  const behaviorHoldsMovement = updatePhasewalkerBehavior(e, dt) || updateScavengerBehavior(e, dt);
+  if (behaviorHoldsMovement) return;
 
   // Type-specific arena AI. Active Expedition room enemies keep healer/hex support
   // pulses, but use the shared path follower so they chase the current room target.
@@ -14622,7 +15052,7 @@ function enemyStep(e, dt) {
   }
 
   // Oil patch slow
-  let slow = e.slow > 0 ? .55 : 1;
+  let slow = (e.slow > 0 ? .55 : 1) * enemyBehaviorSpeedMult(e);
   if (e.freeze > 0 && e.type !== 'slimeking') slow = Math.min(slow, .18);
   else if (e.chill > 0) slow = Math.min(slow, 1 - Math.min(.45, e.chill * .12));
   e.slow -= dt;
@@ -14982,17 +15412,20 @@ function handleCollisions(e, dt) {
   if ((e.phaseActive || 0) > 0) return;
   const navRad = enemyNavRadius(e);
   const squeezeActive = isLargeEnemy(e) && (e.squeezeUntil || 0) > performance.now() / 1000;
+  const activeRoom = activeLockedExpeditionRoom();
   for (const rb of S.expedition?.roomBlockers || []) {
     const bd = dist(e.x, e.y, rb.x, rb.y);
     const min = navRad + 24;
     if (bd < min) {
+      const beforeInside = activeRoom ? expeditionRoomContainsPoint(activeRoom, e.x, e.y) : false;
+      const roomEnemy = activeRoom && e.expeditionRoomId === activeRoom.id;
       const fallback = Math.atan2(e.y - S.hero.y, e.x - S.hero.x);
       const ax = bd > 0 ? (e.x - rb.x) / bd : Math.cos(fallback || 0);
       const ay = bd > 0 ? (e.y - rb.y) / bd : Math.sin(fallback || 0);
       e.x = rb.x + ax * min;
       e.y = rb.y + ay * min;
       e.slow = Math.max(e.slow, .45);
-      retargetExpeditionEnemy(e, 'room-blocker');
+      if (!roomEnemy && !beforeInside) waitBehindLockedDoor(e, rb);
     }
   }
   for (const b of S.barriers) {
@@ -16258,7 +16691,7 @@ function drawPickupPopup(q) {
 
 function updateLowHealthWarning(dt) {
   const h = S.hero;
-  const alive = S.started && !S.gameOver && h && h.max > 0 && h.hp > 0 && S.phase === 'combat';
+  const alive = S.started && !S.gameOver && h && h.max > 0 && h.hp > 0 && (S.phase === 'combat' || isExpeditionRun());
   if (!alive) {
     S.lowHealthPulse = 0;
     S.lowHealthFlash = 0;
@@ -16294,6 +16727,47 @@ function updateLowHealthWarning(dt) {
   }
 }
 
+function updateExpeditionRiftWarning(dt) {
+  const ex = S.expedition;
+  const rift = ex?.rift;
+  const alive = isExpeditionRun() && ex && rift && ex.riftActivated && !ex.riftCarried && !S.gameOver && rift.max > 0 && rift.hp > 0;
+  if (!alive) {
+    if (ex) {
+      ex.riftWarnPulse = 0;
+      ex.riftWarnFlash = 0;
+      ex.riftWarnBeep = 0;
+      ex.riftWarnState = 0;
+    }
+    return;
+  }
+  const pct = rift.hp / rift.max;
+  const prevState = ex.riftWarnState || 0;
+  const nextState = pct < .1 ? 3 : pct < .2 ? 2 : pct < .35 ? 1 : 0;
+  ex.riftWarnState = nextState;
+  if (!nextState) {
+    ex.riftWarnPulse = 0;
+    ex.riftWarnFlash = Math.max(0, (ex.riftWarnFlash || 0) - dt * 2);
+    ex.riftWarnBeep = 0;
+    return;
+  }
+  ex.riftWarnPulse = Math.min(1, (ex.riftWarnPulse || 0) + dt * (nextState === 3 ? 2.4 : nextState === 2 ? 1.8 : 1.1));
+  ex.riftWarnFlash = Math.max(0, (ex.riftWarnFlash || 0) - dt);
+  ex.riftWarnBeep = Math.max(0, (ex.riftWarnBeep || 0) - dt);
+  if (nextState > prevState) {
+    ex.riftWarnFlash = Math.max(ex.riftWarnFlash || 0, nextState === 3 ? .8 : nextState === 2 ? .6 : .3);
+    ex.riftWarnBeep = 0;
+  }
+  const beepInterval = nextState === 3 ? 0.22 : nextState === 2 ? 0.48 : 1.8;
+  if (ex.riftWarnBeep <= 0) {
+    ex.riftWarnBeep = beepInterval;
+    try {
+      unlockAudio();
+      playTone({ freq: nextState === 3 ? 1180 : 840, end: nextState === 3 ? 1760 : 1320, type: 'triangle', duration: .05, gain: nextState === 3 ? .11 : .08, glide: true });
+      if (nextState >= 2) playTone({ freq: nextState === 3 ? 620 : 480, end: nextState === 3 ? 420 : 360, type: 'square', duration: .045, gain: nextState === 3 ? .075 : .05, glide: true });
+    } catch (err) {}
+  }
+}
+
 // ── Main game step ────────────────────────────────────────────────
 function step(dt) {
   for (const fx of S.spawningActors) {
@@ -16306,6 +16780,8 @@ function step(dt) {
   updateTempEffects(dt);
   updateCornerSkulls(dt);
   updateCornerGhosts(dt);
+  updateLowHealthWarning(dt);
+  updateExpeditionRiftWarning(dt);
   if (S.started && !isExpeditionRun() && !S.gameOver && !S.waveActive && S.phase === 'build' && S.gameState !== 'upgradeChoice' && !S.pendingUpgrade) {
     if (S.waveCountdown <= 0) S.waveCountdown = getWaveCountdownDuration(S.wave + 1);
     S.waveCountdown = Math.max(0, S.waveCountdown - dt);
@@ -16567,6 +17043,7 @@ function draw(t) {
   });
   S.enemyShots.forEach(s => drawArrow(s, s.slime ? '#7cff4f' : '#ff3030', s.slime));
   S.enemies.forEach(drawEnemy);
+  drawEnemyBehaviorLinks();
   drawMutagenWorldEffects(t);
   drawSpawnIntros(t);
   drawEngineer(t);
@@ -16699,6 +17176,7 @@ function draw(t) {
   drawAtmosphere(t);
   drawExpeditionHud(t);
   drawPowerupDebugHud(t);
+  drawExpeditionRiftWarningOverlay(t);
 
   // Pause overlay
   if (S.paused && $('clear').classList.contains('hidden')) {
@@ -16921,6 +17399,7 @@ function drawExpeditionObjects(t) {
   if (ex.riftActivated) {
     ctx.save();
     const pct = Math.max(0, ex.rift.hp / ex.rift.max);
+    const warnState = ex.riftWarnState || 0;
     if ((ex.rift.flash || 0) > 0) {
       ctx.globalCompositeOperation = 'screen';
       ctx.globalAlpha = Math.min(.65, ex.rift.flash);
@@ -16935,12 +17414,12 @@ function drawExpeditionObjects(t) {
     }
     ctx.fillStyle = '#1a070f';
     ctx.fillRect(ex.rift.x - 58, ex.rift.y - 90, 116, 8);
-    ctx.fillStyle = ex.riftCarried ? '#8edcff' : pct > .45 ? '#e6b8ff' : '#ff7b7b';
+    ctx.fillStyle = ex.riftCarried ? '#8edcff' : warnState >= 3 ? '#ff1f1f' : warnState >= 2 ? '#ff5a3a' : pct > .45 ? '#e6b8ff' : '#ff7b7b';
     ctx.fillRect(ex.rift.x - 58, ex.rift.y - 90, 116 * pct, 8);
     ctx.fillStyle = '#fff4ff';
     ctx.font = 'bold 11px Georgia';
     ctx.textAlign = 'center';
-    ctx.fillText(ex.riftCarried ? 'CARRYING RIFT' : 'RIFT', ex.rift.x, ex.rift.y - 98);
+    ctx.fillText(ex.riftCarried ? 'CARRYING RIFT' : warnState >= 2 ? 'RIFT CRITICAL' : warnState === 1 ? 'RIFT DAMAGED' : 'RIFT', ex.rift.x, ex.rift.y - 98);
     ctx.restore();
 
     const exX = cx(cfg.extraction.c);
@@ -17629,6 +18108,43 @@ function drawLowHealthOverlay(t) {
   ctx.restore();
 }
 
+function drawExpeditionRiftWarningOverlay(t) {
+  const ex = S.expedition;
+  const state = ex?.riftWarnState || 0;
+  if (!isExpeditionRun() || !ex?.riftActivated || ex.riftCarried || !state || S.gameOver || !S.started || (ex.rift?.hp || 0) <= 0) return;
+  const flash = ex.riftWarnFlash || 0;
+  const pulse = ex.riftWarnPulse || 0;
+  const a = state === 3 ? 1 : state === 2 ? .94 : .62;
+  const edge = state === 3 ? 1 : state === 2 ? .9 : .48;
+  const wobble = 1 + Math.sin(t * (state === 3 ? 34 : state === 2 ? 22 : 12)) * (state === 3 ? .22 : state === 2 ? .14 : .06);
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  ctx.globalAlpha = a;
+  ctx.fillStyle = state === 3 ? '#ff1f1f' : '#ff5a3a';
+  const w = W, h = H;
+  const band = state === 3 ? 56 : state === 2 ? 34 : 18;
+  ctx.fillRect(0, 0, w, band + 10 * wobble);
+  ctx.fillRect(0, h - (band + 10 * wobble), w, band + 10 * wobble);
+  ctx.fillRect(0, 0, band + 10 * wobble, h);
+  ctx.fillRect(w - (band + 10 * wobble), 0, band + 10 * wobble, h);
+  ctx.globalAlpha = edge;
+  const grad = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * .2, w / 2, h / 2, Math.max(w, h) * .8);
+  grad.addColorStop(0, 'rgba(255,0,0,0)');
+  grad.addColorStop(1, state === 3 ? 'rgba(255,0,0,.98)' : 'rgba(255,70,40,.85)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+  ctx.globalAlpha = Math.min(1, pulse * .6 + flash * .9);
+  ctx.fillStyle = '#ffefef';
+  ctx.fillRect(0, 0, w, state === 3 ? 30 : state === 2 ? 18 : 10);
+  ctx.fillRect(0, h - (state === 3 ? 30 : state === 2 ? 18 : 10), w, state === 3 ? 30 : state === 2 ? 18 : 10);
+  if (state === 3) {
+    ctx.globalAlpha = .88 + flash * .12;
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(0, 0, w, h);
+  }
+  ctx.restore();
+}
+
 
 function drawAtmosphere(t) {
   // Portal glow
@@ -17796,6 +18312,7 @@ function drawMap(t) {
 
   if (isExpeditionRun()) {
     drawExpeditionDressing(t);
+    drawExpeditionSkulls(t);
     return;
   }
 
@@ -17875,62 +18392,7 @@ function drawFortressDressing(t) {
   if (!Array.isArray(S.cornerSkulls) || !S.cornerSkulls.length) resetCornerSkulls();
   for (const skull of S.cornerSkulls) {
     if (skull.dead) continue;
-    ctx.save();
-    ctx.translate(skull.x, skull.y);
-    const flying = skull.state === 'flying';
-    const flash = flying ? (.45 + Math.abs(Math.sin(t * 18)) * .45) : 0;
-    ctx.globalAlpha = 0.98;
-    ctx.fillStyle = flying && flash > .65 ? '#ff5a4a' : '#f5f2ea';
-    ctx.strokeStyle = flying ? '#ff1f1f' : '#2b120b';
-    ctx.lineWidth = flying ? 4 : 3;
-    ctx.beginPath();
-    ctx.arc(0, 0, 17, 0, 7); ctx.fill(); ctx.stroke();
-    if ((skull.crack || 0) > 0) {
-      ctx.save();
-      ctx.globalAlpha = 0.75;
-      ctx.strokeStyle = '#6c120f';
-      ctx.lineWidth = 1.6 + (skull.crack || 0) * .18;
-      ctx.beginPath();
-      ctx.moveTo(-12, -8); ctx.lineTo(12, 12);
-      ctx.moveTo(-10, 10); ctx.lineTo(7, -11);
-      ctx.stroke();
-      ctx.restore();
-    }
-    ctx.fillStyle = '#f5f2ea';
-    ctx.beginPath();
-    ctx.moveTo(-12, -9); ctx.lineTo(-6, -22); ctx.lineTo(0, -10); ctx.closePath();
-    ctx.moveTo(12, -9); ctx.lineTo(6, -22); ctx.lineTo(0, -10); ctx.closePath();
-    ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#2b120b';
-    ctx.beginPath();
-    ctx.arc(-6, -3, 3.2, 0, 7);
-    ctx.arc(6, -3, 3.2, 0, 7);
-    ctx.fill();
-    ctx.strokeStyle = '#2b120b';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(-7, 8); ctx.lineTo(7, 8);
-    ctx.moveTo(-4, 6); ctx.lineTo(-4, 12);
-    ctx.moveTo(0, 6); ctx.lineTo(0, 12);
-    ctx.moveTo(4, 6); ctx.lineTo(4, 12);
-    ctx.stroke();
-    if (flying) {
-      ctx.globalAlpha = flash;
-      ctx.fillStyle = '#ff1f1f';
-      ctx.beginPath(); ctx.arc(0, 0, 23, 0, 7); ctx.fill();
-    }
-    if (flying) {
-      const pct = Math.max(0, (skull.hp || 0) / (skull.maxHp || 10));
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = '#210b08';
-      ctx.fillRect(-18, 23, 36, 5);
-      ctx.fillStyle = '#ff4a3a';
-      ctx.fillRect(-18, 23, 36 * pct, 5);
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(-18, 23, 36, 5);
-    }
-    ctx.restore();
+    drawCornerSkull(skull, t);
   }
   // Torchlight around the killbox edges.
   const braziers = [
@@ -17966,6 +18428,73 @@ function drawFortressDressing(t) {
     ctx.restore();
   }
   ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+function drawExpeditionSkulls(t) {
+  if (!Array.isArray(S.cornerSkulls)) return;
+  for (const skull of S.cornerSkulls) {
+    if (!skull || skull.dead || !skull.expeditionRoomId) continue;
+    drawCornerSkull(skull, t);
+  }
+}
+
+function drawCornerSkull(skull, t) {
+  ctx.save();
+  ctx.translate(skull.x, skull.y);
+  const flying = skull.state === 'flying';
+  const flash = flying ? (.45 + Math.abs(Math.sin(t * 18)) * .45) : 0;
+  ctx.globalAlpha = 0.98;
+  ctx.fillStyle = flying && flash > .65 ? '#ff5a4a' : '#f5f2ea';
+  ctx.strokeStyle = flying ? '#ff1f1f' : '#2b120b';
+  ctx.lineWidth = flying ? 4 : 3;
+  ctx.beginPath();
+  ctx.arc(0, 0, 17, 0, 7); ctx.fill(); ctx.stroke();
+  if ((skull.crack || 0) > 0) {
+    ctx.save();
+    ctx.globalAlpha = 0.75;
+    ctx.strokeStyle = '#6c120f';
+    ctx.lineWidth = 1.6 + (skull.crack || 0) * .18;
+    ctx.beginPath();
+    ctx.moveTo(-12, -8); ctx.lineTo(12, 12);
+    ctx.moveTo(-10, 10); ctx.lineTo(7, -11);
+    ctx.stroke();
+    ctx.restore();
+  }
+  ctx.fillStyle = '#f5f2ea';
+  ctx.beginPath();
+  ctx.moveTo(-12, -9); ctx.lineTo(-6, -22); ctx.lineTo(0, -10); ctx.closePath();
+  ctx.moveTo(12, -9); ctx.lineTo(6, -22); ctx.lineTo(0, -10); ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#2b120b';
+  ctx.beginPath();
+  ctx.arc(-6, -3, 3.2, 0, 7);
+  ctx.arc(6, -3, 3.2, 0, 7);
+  ctx.fill();
+  ctx.strokeStyle = '#2b120b';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-7, 8); ctx.lineTo(7, 8);
+  ctx.moveTo(-4, 6); ctx.lineTo(-4, 12);
+  ctx.moveTo(0, 6); ctx.lineTo(0, 12);
+  ctx.moveTo(4, 6); ctx.lineTo(4, 12);
+  ctx.stroke();
+  if (flying) {
+    ctx.globalAlpha = flash;
+    ctx.fillStyle = '#ff1f1f';
+    ctx.beginPath(); ctx.arc(0, 0, 23, 0, 7); ctx.fill();
+  }
+  if (flying) {
+    const pct = Math.max(0, (skull.hp || 0) / (skull.maxHp || 10));
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#210b08';
+    ctx.fillRect(-18, 23, 36, 5);
+    ctx.fillStyle = '#ff4a3a';
+    ctx.fillRect(-18, 23, 36 * pct, 5);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(-18, 23, 36, 5);
+  }
   ctx.restore();
 }
 
@@ -18692,6 +19221,7 @@ function drawEnemy(e) {
   else if (e.type === 'healer') { bobY = Math.sin(tNow * 4 + eSeed * .09) * 2.8; }
   else if (e.type === 'warden' || e.type === 'sapper' || e.type === 'phase' || e.type === 'splitter' || e.type === 'hexcaller') { bobY = Math.sin(tNow * 6 + eSeed * .09) * 1.3; rot = Math.sin(tNow * 4 + eSeed * .05) * .03; }
   else if (e.type === 'slimeking') { sx = 1 + Math.sin(tNow * 7 + eSeed * .04) * .09; sy = 1 / sx; bobY = Math.sin(tNow * 5 + eSeed * .04) * 1.2; }
+  if ((e.beaconSizeUntil || 0) > 0) { sx *= 1.18; sy *= 1.18; }
   ctx.translate(e.x, e.y - airLift + bobY);
   if (rot) ctx.rotate(rot);
   const blink = e.type === 'bomber' && Math.floor(performance.now() / 160) % 2;
@@ -18770,6 +19300,29 @@ function drawEnemy(e) {
   }
   if (e.wild) { ctx.strokeStyle = '#ffcf3d'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, e.rad + 4, 0, 7); ctx.stroke(); }
   if (e.range && e.type !== 'slinger') { ctx.strokeStyle = '#e8c783'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(8, 0, 14, -1, 1); ctx.stroke(); }
+  if (enemyHasBehavior(e, 'beacon')) {
+    ctx.strokeStyle = '#ffcf6a';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(0, 0, e.rad + 10 + Math.sin(tNow * 5) * 3, 0, 7); ctx.stroke();
+  }
+  if ((e.beaconBuffUntil || 0) > 0) {
+    ctx.strokeStyle = '#fff0b8';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(0, 0, e.rad + 7, 0, 7); ctx.stroke();
+  }
+  if (enemyHasBehavior(e, 'scavenger')) {
+    ctx.fillStyle = '#ff9b32';
+    ctx.beginPath(); ctx.arc(e.rad * .55, -e.rad * .6, 4, 0, 7); ctx.fill();
+  }
+  if (enemyHasBehavior(e, 'riftLeech') && (e.leechUntil || 0) > 0) {
+    ctx.strokeStyle = '#f0b8ff';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(0, 0, e.rad + 9, 0, 7); ctx.stroke();
+  }
+  if (enemyHasBehavior(e, 'broodCarrier')) {
+    ctx.fillStyle = '#b9d84f';
+    ctx.beginPath(); ctx.arc(-e.rad * .5, -e.rad * .55, 4, 0, 7); ctx.arc(e.rad * .2, -e.rad * .7, 3, 0, 7); ctx.fill();
+  }
   if (isExpeditionRun() && e.expeditionTarget === 'rift') {
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
@@ -18830,6 +19383,22 @@ function drawEnemy(e) {
     ctx.fillStyle = '#fff7d8';
     ctx.strokeText(hpText, e.x, e.y - e.rad - 23);
     ctx.fillText(hpText, e.x, e.y - e.rad - 23);
+    ctx.restore();
+  }
+}
+
+function drawEnemyBehaviorLinks() {
+  for (const e of S.enemies) {
+    if (!e || e.dead || !enemyHasBehavior(e, 'riftLeech') || (e.leechUntil || 0) <= 0) continue;
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.strokeStyle = '#f0b8ff';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([10, 8]);
+    ctx.beginPath();
+    ctx.moveTo(e.x, e.y);
+    ctx.lineTo(S.hero.x, S.hero.y);
+    ctx.stroke();
     ctx.restore();
   }
 }
@@ -19718,6 +20287,7 @@ $('devInfoToggle').onclick = () => {
 $('devPowerupDebugToggle').onclick = () => { S.powerupDebugMode = !S.powerupDebugMode; logPowerupDebug('mode', null, { enabled: S.powerupDebugMode }); ui(); toast(`Powerup Debug ${S.powerupDebugMode ? 'ON' : 'OFF'}`); };
 $('devRiftGuardToggle').onclick = () => { S.devRiftGuard = !S.devRiftGuard; ui(); toast(`Rift Guard ${S.devRiftGuard ? 'ON' : 'OFF'}`); };
 $('devRiftNoHpLossToggle').onclick = () => { S.devRiftNoHpLoss = !S.devRiftNoHpLoss; ui(); toast(`Rift No HP Loss ${S.devRiftNoHpLoss ? 'ON' : 'OFF'}`); };
+$('devPlayerTowerCollisionToggle').onclick = () => { S.devPlayerTowerCollision = !S.devPlayerTowerCollision; ui(); toast(`Player Collision With Towers ${S.devPlayerTowerCollision ? 'ON' : 'OFF'}`); };
 $('devRoomBoundsToggle').onclick = () => { S.devShowRoomBounds = !S.devShowRoomBounds; ui(); toast(`Room Bounds ${S.devShowRoomBounds ? 'ON' : 'OFF'}`); };
 $('devPathToggle').onclick = () => { S.devShowPathing = !S.devShowPathing; ui(); toast(`Pathing ${S.devShowPathing ? 'ON' : 'OFF'}`); };
 $('devAudioToggle').onclick = () => { unlockAudio(); setAudioMuted(!AUDIO.muted); toast(`Audio ${AUDIO.muted ? 'OFF' : 'ON'}`); };
