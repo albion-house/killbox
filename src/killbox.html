@@ -5109,7 +5109,12 @@ const LEVELS = {
           id: 'barracks',
           name: 'Barracks',
           rect: [21, 16, 32, 25],
-          color: '#6a4a3d',
+          color: '#6a6a6a',
+          bedBlocks: [
+            { c: 22, r: 17 }, { c: 25, r: 17 }, { c: 28, r: 17 }, { c: 31, r: 17 },
+            { c: 22, r: 20 }, { c: 25, r: 20 }, { c: 28, r: 20 }, { c: 31, r: 20 },
+            { c: 22, r: 23 }, { c: 25, r: 23 }, { c: 28, r: 23 }, { c: 31, r: 23 },
+          ],
           entrances: [
             { c: 21, r: 20, side: 'west', kind: 'door', label: 'WEST DOOR' },
             { c: 32, r: 20, side: 'east', kind: 'door', label: 'EAST DOOR' },
@@ -6360,6 +6365,7 @@ function heroSolidDefenseCollisionAt(x, y, fromX = S.hero?.x, fromY = S.hero?.y)
 function canHeroEnterCell(c, r) {
   if (S.devNoclip) return true;
   if (c < 0 || r < 0 || c >= COLS || r >= ROWS || isBlockedTerrain(c, r)) return false;
+  if (expeditionBarracksBedCell(c, r)) return false;
   if (expeditionPlayerExitBlocked(c, r)) return false;
   if (expeditionBlockingSkullAtCell(c, r)) return false;
   if (isExpeditionLevel()) return isRoad(c, r);
@@ -6369,6 +6375,7 @@ function canEnemyEnterCell(c, r) {
   return c >= 0 && r >= 0 && c < COLS && r < ROWS
     && isRoad(c, r)
     && !isBlockedTerrain(c, r)
+    && !expeditionBarracksBedCell(c, r)
     && !S.barriers.some(b => b.c === c && b.r === r)
     && !S.towers.some(t => t.onRoad && !TOWERS[t.type].trap && t.c === c && t.r === r)
     && !expeditionBlockingSkullAtCell(c, r)
@@ -6807,6 +6814,12 @@ function expeditionRoomLavaCell(c, r, room = null) {
     }
   }
   return null;
+}
+
+function expeditionBarracksBedCell(c, r) {
+  const room = (expeditionConfig()?.rooms || []).find(candidate => candidate.id === 'barracks');
+  if (!room || expeditionRoomState(room.id) === 'cleared') return false;
+  return Array.isArray(room.bedBlocks) && room.bedBlocks.some(b => b.c === c && b.r === r);
 }
 
 function expeditionPointInLava(x, y, room = null) {
@@ -19180,6 +19193,26 @@ function drawExpeditionDressing(t) {
         ctx.strokeStyle = '#3b1208';
         ctx.lineWidth = 3;
         ctx.strokeRect(lx + 2, ly + 2, lw - 4, lh - 4);
+      }
+    }
+    if (room.id === 'barracks') {
+      for (const bed of room.bedBlocks || []) {
+        const bx = OX + bed.c * G;
+        const by = OY + bed.r * G;
+        ctx.globalAlpha = .95;
+        ctx.fillStyle = '#3d3d41';
+        ctx.fillRect(bx + 5, by + 6, 46, 20);
+        ctx.fillStyle = '#c9c9cf';
+        ctx.fillRect(bx + 8, by + 9, 40, 14);
+        ctx.fillStyle = '#888a91';
+        ctx.fillRect(bx + 8, by + 8, 40, 3);
+        ctx.fillRect(bx + 8, by + 22, 40, 2);
+        ctx.fillStyle = '#59595f';
+        ctx.fillRect(bx + 9, by + 12, 10, 8);
+        ctx.fillRect(bx + 38, by + 12, 8, 8);
+        ctx.strokeStyle = '#1b1b20';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(bx + 5, by + 6, 46, 20);
       }
     }
   }
