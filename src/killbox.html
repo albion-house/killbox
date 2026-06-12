@@ -9313,10 +9313,13 @@ function getUiOwnershipState() {
   };
 }
 
-function ui() {
+function ui(force = false) {
   syncDevGold();
   const expeditionMode = isExpeditionRun() || isExpeditionLevel(S.levelId);
   const uiOwnership = getUiOwnershipState();
+  const now = performance.now();
+  const fullUiEvery = expeditionMode ? 180 : 0;
+  const doFullUi = force || !fullUiEvery || !S.uiLastFullAt || (now - S.uiLastFullAt) >= fullUiEvery || S.uiDirty;
   const hideGameplayHud = uiOwnership.gameplayBlocked;
   const displayWave = S.waveActive ? S.wave : (S.started && !S.gameOver ? S.wave + 1 : S.wave);
   const displayArch = waveArchetypeForDisplay();
@@ -9387,12 +9390,12 @@ function ui() {
   if ($('sidebarVersion')) $('sidebarVersion').textContent = S.version;
   if ($('warRoomVersion')) $('warRoomVersion').textContent = `v${S.version}`;
   if ($('warRoomBuildName')) $('warRoomBuildName').textContent = S.buildName || BUILD_NAME;
-  renderWarRoomStatus();
+  if (doFullUi) renderWarRoomStatus();
   if ($('devArenaSelect') && document.activeElement !== $('devArenaSelect')) {
     const want = S.devArenaChoice || S.levelId || 'field';
     if ($('devArenaSelect').value !== want) $('devArenaSelect').value = want;
   }
-  updateMissionSelectionUI();
+  if (doFullUi) updateMissionSelectionUI();
   if ($('devGoldToggle')) $('devGoldToggle').classList.toggle('toggleOn', S.devUnlimitedGold);
   if ($('devInvToggle')) $('devInvToggle').classList.toggle('toggleOn', S.devInvincible);
   if ($('devNoclipToggle')) $('devNoclipToggle').classList.toggle('toggleOn', S.devNoclip);
@@ -9403,9 +9406,9 @@ function ui() {
   if ($('devPlayerTowerCollisionToggle')) $('devPlayerTowerCollisionToggle').classList.toggle('toggleOn', S.devPlayerTowerCollision);
   if ($('devRoomBoundsToggle')) $('devRoomBoundsToggle').classList.toggle('toggleOn', S.devShowRoomBounds);
   if ($('devPathToggle')) $('devPathToggle').classList.toggle('toggleOn', S.devShowPathing);
-  updateDevHotkeyHelp();
+  if (doFullUi) updateDevHotkeyHelp();
   const dbg = $('devInfoOverlay');
-  if (dbg) {
+  if (dbg && doFullUi) {
     dbg.classList.toggle('debugHidden', !S.devShowInfo);
     if (S.devShowInfo) {
       if (!S.balanceReportLogged) {
@@ -9420,20 +9423,24 @@ function ui() {
     const loadoutText = S.loadout.length ? S.loadout.map(k => WEAPONS[k]?.name || TOWERS[k]?.n || TRINKETS[k]?.name || k).join(', ') : 'nothing. brave.';
     $('info').innerHTML = `<b>Loadout</b><br><b>Gun:</b> ${w.name}<br><b>Slots:</b> ${S.loadout.length}/${LOADOUT_MAX_SLOTS} lit<br><span style="color:#cfbb96">${loadoutText}</span>`;
   }
-  try { renderSetupPickers(); }
+  if (doFullUi) {
+    try { renderSetupPickers(); }
   catch (err) { console.error('[loadout] renderSetupPickers failed', err); }
-  try { renderBuildButtons(); }
+    try { renderBuildButtons(); }
   catch (err) { console.error('[ui] renderBuildButtons failed', err); }
-  try { renderCodices(); }
+    try { renderCodices(); }
   catch (err) { console.error('[ui] renderCodices failed', err); }
-  try { renderAbilityButtons(); }
+    try { renderAbilityButtons(); }
   catch (err) { console.error('[ui] renderAbilityButtons failed', err); }
-  try { renderWaveStatus(); }
+    try { renderWaveStatus(); }
   catch (err) { console.error('[ui] renderWaveStatus failed', err); }
-  try { renderPreview(); }
+    try { renderPreview(); }
   catch (err) { console.error('[ui] renderPreview failed', err); }
-  if (S.hoverInspectId) updateWarRoomInspector(S.hoverInspectId, true);
-  else restoreWarRoomInspector();
+    if (S.hoverInspectId) updateWarRoomInspector(S.hoverInspectId, true);
+    else restoreWarRoomInspector();
+    S.uiLastFullAt = now;
+    S.uiDirty = false;
+  }
   const activeCountdown = S.started && !S.gameOver && !S.waveActive && S.phase === 'build' && S.gameState !== 'upgradeChoice' && !S.pendingUpgrade && !expeditionMode;
   const secs = activeCountdown ? Math.ceil(Math.max(0, S.waveCountdown || 0)) : 0;
   const playCountdown = $('playfieldCountdown');
