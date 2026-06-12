@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Killbox 7.17.0-four-keys</title>
+<title>Killbox 7.17.1-contain</title>
 <style>
 /* ── Design tokens ─────────────────────────────────────────────── */
 :root {
@@ -3268,7 +3268,7 @@ kbd {
   font-size: 12px; line-height: 1.5;
 }
 
-/* ── Killbox 7.16.3-live-zones ───────────────────── */
+/* ── Killbox 7.17.1-contain ───────────────────── */
 /* Changelog: tightened loadout/hotbar card layout and replaced duplicate icon fallbacks. */
 #hireEngineer, #mpBox { display: none !important; }
 .debugHidden { display: none !important; }
@@ -4433,7 +4433,7 @@ h2,
           <kbd>U</kbd> upgrade &nbsp;
           <kbd>1</kbd>–<kbd>8</kbd> build
         </p>
-        <div class="sidebarFooter">Killbox <span id="sidebarVersion">7.15.1</span>. Still rude.</div>
+        <div class="sidebarFooter">Killbox <span id="sidebarVersion">7.17.1</span>. Still rude.</div>
       </div>
     </details>
     <details class="warRoomSection">
@@ -4460,8 +4460,8 @@ h2,
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.17.0</b>
-      <span id="warRoomBuildName">Four Keys</span>
+      <b id="warRoomVersion">v7.17.1</b>
+      <span id="warRoomBuildName">Contain</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -4548,7 +4548,7 @@ h2,
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.17.0 Four Keys</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.17.1 Contain</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -5890,8 +5890,8 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const BUILD_VERSION = '7.17.0';
-const BUILD_NAME = 'Four Keys';
+const BUILD_VERSION = '7.17.1';
+const BUILD_NAME = 'Contain';
 function upgradeIcon(id, kind = 'generic') {
   const up = HERO_UPGRADES[id] || TRAP_UPGRADES[id] || BOSS_UPGRADES[id] || {};
   const explicit = up.targetIcon || up.targetItem || up.targetIconAlt || up.targetItemAlt;
