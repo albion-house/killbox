@@ -1995,13 +1995,13 @@ textarea {
   position: fixed;
   z-index: 80;
   min-width: 170px;
-  max-width: min(240px, calc(100vw - 24px));
+  max-width: min(260px, calc(100vw - 24px));
   pointer-events: none;
   border: 1px solid rgba(240,201,107,.48);
   border-radius: 10px;
   background: linear-gradient(180deg, rgba(27,18,11,.97), rgba(12,9,6,.98));
   box-shadow: 0 10px 24px rgba(0,0,0,.42), 0 0 0 1px rgba(255,224,156,.07) inset;
-  padding: 10px 11px;
+  padding: 7px 9px;
   transform: translate(12px, 12px);
   display: none;
 }
@@ -2009,24 +2009,24 @@ textarea {
 .hotbarHoverTooltip .loadoutStats {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 5px;
+  gap: 2px;
 }
-.hotbarHoverTooltip .loadoutStat {
-  border: 1px solid rgba(255,224,156,.12);
-  border-radius: 8px;
-  padding: 6px 7px;
+.hotbarHoverTooltip .tooltipRow {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
-}
-.hotbarHoverTooltip .loadoutStat span {
-  font-size: 10px;
-  min-width: 0;
-}
-.hotbarHoverTooltip .loadoutStat b {
-  font-size: 12px;
+  gap: 16px;
+  font: 800 14px/1.05 "Courier New", Courier, monospace;
+  letter-spacing: 0;
+  color: #fff4d0;
   white-space: nowrap;
+}
+.hotbarHoverTooltip .tooltipRow span,
+.hotbarHoverTooltip .tooltipRow b {
+  display: inline-block;
+}
+.hotbarHoverTooltip .tooltipRow span {
+  font-weight: 800;
 }
 .inspectorSticky {
   position: sticky;
@@ -5068,7 +5068,7 @@ const LEVELS = {
           darkRoom: true,
           lightsAfterKey: true,
           darkness: {
-            darknessAlpha: .95,
+            darknessAlpha: .9,
             floorReadabilityAlpha: .07,
             playerLightRadius: 82,
             riftLightRadius: 265,
@@ -5124,7 +5124,7 @@ const LEVELS = {
           color: '#49656b',
           darkRoom: true,
           darkness: {
-            darknessAlpha: .95,
+            darknessAlpha: .9,
             floorReadabilityAlpha: .08,
             playerLightRadius: 78,
             riftLightRadius: 250,
@@ -5228,7 +5228,7 @@ const EXPEDITION_PROTOTYPE_TUNING = {
   roomScale: 2.0,
   enemyDensity: 1.5,
   darkRooms: {
-    darknessAlpha: .82,
+    darknessAlpha: .9,
     floorReadabilityAlpha: .18,
     playerLightRadius: 155,
     riftLightRadius: 250,
@@ -6292,15 +6292,18 @@ function expeditionStoredSurgeTooltipHTML() {
   const surge = S.expedition?.storedSurge;
   if (!surge) {
     return `
-      <div class="selTitle">SURGE SLOT</div>
-      <div class="selRole">KEY 9</div>
-      <div class="selDesc">Store one Expedition Surge until you want it.</div>`;
+      <div class="loadoutStats">
+        <div class="loadoutStat"><span>Key</span><b>9</b></div>
+        <div class="loadoutStat"><span>Status</span><b>Empty</b></div>
+      </div>`;
   }
   const meta = expeditionStoredSurgeMeta(surge);
   return `
-    <div class="selTitle">${meta.name}</div>
-    <div class="selRole">KEY 9</div>
-    <div class="selDesc">${meta.desc}</div>`;
+    <div class="loadoutStats">
+      <div class="loadoutStat"><span>Key</span><b>9</b></div>
+      <div class="loadoutStat"><span>Status</span><b>Ready</b></div>
+      <div class="loadoutStat"><span>Type</span><b>${meta.name}</b></div>
+    </div>`;
 }
 
 function expeditionRiftShieldPoint() {
@@ -6978,9 +6981,13 @@ function expeditionContainers() {
   return expeditionConfig()?.keyContainers || [];
 }
 
+function expeditionAnyLiveEnemies() {
+  return (S.enemies || []).some(e => e && !e.dead);
+}
+
 function nearestExpeditionContainer(maxDist = 82) {
   const ex = S.expedition;
-  if (!isExpeditionRun() || !ex) return null;
+  if (!isExpeditionRun() || !ex || expeditionAnyLiveEnemies()) return null;
   return expeditionContainers()
     .filter(container => container && !ex.keyContainersOpened?.[container.id])
     .map(container => ({ container, pos: expeditionContainerPosition(container) }))
@@ -7187,7 +7194,7 @@ function expeditionEncounterDef(room) {
     keyLabyrinth:{ objective: 'keyEscape', label: 'Reach the center. Claim the Golden Key.', terminalPrompt: 'Take the key at the center.', enemies: [], pressureEnemies: [] },
     chapel:      { objective: 'clear', label: 'Clear Chapel', roomType: 'healer', enemies: ['grunt', 'shield', 'healer'] },
     reactor:     { objective: 'elite', label: 'Clear Reactor Complex', enemies: ['runner', 'brute', 'sapper'], elite: 'brute' },
-    flesh:       { objective: 'nest', label: 'Clear Flesh Garden', roomType: 'bomber', enemies: ['runner', 'runner', 'bomber'], nest: true },
+    flesh:       { objective: 'nest', label: 'Clear Flesh Garden', roomType: 'splitter', enemies: ['splitter', 'splitter', 'splitter'], nest: true },
     rift:        { objective: 'elite', label: 'Secure the Rift Chamber', enemies: ['shield', 'warden', 'hexcaller'], elite: 'warden' },
     maintenance: { objective: 'clear', label: 'Clear Maintenance Tunnels', roomType: 'sapper', enemies: ['grunt', 'runner', 'sapper'] },
   };
@@ -7286,6 +7293,7 @@ function spawnExpeditionRoomEnemy(type, room, spawnCell, elite = false) {
   e.expeditionEncounter = true;
   e.expeditionTarget = 'hero';
   e.expeditionRetargetTimer = 0;
+  e.expeditionNextRetargetAt = performance.now() / 1000 + 2.6 + Math.random() * 1.4;
   e.entry = spawnCell?.label || spawnCell?.kind || room.name || room.id;
   if (elite) {
     e.eliteRoomTarget = true;
@@ -7307,6 +7315,7 @@ function spawnExpeditionRoomRouteThreat(room, threat, i = 0) {
   if (!e) return null;
   ex.roomThreatsSpawned[spawnKey] = true;
   e.routeThreat = true;
+  e.expeditionNextRetargetAt = performance.now() / 1000 + 3.2 + Math.random() * 1.8;
   return e;
 }
 
@@ -7466,6 +7475,7 @@ function startExpeditionRoomEncounter(room) {
   spawnExpeditionRoomSkulls(room);
   ensureExpeditionRoomKey(room);
   if (def.nest) spawnExpeditionRoomNest(room);
+  if (room.id === 'flesh') ex.fleshNestSpawnTimer = 1.8;
   const placedThreats = room.id === 'keyLabyrinth' ? [] : spawnExpeditionRoomRouteThreats(room, true);
   if (Array.isArray(def.pressureEnemies) && def.pressureEnemies.length) {
     const spawnCells = expeditionRoomSpawnCells(room, def.pressureEnemies.length);
@@ -7560,6 +7570,17 @@ function updateExpeditionRoomEncounter() {
       if (ex.roomObjective?.type === 'elite') {
         if (!live.some(e => e.eliteRoomTarget)) completeExpeditionRoomEncounter(ex.activeRoomId);
       } else if (ex.roomObjective?.type === 'nest') {
+        if (ex.activeRoomId === 'flesh') {
+          ex.fleshNestSpawnTimer = Math.max(0, (ex.fleshNestSpawnTimer || 1.8) - dt);
+          const liveNest = (ex.roomNests || []).find(n => !n.dead && n.roomId === ex.activeRoomId);
+          if (liveNest && ex.fleshNestSpawnTimer <= 0) {
+            const room = (cfg.rooms || []).find(r => r.id === ex.activeRoomId);
+            const spawnCells = room ? expeditionRoomSpawnCells(room, 1) : [];
+            const spawned = spawnExpeditionRoomEnemy('splitter', room, spawnCells[0], false);
+            if (spawned) assignExpeditionRoomTargets([spawned], room);
+            ex.fleshNestSpawnTimer = 3.2;
+          }
+        }
         const liveNest = (ex.roomNests || []).some(n => !n.dead && n.roomId === ex.activeRoomId);
         if (!liveNest) completeExpeditionRoomEncounter(ex.activeRoomId);
       } else if (!live.length) {
@@ -8331,7 +8352,7 @@ function retargetExpeditionEnemy(e, reason = 'retarget') {
   e.expeditionTargetKey = e.expeditionLastTarget;
   e.expeditionTargetCell = { c: target.c, r: target.r };
   const stagger = ((e.id || 0) % 13) * .012 + ((e.node || 0) % 5) * .01;
-  e.expeditionNextRetargetAt = (performance.now() / 1000) + .45 + stagger;
+  e.expeditionNextRetargetAt = (performance.now() / 1000) + 1.2 + stagger * 1.5;
   e.wildMode = 'path';
   e.wildTimer = .2;
   if (isLargeEnemy(e)) {
@@ -11815,12 +11836,8 @@ function weaponTooltipHTML(k) {
   const level = getHotbarUpgradeCount(k);
   const stats = getWeaponStatLine(k) || {};
   return `<div class="loadoutStats">
-    <div class="loadoutStat"><span>Damage</span><b>${stats.damage ?? 'Varies'}</b></div>
-    <div class="loadoutStat"><span>Fire rate</span><b>${stats.fireRate ? stats.fireRate + '/s' : 'Varies'}</b></div>
-    <div class="loadoutStat"><span>Crit chance</span><b>${Math.round(stats.crit * 100)}%</b></div>
-    <div class="loadoutStat"><span>Pierce</span><b>${stats.pierce || '0'}</b></div>
-    <div class="loadoutStat"><span>Chains</span><b>${stats.chain || '0'}</b></div>
-    <div class="loadoutStat"><span>Level</span><b>${level}</b></div>
+    <div class="tooltipRow"><span>DMG: ${stats.damage ?? 'Varies'}</span><b>RATE: ${stats.fireRate ? stats.fireRate + '/s' : 'Varies'}</b></div>
+    <div class="tooltipRow"><span>CRIT: ${Math.round(stats.crit * 100)}%</span><b>PIERCE: ${stats.pierce || '0'}  CHAIN: ${stats.chain || '0'}  LVL: ${level}</b></div>
   </div>`;
 }
 
@@ -11833,8 +11850,15 @@ function towerTooltipHTML(k) {
   if (t.rate != null) stats.push(['Fire rate', `${(1 / t.rate).toFixed(2)}/s`]);
   if (t.r != null) stats.push(['Range', t.r]);
   stats.push(['Level', level]);
+  const line1 = [];
+  const line2 = [];
+  if (stats[0]) line1.push(`DMG: ${stats[0][1]}`);
+  if (stats[1]) line1.push(`RATE: ${stats[1][1]}`);
+  if (stats[2]) line2.push(`RANGE: ${stats[2][1]}`);
+  line2.push(`LVL: ${level}`);
   return `<div class="loadoutStats">
-    ${stats.map(([label, value]) => `<div class="loadoutStat"><span>${label}</span><b>${value}</b></div>`).join('')}
+    <div class="tooltipRow">${line1.map(s => `<span>${s}</span>`).join('')}</div>
+    <div class="tooltipRow">${line2.map(s => `<span>${s}</span>`).join('')}</div>
   </div>`;
 }
 
@@ -11847,8 +11871,13 @@ function trinketTooltipHTML(k) {
     ['Cooldown', tr.cooldown ? `${tr.cooldown}s` : 'Passive'],
   ];
   if (activeDuration) rows.push(['Duration', activeDuration]);
+  const lines = [];
+  if (rows[0]) lines.push(`${rows[0][0].toUpperCase()}: ${rows[0][1]}`);
+  if (rows[1]) lines.push(`${rows[1][0].toUpperCase()}: ${rows[1][1]}`);
+  if (rows[2]) lines.push(`${rows[2][0].toUpperCase()}: ${rows[2][1]}`);
   return `<div class="loadoutStats">
-    ${rows.map(([label, value]) => `<div class="loadoutStat"><span>${label}</span><b>${value}</b></div>`).join('')}
+    <div class="tooltipRow"><span>${lines[0] || ''}</span></div>
+    <div class="tooltipRow"><span>${lines.slice(1).join('  ') || ''}</span></div>
   </div>`;
 }
 
@@ -13787,6 +13816,7 @@ function applyBlackoutContainmentLavaToHero(dt) {
 
 function applyBlackoutContainmentLavaToEnemy(e, dt) {
   if (!isExpeditionRun() || !e || e.dead) return;
+  if (e.type === 'slimeking') return;
   if (!expeditionPointInLava(e.x, e.y)) {
     e.lavaTick = 0;
     return;
@@ -14415,6 +14445,7 @@ function slimeKingDropPuddle(x, y, e, opts = {}) {
     slime: true,
     bossTrail: !!opts.bossTrail,
     slimePool: true,
+    selfSafe: true,
     slow: opts.slow || (phase >= 3 ? .22 : phase >= 2 ? .18 : .14),
   });
   const slimeCount = S.firePatches.reduce((n, f) => n + (f.slime ? 1 : 0), 0);
@@ -19262,6 +19293,7 @@ function drawExpeditionRoomBlockers(t) {
 function drawExpeditionKeyContainer(container, t) {
   if (!container) return;
   const ex = S.expedition;
+  if (expeditionAnyLiveEnemies()) return;
   const opened = !!ex?.keyContainersOpened?.[container.id];
   const x = cx(container.c), y = cy(container.r);
   ctx.save();
@@ -22767,6 +22799,22 @@ addEventListener('keydown', e => {
   if (e.code === 'Space') {
     e.preventDefault();
     if (S.net.mode !== 'guest' && !isExpeditionRun()) startWave();
+  }
+  if (e.key === '+' || (e.code === 'Equal' && e.shiftKey) || e.code === 'NumpadAdd') {
+    e.preventDefault();
+    S.speed = normalizeSpeedValue(S.speed);
+    const i = SPEED_VALUES.indexOf(S.speed);
+    S.speed = SPEED_VALUES[Math.min(SPEED_VALUES.length - 1, i + 1)];
+    ui();
+    toast('Speed ' + S.speed + 'x');
+  }
+  if (e.key === '-' || e.code === 'Minus' || e.code === 'NumpadSubtract') {
+    e.preventDefault();
+    S.speed = normalizeSpeedValue(S.speed);
+    const i = SPEED_VALUES.indexOf(S.speed);
+    S.speed = SPEED_VALUES[Math.max(0, i - 1)];
+    ui();
+    toast('Speed ' + S.speed + 'x');
   }
   if (e.key.toLowerCase() === 'p') { S.paused = !S.paused; ui(); }
   if (e.key.toLowerCase() === 'g') { e.preventDefault(); toggleGuide(); }
