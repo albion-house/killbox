@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Killbox 7.16.9-key-labyrinth</title>
+<title>Killbox 7.17.0-four-keys</title>
 <style>
 /* ── Design tokens ─────────────────────────────────────────────── */
 :root {
@@ -4470,8 +4470,8 @@ h2,
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.16.9</b>
-      <span id="warRoomBuildName">Key Labyrinth</span>
+      <b id="warRoomVersion">v7.17.0</b>
+      <span id="warRoomBuildName">Four Keys</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -4529,7 +4529,7 @@ h2,
               </button>
               <button class="missionChoice" data-mission-type="expedition" type="button" aria-pressed="false">
                 <strong>EXPEDITION</strong>
-                <span>Carry the Rift.<br>Activate Relays.<br>Push north.</span>
+                <span>Find keys.<br>Unlock extraction.<br>Escape.</span>
               </button>
             </div>
             <div class="missionOptions">
@@ -4558,7 +4558,7 @@ h2,
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.16.9 Key Labyrinth</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.17.0 Four Keys</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -5026,6 +5026,7 @@ const LEVELS = {
 
       // Rift chamber and reactor route
       [45, 2, 62, 14],
+      [51, 15, 59, 18],
       [47, 22, 50, 28],
       [48, 26, 61, 36],
 
@@ -5041,7 +5042,7 @@ const LEVELS = {
       { c: 58, r: 34, label: 'REACTOR VENT' },
       { c: 20, r: 38, label: 'FLESH VENT' },
     ],
-    goal: { c: 5, r: 37 },
+    goal: { c: 55, r: 16 },
     heroSpawn: { c: 55, r: 10 },
     expedition: {
       rift: { c: 55, r: 8 },
@@ -5050,12 +5051,19 @@ const LEVELS = {
       buildRadius: 260,
       riftHunterRatio: .25,
       riftHunterDamage: 22,
-      extraction: { c: 5, r: 37 },
-      finalKeyRoomId: 'lab',
-      requiredRoomIds: ['keyLabyrinth'],
+      extraction: { c: 55, r: 16 },
+      requiredKeyCount: 4,
+      extractionHoldSeconds: 75,
+      requiredRoomIds: [],
       shortcuts: [
         [9, 27, 17, 29],
         [42, 14, 44, 28],
+      ],
+      keyContainers: [
+        { id: 'securityCrate', name: 'Supply Crate', kind: 'crate', c: 10, r: 22 },
+        { id: 'labyrinthLocker', name: 'Equipment Locker', kind: 'locker', c: 14, r: 14 },
+        { id: 'containmentPod', name: 'Research Pod', kind: 'pod', c: 40, r: 20 },
+        { id: 'reactorCache', name: 'Storage Container', kind: 'container', c: 55, r: 30 },
       ],
       rooms: [
         { id: 'entry', name: 'Entry', rect: [1, 19, 6, 24], color: '#6f6253' },
@@ -5219,7 +5227,7 @@ const LEVELS = {
         { id: 'flesh', name: 'Flesh Garden', rect: [18, 32, 37, 40], color: '#6f3d4a' },
         { id: 'rift', name: 'Rift Chamber', rect: [45, 2, 62, 14], color: '#483d77' },
         { id: 'maintenance', name: 'Maintenance Tunnels', rect: [6, 33, 18, 40], color: '#3f4e52' },
-        { id: 'extraction', name: 'Extraction Pad', rect: [2, 34, 9, 40], color: '#516b58' },
+        { id: 'extraction', name: 'Extraction Pad', rect: [51, 15, 59, 18], color: '#516b58' },
       ],
     },
   },
@@ -5276,6 +5284,7 @@ function scaledExpeditionLevel(level) {
       rift: scaleExpeditionPoint(level.expedition.rift, scale),
       extraction: scaleExpeditionPoint(level.expedition.extraction, scale),
       shortcuts: (level.expedition.shortcuts || []).map(rect => scaleExpeditionRect(rect, scale)),
+      keyContainers: (level.expedition.keyContainers || []).map(point => scaleExpeditionPoint(point, scale)),
       rooms: (level.expedition.rooms || []).map(room => ({
         ...room,
         rect: scaleExpeditionRect(room.rect, scale),
@@ -5889,8 +5898,8 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const BUILD_VERSION = '7.16.9';
-const BUILD_NAME = 'Key Labyrinth';
+const BUILD_VERSION = '7.17.0';
+const BUILD_NAME = 'Four Keys';
 function upgradeIcon(id, kind = 'generic') {
   const up = HERO_UPGRADES[id] || TRAP_UPGRADES[id] || BOSS_UPGRADES[id] || {};
   const explicit = up.targetIcon || up.targetItem || up.targetIconAlt || up.targetItemAlt;
@@ -6314,7 +6323,9 @@ function expeditionRiftShieldActive() {
 }
 function occupied(c, r) { return S.barriers.some(b => b.c === c && b.r === r) || S.barrels.some(b => b.c === c && b.r === r) || S.towers.some(t => t.c === c && t.r === r); }
 function blocked(c, r) { return S.barriers.some(b => b.c === c && b.r === r) || S.towers.some(t => t.onRoad && !TOWERS[t.type].trap && t.c === c && t.r === r); }
-function expeditionPlayerExitBlocked(c, r) { return isExpeditionRoomBlockedCell(c, r); }
+function expeditionPlayerExitBlocked(c, r) {
+  return isExpeditionRoomBlockedCell(c, r) || expeditionExtractionLockedCell(c, r);
+}
 function riftBlockingOccupied(c, r) {
   return S.barriers.some(b => b.c === c && b.r === r)
     || S.barrels.some(b => b.c === c && b.r === r)
@@ -6635,9 +6646,13 @@ function createExpeditionState(levelId = S.levelId) {
     riftFound: false,
     riftActivated: false,
     extractionRevealed: false,
+    extractionUnlocked: false,
+    extractionActive: false,
+    extractionTimer: 0,
+    extractionSpawnTimer: 0,
     shortcutsOpen: false,
     completed: false,
-    message: 'Find the Rift.',
+    message: 'Extraction locked. Find 4 keys.',
     messageTime: 5,
     prompt: '',
     promptTime: 0,
@@ -6661,6 +6676,8 @@ function createExpeditionState(levelId = S.levelId) {
     roomTerminalStates: {},
     roomTerminalPrompt: '',
     roomTerminalPromptTime: 0,
+    extractionKeys: 0,
+    keyContainersOpened: {},
     blackoutKeyCollected: false,
   };
 }
@@ -6679,7 +6696,7 @@ function resetExpeditionState() {
       S.expedition.riftActivated = true;
       S.expedition.riftCarried = false;
       S.expedition.extractionRevealed = true;
-      S.expedition.message = 'Rift online. Push into the facility.';
+      S.expedition.message = `Extraction locked. Find ${expeditionKeyGoal()} keys.`;
       S.expedition.messageTime = 6;
       S.expedition.reinforceTimer = 1.2;
       if (cfg.startingRoomCleared) S.expedition.roomStates[cfg.startingRoomCleared] = 'cleared';
@@ -6690,7 +6707,7 @@ function resetExpeditionState() {
       }
       S.wave = Math.max(S.wave, 8);
     } else {
-      S.expedition.message = 'Explore the facility. No Rift signal detected.';
+      S.expedition.message = 'Find keys. Unlock extraction. Escape.';
       S.expedition.messageTime = 6;
     }
   }
@@ -6773,9 +6790,7 @@ function expeditionRoomTerminalPowered(roomId) {
 }
 
 function expeditionHasFinalKey() {
-  const cfg = expeditionConfig();
-  if (!cfg?.finalKeyRoomId) return true;
-  return !!S.expedition?.blackoutKeyCollected;
+  return expeditionExtractionUnlocked();
 }
 
 function expeditionMissingRequiredRoom() {
@@ -6934,6 +6949,160 @@ function expeditionRoomState(roomId) {
   const ex = S.expedition;
   if (!ex) return 'inactive';
   return ex.roomStates?.[roomId] || 'inactive';
+}
+
+function expeditionKeyGoal() {
+  return Math.max(1, expeditionConfig()?.requiredKeyCount || 4);
+}
+
+function expeditionKeyCount() {
+  return Math.min(expeditionKeyGoal(), Math.max(0, S.expedition?.extractionKeys || 0));
+}
+
+function expeditionExtractionUnlocked() {
+  const ex = S.expedition;
+  return !!(ex && (ex.extractionUnlocked || expeditionKeyCount() >= expeditionKeyGoal()));
+}
+
+function expeditionExtractionRoom() {
+  return (expeditionConfig()?.rooms || []).find(room => room.id === 'extraction') || null;
+}
+
+function expeditionExtractionLockedCell(c, r) {
+  if (!isExpeditionRun() || expeditionExtractionUnlocked()) return false;
+  const room = expeditionExtractionRoom();
+  return !!(room && expeditionRoomContainsCell(room, c, r));
+}
+
+function expeditionExtractionKeyProgressText() {
+  return `${expeditionKeyCount()} / ${expeditionKeyGoal()} KEYS`;
+}
+
+function expeditionContainerPosition(container) {
+  return container ? { x: cx(container.c), y: cy(container.r) } : null;
+}
+
+function expeditionContainers() {
+  return expeditionConfig()?.keyContainers || [];
+}
+
+function nearestExpeditionContainer(maxDist = 82) {
+  const ex = S.expedition;
+  if (!isExpeditionRun() || !ex) return null;
+  return expeditionContainers()
+    .filter(container => container && !ex.keyContainersOpened?.[container.id])
+    .map(container => ({ container, pos: expeditionContainerPosition(container) }))
+    .filter(item => item.pos && isRoad(item.container.c, item.container.r) && !isBlockedTerrain(item.container.c, item.container.r))
+    .map(item => ({ ...item, d: dist(S.hero.x, S.hero.y, item.pos.x, item.pos.y) }))
+    .filter(item => item.d <= maxDist)
+    .sort((a, b) => a.d - b.d)[0]?.container || null;
+}
+
+function unlockExpeditionExtraction() {
+  const ex = S.expedition;
+  const cfg = expeditionConfig();
+  if (!ex || ex.extractionUnlocked) return false;
+  ex.extractionUnlocked = true;
+  ex.extractionRevealed = true;
+  ex.message = 'Extraction unlocked. Get out.';
+  ex.messageTime = 8;
+  ex.prompt = 'Return to Extraction.';
+  ex.promptTime = 5;
+  announceWave('EXTRACTION UNLOCKED', 'resting', 1.3);
+  playSfx('secondaryReady');
+  shake(12, .55);
+  if (cfg?.extraction) {
+    shockwave(cx(cfg.extraction.c), cy(cfg.extraction.r), '#9fffc8', 240, .5);
+    burst(cx(cfg.extraction.c), cy(cfg.extraction.r), '#d8ffd8', 34, 'spark', 240);
+  }
+  showMissionHint('Extraction is unlocked. Return and hold out.', 'expedition-extraction-unlocked', 4);
+  return true;
+}
+
+function tryOpenExpeditionContainer() {
+  const ex = S.expedition;
+  if (!isExpeditionRun() || !ex) return false;
+  const container = nearestExpeditionContainer();
+  if (!container) return false;
+  ex.keyContainersOpened ||= {};
+  ex.keyContainersOpened[container.id] = true;
+  ex.extractionKeys = Math.min(expeditionKeyGoal(), (ex.extractionKeys || 0) + 1);
+  const pos = expeditionContainerPosition(container);
+  ex.message = `Key found. ${expeditionExtractionKeyProgressText()}.`;
+  ex.messageTime = 5;
+  ex.prompt = '';
+  ex.promptTime = 0;
+  floatText('KEY FOUND', pos.x - 34, pos.y - 34, '#ffd45a');
+  shockwave(pos.x, pos.y, '#ffd45a', 145, .32);
+  burst(pos.x, pos.y, '#fff1c0', 24, 'spark', 170);
+  playSfx('pickupGold');
+  if (expeditionKeyCount() >= expeditionKeyGoal()) unlockExpeditionExtraction();
+  else showMissionHint(`Find keys to unlock extraction: ${expeditionExtractionKeyProgressText()}.`, 'expedition-key-progress', 3.2);
+  return true;
+}
+
+function startExpeditionExtractionEvent() {
+  const ex = S.expedition;
+  const cfg = expeditionConfig();
+  if (!isExpeditionRun() || !ex || ex.completed || ex.extractionActive) return false;
+  if (!expeditionExtractionUnlocked()) {
+    ex.message = `Extraction locked. ${expeditionExtractionKeyProgressText()}.`;
+    ex.messageTime = 4;
+    ex.prompt = `Find ${expeditionKeyGoal() - expeditionKeyCount()} more key${expeditionKeyGoal() - expeditionKeyCount() === 1 ? '' : 's'}.`;
+    ex.promptTime = 3;
+    return false;
+  }
+  ex.extractionActive = true;
+  ex.extractionTimer = cfg?.extractionHoldSeconds || 75;
+  ex.extractionSpawnTimer = 0.8;
+  ex.message = 'Extraction started. Hold out.';
+  ex.messageTime = 6;
+  announceWave('EXTRACTION HOLDOUT', 'danger', 1.2);
+  playSfx('bossWarning');
+  shake(10, .45);
+  if (cfg?.extraction) shockwave(cx(cfg.extraction.c), cy(cfg.extraction.r), '#9fffc8', 210, .45);
+  return true;
+}
+
+function finishExpeditionExtraction() {
+  const ex = S.expedition;
+  if (!ex || ex.completed) return;
+  ex.completed = true;
+  ex.extractionActive = false;
+  ex.message = 'Extraction complete.';
+  ex.messageTime = 20;
+  S.gameOver = true;
+  S.waveActive = false;
+  S.queue = [];
+  S.enemies = [];
+  document.querySelector('#clear .card').classList.add('clearCard');
+  $('clearTitle').textContent = 'Extraction Complete';
+  $('clearText').textContent = 'Keys recovered. Extraction survived. The route out is open.';
+  if ($('clearStats')) $('clearStats').innerHTML = `<div><small>Keys</small><b>${expeditionKeyCount()} / ${expeditionKeyGoal()}</b></div><div><small>Mapped cells</small><b>${ex.discoveredCount || 0}</b></div>`;
+  if ($('clearCountdownValue')) $('clearCountdownValue').textContent = '0';
+  $('clearBtn').textContent = 'Run Complete';
+  $('clear').classList.remove('hidden');
+  shake(12, .55);
+  console.log('[expedition] extraction complete', {
+    elapsed: Number((ex.elapsed || 0).toFixed(1)),
+    keys: expeditionKeyCount(),
+    discoveredCells: ex.discoveredCount,
+  });
+}
+
+function updateExpeditionExtractionEvent(dt) {
+  const ex = S.expedition;
+  if (!isExpeditionRun() || !ex?.extractionActive || ex.completed) return;
+  ex.extractionTimer = Math.max(0, (ex.extractionTimer || 0) - dt);
+  ex.extractionSpawnTimer = Math.max(0, (ex.extractionSpawnTimer || 0) - dt);
+  if (ex.extractionSpawnTimer <= 0) {
+    const pressure = 1 - Math.max(0, ex.extractionTimer || 0) / (expeditionConfig()?.extractionHoldSeconds || 75);
+    ex.extractionSpawnTimer = Math.max(1.25, 3.2 - pressure * 1.4);
+    const pool = pressure > .65 ? ['runner', 'shield', 'sapper', 'brute'] : pressure > .3 ? ['grunt', 'runner', 'shield', 'sapper'] : ['grunt', 'runner', 'runner'];
+    const count = pressure > .7 ? 3 : 2;
+    for (let i = 0; i < count; i++) spawnExpeditionEnemy(pool);
+  }
+  if (ex.extractionTimer <= 0) finishExpeditionExtraction();
 }
 
 function clearExpeditionRoomCombatLeftovers(roomId) {
@@ -7191,7 +7360,6 @@ function spawnExpeditionRoomNest(room) {
 
 function expeditionRoomKeyType(room) {
   if (room?.id === 'keyLabyrinth') return 'expeditionKey';
-  if (room?.id === 'lab') return 'containmentKey';
   return null;
 }
 
@@ -7359,8 +7527,7 @@ function completeExpeditionRoomEncounter(roomId) {
   announceWave(`${room.name.toUpperCase()} CLEARED`, 'resting', .9);
   shockwave(S.hero.x, S.hero.y, '#b9d84f', 120, .3);
   burst(S.hero.x, S.hero.y, '#f0c96b', 16, 'spark', 160);
-  if (room.id === 'lab') ensureBlackoutContainmentKey(room);
-  else if (room.id !== 'keyLabyrinth') dropExpeditionRoomClearReward(room);
+  if (room.id !== 'keyLabyrinth') dropExpeditionRoomClearReward(room);
   rebuildPath();
   return true;
 }
@@ -7556,44 +7723,16 @@ function spawnExpeditionEnemy(pool) {
 
 function completeExpedition() {
   const ex = S.expedition;
-  if (!ex || ex.completed) return;
-  const missingRoom = expeditionMissingRequiredRoom();
-  if (missingRoom) {
-    ex.message = `${missingRoom.name} must be cleared.`;
+  if (!ex || ex.completed || ex.extractionActive) return;
+  if (!expeditionExtractionUnlocked()) {
+    ex.message = `Extraction locked. ${expeditionExtractionKeyProgressText()}.`;
     ex.messageTime = 5;
-    ex.prompt = `Clear ${missingRoom.name} before extraction.`;
+    ex.prompt = `Find ${expeditionKeyGoal() - expeditionKeyCount()} more key${expeditionKeyGoal() - expeditionKeyCount() === 1 ? '' : 's'}.`;
     ex.promptTime = 3;
-    showMissionHint(`Clear ${missingRoom.name} before extraction.`, `expedition-required-${missingRoom.id}`, 4);
+    showMissionHint(`Collect keys to unlock extraction: ${expeditionExtractionKeyProgressText()}.`, 'expedition-extraction-locked', 4);
     return;
   }
-  if (!expeditionHasFinalKey()) {
-    ex.message = 'Golden key required.';
-    ex.messageTime = 5;
-    ex.prompt = 'Find the key in the Key Labyrinth.';
-    ex.promptTime = 3;
-    showMissionHint('The final chamber needs the Golden Key.', 'expedition-golden-key-required', 4);
-    return;
-  }
-  ex.completed = true;
-  ex.message = 'Extraction complete.';
-  ex.messageTime = 20;
-  S.gameOver = true;
-  S.waveActive = false;
-  S.queue = [];
-  S.enemies = [];
-  document.querySelector('#clear .card').classList.add('clearCard');
-  $('clearTitle').textContent = 'Extraction Complete';
-  $('clearText').textContent = 'The Rift reached the pad intact. Persistent defenses, opened shortcuts, and the return route are now proven for Expedition.';
-  if ($('clearStats')) $('clearStats').innerHTML = `<div><small>Rift HP</small><b>${Math.round(ex.rift.hp)} / ${ex.rift.max}</b></div><div><small>Mapped cells</small><b>${ex.discoveredCount || 0}</b></div>`;
-  if ($('clearCountdownValue')) $('clearCountdownValue').textContent = '0';
-  $('clearBtn').textContent = 'Run Complete';
-  $('clear').classList.remove('hidden');
-  shake(12, .55);
-  console.log('[expedition] extraction complete', {
-    elapsed: Number((ex.elapsed || 0).toFixed(1)),
-    riftHp: Math.round(ex.rift.hp),
-    discoveredCells: ex.discoveredCount,
-  });
+  startExpeditionExtractionEvent();
 }
 
 function updateExpedition(dt) {
@@ -7606,6 +7745,8 @@ function updateExpedition(dt) {
   discoverExpeditionCells();
   updateKeyLabyrinthAwakening(dt);
   updateKeyLabyrinthSlimeKing(dt);
+  updateExpeditionExtractionEvent(dt);
+  if (ex.completed) return;
 
   const room = expeditionRoomAtHero();
   if (room && ex.lastRoom !== room.id) {
@@ -7630,6 +7771,20 @@ function updateExpedition(dt) {
         ex.promptTime = .25;
       }
     }
+  }
+  const nearbyContainer = nearestExpeditionContainer();
+  if (nearbyContainer) {
+    ex.prompt = `Press E to open ${nearbyContainer.name}.`;
+    ex.promptTime = .25;
+  }
+  const extractionRoom = expeditionExtractionRoom();
+  const nearExtraction = cfg.extraction && dist(S.hero.x, S.hero.y, cx(cfg.extraction.c), cy(cfg.extraction.r)) < 145;
+  if (!ex.extractionActive && nearExtraction && !expeditionExtractionUnlocked()) {
+    ex.prompt = `Extraction locked: ${expeditionExtractionKeyProgressText()}.`;
+    ex.promptTime = .25;
+  }
+  if (!ex.extractionActive && extractionRoom && expeditionRoomContainsPoint(extractionRoom, S.hero.x, S.hero.y)) {
+    completeExpedition();
   }
 
   const riftDist = dist(S.hero.x, S.hero.y, cx(cfg.rift.c), cy(cfg.rift.r));
@@ -7665,7 +7820,10 @@ function updateExpedition(dt) {
     return;
   }
 
-  if (!isCarryingExpeditionRift() && dist(rift.x, rift.y, cx(cfg.extraction.c), cy(cfg.extraction.r)) < 90) completeExpedition();
+  if (ex.extractionActive) {
+    ex.message = `Extraction holdout: ${Math.ceil(ex.extractionTimer || 0)}s.`;
+    ex.messageTime = Math.max(ex.messageTime || 0, .25);
+  }
 }
 
 function clearWorldForDebugWarp() {
@@ -9653,7 +9811,7 @@ function missionBriefingCopy(type = currentMissionType()) {
   if (type === 'expedition') {
     return {
       title: 'EXPEDITION',
-      objective: 'Carry the Rift.\nActivate Relays.\nPush deeper into hostile territory.',
+      objective: 'Collect keys.\nUnlock extraction.\nEscape.',
       flow: ['Carry Rift.', 'Deploy Rift.', 'Build defenses.', 'Clear facility.', 'Activate Relay.', 'Choose Boon.', 'Continue.'],
       controls: ['WASD Move', 'LMB Fire', 'RMB Secondary Fire / Sell Tower', 'E Pick Up or Deploy Rift'],
     };
@@ -9759,12 +9917,10 @@ function missionObjectiveText() {
   if (isExpeditionRun()) {
     const ex = S.expedition;
     if (!ex) return 'Explore the facility';
+    if (ex.extractionActive) return `Hold Extraction ${Math.ceil(ex.extractionTimer || 0)}s`;
     if (ex.activeRoomId && ex.roomObjective?.label) return ex.roomObjective.label;
-    if (!ex.riftFound) return 'Find the Rift';
-    if (!ex.riftActivated) return 'Activate the Rift';
-    if (ex.riftCarried) return 'Deploy the Rift';
-    if (ex.extractionRevealed) return 'Push to Extraction';
-    return 'Carry the Rift';
+    if (expeditionExtractionUnlocked()) return 'Return to Extraction';
+    return `Find Keys ${expeditionExtractionKeyProgressText()}`;
   }
   const nextWave = S.waveActive ? S.wave : Math.max(1, S.wave + 1);
   if (nextWave > 0 && nextWave % 3 === 0) return 'Boss Wave';
@@ -11354,7 +11510,7 @@ function renderPreview() {
   const selectedLevel = getSelectedMissionLevel() || S.devArenaChoice || S.levelId;
   if (isExpeditionLevel(selectedLevel)) {
     $('preview').dataset.previewKey = `expedition-${selectedLevel}`;
-    $('preview').innerHTML = '<b>Expedition:</b> Explore the facility, find the Rift, then escort it to extraction. Persistent defenses stay for the whole run.';
+    $('preview').innerHTML = '<b>Expedition:</b> Explore the facility, find four keys, unlock extraction, then hold out long enough to escape.';
     return;
   }
   // Only recompute when the wave number has changed (cache via data attribute)
@@ -19012,6 +19168,34 @@ function drawExpeditionRoomBlockers(t) {
   ctx.restore();
 }
 
+function drawExpeditionKeyContainer(container, t) {
+  if (!container) return;
+  const ex = S.expedition;
+  const opened = !!ex?.keyContainersOpened?.[container.id];
+  const x = cx(container.c), y = cy(container.r);
+  ctx.save();
+  ctx.translate(x, y);
+  const pulse = opened ? 0 : Math.sin(t * 4 + container.c) * 2;
+  ctx.globalAlpha = opened ? .58 : .95;
+  ctx.fillStyle = opened ? '#32271c' : container.kind === 'pod' ? '#18343a' : container.kind === 'locker' ? '#2b3442' : '#4b3320';
+  ctx.strokeStyle = opened ? '#8a7152' : '#ffd45a';
+  ctx.lineWidth = opened ? 2 : 3;
+  ctx.fillRect(-22, -16 + pulse * .15, 44, 32);
+  ctx.strokeRect(-22, -16 + pulse * .15, 44, 32);
+  ctx.fillStyle = opened ? '#1b130d' : '#fff1c0';
+  ctx.fillRect(-12, -4 + pulse * .15, 24, 8);
+  if (!opened) {
+    ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = .28 + Math.sin(t * 6 + container.r) * .08;
+    ctx.fillStyle = '#ffd45a';
+    ctx.beginPath();
+    ctx.arc(0, 0, 34, 0, 7);
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+  }
+  ctx.restore();
+}
+
 function drawExpeditionObjects(t) {
   const ex = S.expedition;
   const cfg = expeditionConfig();
@@ -19047,6 +19231,7 @@ function drawExpeditionObjects(t) {
     ctx.restore();
     nest.flash = Math.max(0, (nest.flash || 0) - .08);
   }
+  for (const container of expeditionContainers()) drawExpeditionKeyContainer(container, t);
 
   if (ex.riftActivated) {
     ctx.save();
@@ -19076,18 +19261,32 @@ function drawExpeditionObjects(t) {
 
     const exX = cx(cfg.extraction.c);
     const exY = cy(cfg.extraction.r);
+    const keyPct = expeditionKeyCount() / expeditionKeyGoal();
+    const unlocked = expeditionExtractionUnlocked();
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
-    ctx.fillStyle = '#9fffc866';
-    ctx.beginPath(); ctx.arc(exX, exY, 68 + Math.sin(t * 6) * 5, 0, 7); ctx.fill();
-    ctx.strokeStyle = '#d8ffd8';
-    ctx.lineWidth = 5;
-    ctx.beginPath(); ctx.arc(exX, exY, 76, 0, 7); ctx.stroke();
+    ctx.fillStyle = unlocked ? '#9fffc866' : '#ffd45a33';
+    ctx.beginPath(); ctx.arc(exX, exY, 46 + keyPct * 42 + Math.sin(t * 6) * 5, 0, 7); ctx.fill();
+    ctx.strokeStyle = unlocked ? '#d8ffd8' : '#ffd45a';
+    ctx.lineWidth = unlocked ? 5 : 3;
+    ctx.beginPath(); ctx.arc(exX, exY, 58 + keyPct * 24, 0, 7); ctx.stroke();
     ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = '#f0ffe8';
+    if (!unlocked) {
+      ctx.strokeStyle = '#ffcf6a';
+      ctx.lineWidth = 7;
+      ctx.beginPath();
+      ctx.moveTo(exX - 48, exY - 28);
+      ctx.lineTo(exX + 48, exY + 28);
+      ctx.moveTo(exX + 48, exY - 28);
+      ctx.lineTo(exX - 48, exY + 28);
+      ctx.stroke();
+    }
+    ctx.fillStyle = unlocked ? '#f0ffe8' : '#fff1c0';
     ctx.font = 'bold 14px Georgia';
     ctx.textAlign = 'center';
-    ctx.fillText('EXTRACTION', exX, exY + 6);
+    ctx.fillText(unlocked ? 'EXTRACTION OPEN' : 'EXTRACTION LOCKED', exX, exY + 6);
+    ctx.font = 'bold 12px Georgia';
+    ctx.fillText(expeditionExtractionKeyProgressText(), exX, exY + 24);
     ctx.restore();
   }
 
@@ -19242,18 +19441,24 @@ function drawExpeditionHud(t) {
     ctx.fillStyle = '#9fffc8';
     ctx.beginPath(); ctx.arc(mx + (cfg.extraction.c + .5) * scale, my + (cfg.extraction.r + .5) * scale, 4.5, 0, 7); ctx.fill();
   }
-  ctx.fillStyle = '#d8c59a';
+  ctx.fillStyle = expeditionExtractionUnlocked() ? '#9fffc8' : '#ffd45a';
   ctx.font = '900 10px Arial';
-  ctx.strokeText(`${ex.discoveredCount || 0} cells mapped`, x + 10, y + h - 10);
-  ctx.fillText(`${ex.discoveredCount || 0} cells mapped`, x + 10, y + h - 10);
+  ctx.strokeText(expeditionExtractionKeyProgressText(), x + 10, y + h - 10);
+  ctx.fillText(expeditionExtractionKeyProgressText(), x + 10, y + h - 10);
   ctx.restore();
 
-  const title = ex.riftActivated ? (ex.riftCarried ? 'CARRYING RIFT' : 'ESCORT THE RIFT') : 'FIND THE RIFT';
+  const title = ex.extractionActive
+    ? 'HOLD EXTRACTION'
+    : expeditionExtractionUnlocked()
+      ? 'ESCAPE'
+      : 'COLLECT KEYS';
   const body = ex.roomObjective?.label
     ? `PRESSURE ZONE: ${ex.roomObjective.label}`
-    : ex.riftActivated
-      ? ex.riftCarried ? 'Hands full. Cannot fire.' : 'Press E near the Rift to carry it.'
-      : 'No compass. No marker. Build defenses that may save the return trip.';
+    : ex.extractionActive
+      ? `Hold out for ${Math.ceil(ex.extractionTimer || 0)}s.`
+      : expeditionExtractionUnlocked()
+        ? 'Extraction unlocked. Return and survive the holdout.'
+        : `Find containers. ${expeditionExtractionKeyProgressText()}.`;
   ctx.save();
   ctx.textAlign = 'center';
   ctx.lineWidth = 5;
@@ -22427,7 +22632,7 @@ addEventListener('keydown', e => {
     return;
   }
   keys[e.key] = true; keys[e.key.toLowerCase()] = true; keys[e.code] = true;
-  if (e.key.toLowerCase() === 'e' && (tryActivateExpeditionRoomTerminal() || tryToggleExpeditionRiftCarry() || tryActivateExpeditionRift())) { e.preventDefault(); return; }
+  if (e.key.toLowerCase() === 'e' && (tryOpenExpeditionContainer() || tryActivateExpeditionRoomTerminal() || tryToggleExpeditionRiftCarry() || tryActivateExpeditionRift())) { e.preventDefault(); return; }
   if (e.key === '9') {
     if (activateExpeditionStoredSurge()) {
       e.preventDefault();
