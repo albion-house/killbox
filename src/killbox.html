@@ -1994,8 +1994,8 @@ textarea {
 .hotbarHoverTooltip {
   position: fixed;
   z-index: 80;
-  min-width: 260px;
-  max-width: min(360px, calc(100vw - 24px));
+  min-width: 170px;
+  max-width: min(240px, calc(100vw - 24px));
   pointer-events: none;
   border: 1px solid rgba(240,201,107,.48);
   border-radius: 10px;
@@ -2006,14 +2006,10 @@ textarea {
   display: none;
 }
 .hotbarHoverTooltip.show { display: block; }
-.hotbarHoverTooltip .selTitle { font-size: 15px; }
-.hotbarHoverTooltip .selRole { font-size: 11px; }
-.hotbarHoverTooltip .selDesc { font-size: 12px; }
 .hotbarHoverTooltip .loadoutStats {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px 8px;
-  margin-top: 8px;
+  grid-template-columns: 1fr;
+  gap: 5px;
 }
 .hotbarHoverTooltip .loadoutStat {
   border: 1px solid rgba(255,224,156,.12);
@@ -2031,12 +2027,6 @@ textarea {
 .hotbarHoverTooltip .loadoutStat b {
   font-size: 12px;
   white-space: nowrap;
-}
-.hotbarHoverTooltip .selMeta,
-.hotbarHoverTooltip .selFlavor,
-.hotbarHoverTooltip .selWeak {
-  margin-top: 8px;
-  font-size: 11px;
 }
 .inspectorSticky {
   position: sticky;
@@ -4600,6 +4590,8 @@ h2,
             <p><b>Main Weapon:</b> locked in before the fight starts.</p>
             <p><b>Build:</b> pick a card, then slap it onto the field.</p>
             <p><b>Powerups:</b> grab the shiny junk. It usually helps.</p>
+            <p><b>Hotbar:</b> <kbd>1</kbd>-<kbd>8</kbd> use the loadout slots, <kbd>9</kbd> uses Expedition Surge.</p>
+            <p><b>Speed:</b> <kbd>+</kbd> speeds up, <kbd>-</kbd> slows down, <kbd>T</kbd> still toggles speed.</p>
             <p><b>Goal:</b> fight with your towers. The hero is not decorative.</p>
           </div>
         </div>
@@ -6284,7 +6276,7 @@ function activateExpeditionStoredSurge() {
   ex.storedSurge = null;
   const orb = { x: S.hero.x, y: S.hero.y, full: true, type };
   const ok = applyPowerupEffect(type, orb);
-  if (!ok) {
+  if (ok === false) {
     ex.storedSurge = surge;
     toast('Stored Surge failed.');
     return false;
@@ -11822,40 +11814,28 @@ function weaponTooltipHTML(k) {
   if (!w) return '';
   const level = getHotbarUpgradeCount(k);
   const stats = getWeaponStatLine(k) || {};
-  const fire = weaponFireCopy(k);
-  const ability = weaponAbilityNames(k);
-  const mods = getHotbarWeaponModifiers(k);
-  const history = (S.hero.upgrades || []).filter(id => {
-    const up = HERO_UPGRADES[id];
-    return up && new Set([...(up.weapons || []), up.targetItem, up.targetIcon, up.targetItemAlt, up.targetIconAlt].filter(Boolean)).has(k);
-  }).map(id => HERO_UPGRADES[id]?.name || id);
-  const next = nextUpgradePreviewForWeapon(k);
-  return `<div class="selGrid"><div class="selIcon"><span class="icon">${miniWeaponIcon(k)}</span></div><div><div class="selTitle">${w.name}</div><div class="selRole">Weapon · Lv. ${level}</div><div class="selDesc">${w.desc}</div><div class="loadoutStats">
+  return `<div class="loadoutStats">
     <div class="loadoutStat"><span>Damage</span><b>${stats.damage ?? 'Varies'}</b></div>
     <div class="loadoutStat"><span>Fire rate</span><b>${stats.fireRate ? stats.fireRate + '/s' : 'Varies'}</b></div>
     <div class="loadoutStat"><span>Crit chance</span><b>${Math.round(stats.crit * 100)}%</b></div>
     <div class="loadoutStat"><span>Pierce</span><b>${stats.pierce || '0'}</b></div>
     <div class="loadoutStat"><span>Chains</span><b>${stats.chain || '0'}</b></div>
-  </div><div class="selMeta"><b>Primary</b><br>${ability.primary}: ${fire.primary}<br><b>Secondary</b><br>${ability.secondary}: ${fire.secondary}</div>${mods.length ? `<div class="selMeta"><b>Active modifiers</b><br>${mods.join(' · ')}</div>` : ''}
-  ${history.length ? `<div class="selWeak"><b>Upgrade history</b><br>${history.join(' · ')}</div>` : ''}
-  <div class="selFlavor"><b>Next upgrade</b><br>${next}</div></div></div>`;
+    <div class="loadoutStat"><span>Level</span><b>${level}</b></div>
+  </div>`;
 }
 
 function towerTooltipHTML(k) {
   const t = TOWERS[k];
   if (!t) return '';
   const level = getHotbarUpgradeCount(k);
-  const mods = getHotbarTowerModifiers(k);
-  const next = nextUpgradePreviewForTower(k);
   const stats = [];
   if (t.d != null) stats.push(['Damage', Math.round(t.d * (S.mods?.dmg || 1) * (k === 'spikes' ? (S.mods.trapSpikeDmg || 1) : 1))]);
   if (t.rate != null) stats.push(['Fire rate', `${(1 / t.rate).toFixed(2)}/s`]);
   if (t.r != null) stats.push(['Range', t.r]);
   stats.push(['Level', level]);
-  return `<div class="selGrid"><div class="selIcon"><span class="icon">${miniTowerIcon(k)}</span></div><div><div class="selTitle">${t.n}</div><div class="selRole">Tower · Lv. ${level}</div><div class="selDesc">${t.role}</div><div class="loadoutStats">
+  return `<div class="loadoutStats">
     ${stats.map(([label, value]) => `<div class="loadoutStat"><span>${label}</span><b>${value}</b></div>`).join('')}
-  </div>${mods.length ? `<div class="selMeta"><b>Active modifiers</b><br>${mods.join(' · ')}</div>` : ''}
-  <div class="selFlavor"><b>Next upgrade</b><br>${next}</div></div></div>`;
+  </div>`;
 }
 
 function trinketTooltipHTML(k) {
@@ -11867,9 +11847,9 @@ function trinketTooltipHTML(k) {
     ['Cooldown', tr.cooldown ? `${tr.cooldown}s` : 'Passive'],
   ];
   if (activeDuration) rows.push(['Duration', activeDuration]);
-  return `<div class="selGrid"><div class="selIcon"><span class="icon">${tr.icon}</span></div><div><div class="selTitle">${tr.name}</div><div class="selRole">Trinket</div><div class="selDesc">${tr.description}</div><div class="loadoutStats">
+  return `<div class="loadoutStats">
     ${rows.map(([label, value]) => `<div class="loadoutStat"><span>${label}</span><b>${value}</b></div>`).join('')}
-  </div></div></div>`;
+  </div>`;
 }
 
 function hotbarTooltipHTML(k) {
