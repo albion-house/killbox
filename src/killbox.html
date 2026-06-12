@@ -6985,9 +6985,13 @@ function expeditionAnyLiveEnemies() {
   return (S.enemies || []).some(e => e && !e.dead);
 }
 
+function expeditionRoomHasLiveEnemies(roomId) {
+  return (S.enemies || []).some(e => e && !e.dead && e.expeditionRoomId === roomId);
+}
+
 function nearestExpeditionContainer(maxDist = 82) {
   const ex = S.expedition;
-  if (!isExpeditionRun() || !ex || expeditionAnyLiveEnemies()) return null;
+  if (!isExpeditionRun() || !ex || expeditionRoomHasLiveEnemies('lab')) return null;
   return expeditionContainers()
     .filter(container => container && !ex.keyContainersOpened?.[container.id])
     .map(container => ({ container, pos: expeditionContainerPosition(container) }))
@@ -7360,6 +7364,7 @@ function spawnExpeditionRoomNest(room) {
 }
 
 function expeditionRoomKeyType(room) {
+  if (room?.id === 'lab') return 'containmentKey';
   if (room?.id === 'keyLabyrinth') return 'expeditionKey';
   return null;
 }
@@ -7471,11 +7476,13 @@ function startExpeditionRoomEncounter(room) {
   ex.roomObjective = { roomId: room.id, type: def.objective, label: def.label };
   ex.roomBlockers = expeditionRoomDoorBlockers(room);
   ex.roomTerminalStates[room.id] = ex.roomTerminalStates?.[room.id] || 'offline';
+  if (room.id === 'lab') ex.roomKeyStates = ex.roomKeyStates || {};
+  if (room.id === 'lab') ex.roomKeyStates[room.id] = 'hidden';
   primeExpeditionRoomBoundarySides(room);
   spawnExpeditionRoomSkulls(room);
-  ensureExpeditionRoomKey(room);
+  if (room.id !== 'lab') ensureExpeditionRoomKey(room);
   if (def.nest) spawnExpeditionRoomNest(room);
-  if (room.id === 'flesh') ex.fleshNestSpawnTimer = 1.8;
+  if (room.id === 'flesh') ex.fleshNestSpawnAt = performance.now() / 1000 + 1.8;
   const placedThreats = room.id === 'keyLabyrinth' ? [] : spawnExpeditionRoomRouteThreats(room, true);
   if (Array.isArray(def.pressureEnemies) && def.pressureEnemies.length) {
     const spawnCells = expeditionRoomSpawnCells(room, def.pressureEnemies.length);
@@ -7529,6 +7536,11 @@ function completeExpeditionRoomEncounter(roomId) {
   announceWave(`${room.name.toUpperCase()} CLEARED`, 'resting', .9);
   shockwave(S.hero.x, S.hero.y, '#b9d84f', 120, .3);
   burst(S.hero.x, S.hero.y, '#f0c96b', 16, 'spark', 160);
+  if (room.id === 'lab') {
+    ex.roomKeyStates ||= {};
+    ex.roomKeyStates[room.id] = 'ready';
+    ensureExpeditionRoomKey(room);
+  }
   if (room.id !== 'keyLabyrinth') dropExpeditionRoomClearReward(room);
   rebuildPath();
   return true;
@@ -7565,20 +7577,34 @@ function updateExpeditionRoomEncounter() {
         }
         return;
       }
-      if (ex.roomObjective?.type === 'terminal') return;
+      if (ex.roomObjective?.type === 'terminal') {
+        if (ex.activeRoomId === 'lab') {
+          const room = (cfg.rooms || []).find(r => r.id === ex.activeRoomId);
+          const liveRoomEnemies = S.enemies.filter(e => !e.dead && e.expeditionRoomId === ex.activeRoomId);
+          if (expeditionRoomTerminalPowered(ex.activeRoomId) && !liveRoomEnemies.length) {
+            if ((ex.roomKeyStates?.[ex.activeRoomId] || 'hidden') === 'hidden') {
+              ex.roomKeyStates ||= {};
+              ex.roomKeyStates[ex.activeRoomId] = 'ready';
+              ensureExpeditionRoomKey(room);
+              ex.message = 'Containment key ready.';
+              ex.messageTime = 4;
+            }
+          }
+        }
+        return;
+      }
       const live = S.enemies.filter(e => !e.dead && e.expeditionRoomId === ex.activeRoomId);
       if (ex.roomObjective?.type === 'elite') {
         if (!live.some(e => e.eliteRoomTarget)) completeExpeditionRoomEncounter(ex.activeRoomId);
       } else if (ex.roomObjective?.type === 'nest') {
         if (ex.activeRoomId === 'flesh') {
-          ex.fleshNestSpawnTimer = Math.max(0, (ex.fleshNestSpawnTimer || 1.8) - dt);
           const liveNest = (ex.roomNests || []).find(n => !n.dead && n.roomId === ex.activeRoomId);
-          if (liveNest && ex.fleshNestSpawnTimer <= 0) {
+          if (liveNest && (ex.fleshNestSpawnAt || 0) <= performance.now() / 1000) {
             const room = (cfg.rooms || []).find(r => r.id === ex.activeRoomId);
             const spawnCells = room ? expeditionRoomSpawnCells(room, 1) : [];
             const spawned = spawnExpeditionRoomEnemy('splitter', room, spawnCells[0], false);
             if (spawned) assignExpeditionRoomTargets([spawned], room);
-            ex.fleshNestSpawnTimer = 3.2;
+            ex.fleshNestSpawnAt = performance.now() / 1000 + 3.2;
           }
         }
         const liveNest = (ex.roomNests || []).some(n => !n.dead && n.roomId === ex.activeRoomId);
@@ -16006,6 +16032,10 @@ function collectHealthOrbs(dt) {
       if (type === 'containmentKey') {
         if (S.expedition) {
           S.expedition.blackoutKeyCollected = true;
+          S.expedition.roomKeyStates ||= {};
+          S.expedition.roomKeyStates.lab = 'collected';
+          S.expedition.roomBlockers = [];
+          completeExpeditionRoomEncounter('lab');
           S.expedition.message = 'Containment key acquired.';
           S.expedition.messageTime = 5;
         }
@@ -19293,7 +19323,7 @@ function drawExpeditionRoomBlockers(t) {
 function drawExpeditionKeyContainer(container, t) {
   if (!container) return;
   const ex = S.expedition;
-  if (expeditionAnyLiveEnemies()) return;
+  if (container.id === 'containmentPod' && expeditionRoomHasLiveEnemies('lab')) return;
   const opened = !!ex?.keyContainersOpened?.[container.id];
   const x = cx(container.c), y = cy(container.r);
   ctx.save();
