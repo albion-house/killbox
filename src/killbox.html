@@ -2486,10 +2486,51 @@ textarea {
   background: linear-gradient(180deg, #1b1713, #090807);
 }
 #start .loadoutBar {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
   margin: 0;
-  padding: 8px 10px;
+  padding: 10px;
   border-bottom: 1px solid rgba(207, 142, 57, .45);
+  background: linear-gradient(180deg, rgba(16,12,9,.82), rgba(11,9,7,.92));
+}
+#start .loadoutStep {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 1px solid rgba(155, 106, 53, .42);
+  border-radius: 7px;
+  background: rgba(7,8,9,.6);
+  color: #bfa97f;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .02em;
+}
+#start .loadoutStep .stepDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: #5d4d37;
+  box-shadow: 0 0 0 2px rgba(255,255,255,.04) inset;
+}
+#start .loadoutStep.complete {
+  border-color: rgba(120, 220, 100, .52);
+  color: #d9f6c5;
+  background: rgba(23, 42, 18, .82);
+}
+#start .loadoutStep.complete .stepDot {
+  background: #8fdc63;
+}
+#start .loadoutStep.ready {
+  border-color: rgba(88, 201, 255, .7);
+  color: #d6f4ff;
+  background: rgba(10, 29, 40, .82);
+}
+#start .loadoutStep.ready .stepDot {
+  background: #58c9ff;
 }
 #start .selectedInfoCard {
   margin: 0;
@@ -2753,7 +2794,7 @@ textarea {
 }
 #start .loadoutCatalog {
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
   min-height: 0;
 }
 #start .loadoutInspectorPanel {
@@ -2878,7 +2919,7 @@ textarea {
   display: grid;
   grid-template-rows: auto auto;
   min-width: 0;
-  margin: 8px 9px 9px;
+  margin: 0 9px 9px;
 }
 #start .loadoutPreviewRail {
   display: grid;
@@ -2887,9 +2928,10 @@ textarea {
   padding: 10px 12px 12px;
   align-items: stretch;
   min-width: 0;
+  min-height: 110px;
 }
 #start .loadoutRailSlot {
-  min-height: 82px;
+  min-height: 96px;
   border: 1px solid #5f4b35;
   border-radius: 7px;
   background: linear-gradient(180deg, rgba(22, 24, 24, .98), rgba(8, 8, 7, .98));
@@ -4096,6 +4138,13 @@ h2,
   background: transparent;
   box-shadow: none;
 }
+#start .loadoutFlowLabel {
+  margin: 0 0 8px;
+  color: #d6f4ff;
+  font: 900 12px/1 Arial, Helvetica, sans-serif;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
 
 #start .missionChoice {
   border-color: rgba(255,255,255,.24);
@@ -4266,7 +4315,7 @@ h2,
   <div class="missionBriefingCard">
     <div id="missionBriefingTitle" class="missionBriefingTitle">ARENA</div>
     <div id="missionBriefingBody" class="missionBriefingBody"></div>
-    <button id="missionBriefingClose" class="primary missionBriefingClose" type="button">GOT IT</button>
+      <button id="missionBriefingClose" class="primary missionBriefingClose" type="button">CLOSE</button>
   </div>
 </div>
 <div id="missionHint" class="missionHint" aria-live="polite" aria-atomic="true"></div>
@@ -4373,6 +4422,7 @@ h2,
           <div class="devActionsRow" aria-label="Debug actions">
             <button id="devSpawnBoon"><span class="actionLabel">Spawn Boon</span><span class="actionMeta">F2</span></button>
             <button id="devSpawnSurge"><span class="actionLabel">Spawn Powerup</span><span class="actionMeta">F3</span></button>
+            <button id="devGrantRiftUpgrade"><span class="actionLabel">Grant Rift Upgrade</span><span class="actionMeta">Expedition</span></button>
             <button id="devSpawnBoss"><span class="actionLabel">Spawn Boss</span><span class="actionMeta">F6</span></button>
             <button id="devKillBoss"><span class="actionLabel">Kill Boss</span><span class="actionMeta">Arena</span></button>
             <button id="devClearEnemies"><span class="actionLabel">Clear Enemies</span><span class="actionMeta">Arena</span></button>
@@ -4402,7 +4452,7 @@ h2,
         <h2>Hero</h2>
         <div id="weaponHudBox" class="multiplayerStatus">Gun: <b id="weaponNameHud">Blunderbuss</b><span id="weaponChargeHud"></span></div>
         <div class="grid">
-          <button id="hireEngineer" class="primary wide">Hire Engineer <span class="cost">200g</span><div class="desc">Gremlin helper. Carries one wave, then sulks off.</div></button>
+          <button id="hireEngineer" class="primary wide">Hire Engineer <span class="cost">200g</span><div class="desc">AI companion. Supports this wave only.</div></button>
         </div>
         <h2>Audio</h2>
         <div class="grid">
@@ -4423,8 +4473,8 @@ h2,
           <button id="sell"    class="danger">Sell Selected Tower</button>
           <button id="newRunBtn" class="danger">Reset Run</button>
         </div>
-        <div id="preview">Next wave grumbles here.</div>
-        <p>
+          <div id="preview">Next wave preview.</div>
+          <p>
           <kbd>WASD</kbd> move &nbsp;
           <kbd>Click</kbd> shoot &nbsp;
           <kbd>Right Click</kbd> secondary &nbsp;
@@ -4433,13 +4483,13 @@ h2,
           <kbd>U</kbd> upgrade &nbsp;
           <kbd>1</kbd>–<kbd>8</kbd> build
         </p>
-        <div class="sidebarFooter">Killbox <span id="sidebarVersion">7.17.2</span>. Still rude.</div>
+        <div class="sidebarFooter">Killbox <span id="sidebarVersion">7.17.3</span>.</div>
       </div>
     </details>
     <details class="warRoomSection">
       <summary>Inspector</summary>
       <div class="warRoomSectionBody">
-        <div id="info">Build phase. Slot murder metal, sell your mistakes, and try not to feed the lane.</div>
+        <div id="info">Build phase. Select pieces, place them, and keep the lane clear.</div>
         <div id="selectedInfo" class="selectedInfoCard" aria-live="polite"></div>
       </div>
     </details>
@@ -4460,8 +4510,8 @@ h2,
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.17.2</b>
-      <span id="warRoomBuildName">Relay</span>
+      <b id="warRoomVersion">v7.18.2</b>
+      <span id="warRoomBuildName">CoreHeal</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -4512,6 +4562,7 @@ h2,
       <div class="startMain">
         <div class="loadoutMasthead">
           <div class="arenaPick">
+            <div class="loadoutFlowLabel">1. Choose mission</div>
             <div class="missionChoices" role="group" aria-label="Mission type">
               <button class="missionChoice active" data-mission-type="arena" type="button" aria-pressed="true">
                 <strong>ARENA</strong>
@@ -4548,7 +4599,7 @@ h2,
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.17.2 Relay</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.18.2 DoorLock</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -4558,20 +4609,24 @@ h2,
         </div>
         <div class="loadoutBody">
           <section class="loadoutCatalog" aria-label="Loadout catalog">
+            <div class="loadoutBar" id="loadoutStatusBar" aria-label="Loadout readiness">
+              <div class="loadoutStep" data-step="mission"><span class="stepDot" aria-hidden="true"></span><span class="stepLabel">Mission selected</span></div>
+              <div class="loadoutStep" data-step="weapon"><span class="stepDot" aria-hidden="true"></span><span class="stepLabel">Weapon selected</span></div>
+              <div class="loadoutStep" data-step="tower"><span class="stepDot" aria-hidden="true"></span><span class="stepLabel">Tower selected</span></div>
+              <div class="loadoutStep" data-step="ready"><span class="stepDot" aria-hidden="true"></span><span class="stepLabel">Ready to deploy</span></div>
+            </div>
+            <div class="loadoutRailWrap" aria-label="Selected loadout preview">
+              <div class="loadoutRailTitle">Your Loadout</div>
+              <div id="loadoutPreviewRail" class="loadoutPreviewRail"></div>
+              <div class="loadoutAttribution" aria-label="Project attribution"><b>ALBION HOUSE</b><span>albionhouse.games</span></div>
+            </div>
             <div class="loadoutTabs" id="loadoutTabs" aria-label="Loadout categories">
               <button class="loadoutTab active" data-loadout-tab="weapon" type="button">Weapons</button>
               <button class="loadoutTab" data-loadout-tab="tower" type="button">Towers</button>
               <button class="loadoutTab" data-loadout-tab="trap" type="button">Traps</button>
               <button class="loadoutTab" data-loadout-tab="trinket" type="button">Trinkets</button>
             </div>
-            <div class="loadoutBar">
-            </div>
             <div id="loadoutPicker" class="pickerGrid loadoutGrid"></div>
-            <div class="loadoutRailWrap" aria-label="Selected loadout preview">
-              <div class="loadoutRailTitle">Your Loadout</div>
-              <div id="loadoutPreviewRail" class="loadoutPreviewRail"></div>
-              <div class="loadoutAttribution" aria-label="Project attribution"><b>ALBION HOUSE</b><span>albionhouse.games</span></div>
-            </div>
           </section>
           <aside class="loadoutInspectorPanel" aria-label="Loadout inspector">
             <h2>Loadout Inspector</h2>
@@ -4583,16 +4638,16 @@ h2,
         <div id="howPanel" class="howPanel hidden">
           <h2>Hero Controls</h2>
           <div class="howGrid">
-            <p><b>Move:</b> WASD or arrows, because your life is hard enough.</p>
-            <p><b>Sprint:</b> hold Shift when the lane gets embarrassing.</p>
-            <p><b>Shoot:</b> hold left mouse toward anything rude.</p>
-            <p><b>Right Click:</b> your secondary trick. Use it before the lane laughs at you.</p>
+            <p><b>Move:</b> WASD or arrows.</p>
+            <p><b>Sprint:</b> hold Shift.</p>
+            <p><b>Shoot:</b> hold left mouse.</p>
+            <p><b>Right Click:</b> use your secondary attack.</p>
             <p><b>Main Weapon:</b> locked in before the fight starts.</p>
-            <p><b>Build:</b> pick a card, then slap it onto the field.</p>
-            <p><b>Powerups:</b> grab the shiny junk. It usually helps.</p>
+            <p><b>Build:</b> select a card, then place it on the field.</p>
+            <p><b>Powerups:</b> collect them when they appear.</p>
             <p><b>Hotbar:</b> <kbd>1</kbd>-<kbd>8</kbd> use the loadout slots, <kbd>9</kbd> uses Expedition Surge.</p>
-            <p><b>Speed:</b> <kbd>+</kbd> speeds up, <kbd>-</kbd> slows down, <kbd>T</kbd> still toggles speed.</p>
-            <p><b>Goal:</b> fight with your towers. The hero is not decorative.</p>
+            <p><b>Speed:</b> <kbd>+</kbd> speeds up, <kbd>-</kbd> slows down, <kbd>T</kbd> toggles speed.</p>
+            <p><b>Goal:</b> use the hero and towers together.</p>
           </div>
         </div>
       </div>
@@ -5712,8 +5767,8 @@ const LOADOUT_INSPECTOR_COPY = {
   ranger: {
     name: 'REPEATER',
     role: 'Weapon',
-    identity: 'AGILE PRECISION',
-    desc: 'Fires a stream of armor-piercing micro bolts.',
+    identity: 'FAST AND PRECISE',
+    desc: 'Fires a steady stream of armor-piercing bolts.',
     quickStats: [['Damage', '3/10'], ['Fire Rate', '10/10'], ['Range', '5/10']],
     flavor: 'Recovered from a military timeline that no longer exists. The serial numbers refer to battles nobody recorded.',
     abilities: ['Micro Rounds', 'Charge Burst'],
@@ -5728,10 +5783,10 @@ const LOADOUT_INSPECTOR_COPY = {
     name: 'BOLTCASTER',
     role: 'Weapon',
     identity: 'BRUTE FORCE',
-    desc: 'Launches reinforced siege bolts that punch through multiple enemies.',
+    desc: 'Launches heavy bolts that punch through multiple enemies.',
     quickStats: [['Damage', '9/10'], ['Fire Rate', '2/10'], ['Range', '9/10']],
     flavor: 'A siege-grade bolt engine built for doors that were not supposed to open.',
-    abilities: ['Heavy Bolts', 'Hammerfall'],
+    abilities: ['Heavy Bolts', 'Stun Shot'],
     mechanics: [
       'Heavy Bolts fire slow, high-impact shots that pierce enemies.',
       'Hammerfall fires a stun bolt that shocks and knocks back enemies in a cone.',
@@ -5757,10 +5812,10 @@ const LOADOUT_INSPECTOR_COPY = {
   storm: {
     name: 'ARC EMITTER',
     role: 'Weapon',
-    identity: 'WEIRD SCIENCE',
+    identity: 'CONTROL',
     desc: 'Projects unstable arcs of electricity that leap between nearby enemies.',
     quickStats: [['Damage', '6/10'], ['Fire Rate', '5/10'], ['Range', '5/10']],
-    flavor: 'Built by researchers attempting to weaponize chain reactions. The project was abandoned after the reactions started choosing targets.',
+    flavor: 'Built to weaponize chain reactions. The project was abandoned after it began behaving unpredictably.',
     abilities: ['Chain Lightning', 'Pulse Nova'],
     mechanics: [
       'Chain Lightning arcs between nearby enemies.',
@@ -5773,9 +5828,9 @@ const LOADOUT_INSPECTOR_COPY = {
     name: 'FREEZE GUN',
     role: 'Weapon',
     identity: 'CONTROL',
-    desc: 'A recovered 1980s Japanese prototype that unleashes a freezing spreadshot to slow and freeze advancing enemies.',
+    desc: 'Fires a freezing spreadshot that slows and freezes advancing enemies.',
     quickStats: [['Damage', '4/10'], ['Fire Rate', '6/10'], ['Range', '4/10']],
-    flavor: 'A 1980s Japanese prototype designed for industrial accident containment. It was not designed for this.',
+    flavor: 'A 1980s Japanese prototype designed for industrial accident containment.',
     abilities: ['Cryo Spray', 'Ice Halo'],
     mechanics: [
       'Cryo Spray slows and freezes enemies in front of the hero.',
@@ -5811,7 +5866,7 @@ const LOADOUT_INSPECTOR_COPY = {
   barrel: {
     name: 'BARREL',
     role: 'Trap',
-    desc: 'A one-use explosive. Shoot it when the lane needs a lesson.',
+    desc: 'A one-use explosive. Shoot it when the lane is crowded.',
     stats: [['Damage', 'High'], ['Trigger', 'Hero shot'], ['Use', 'One explosion'], ['Best Against', 'Clustered enemies'], ['Weak Against', 'Bad timing']],
   },
   frost: {
@@ -5883,13 +5938,13 @@ const LOADOUT_INSPECTOR_COPY = {
   battleFrenzyTotem: {
     name: 'BATTLE FRENZY',
     role: 'Trinket',
-    desc: 'Turns the hero into a short, loud burst of weapon fire.',
+    desc: 'Temporarily increases weapon fire rate.',
     stats: [['Passive', '+10% fire speed'], ['Active', 'Major weapon haste'], ['Duration', '8s'], ['Cooldown', '90s'], ['Best Against', 'Hero-led pushes']],
   },
   goblinCoinPurse: {
     name: 'GOBLIN COIN',
     role: 'Trinket',
-    desc: 'Greedy economy charm that pays out gold immediately.',
+    desc: 'Economy trinket that grants gold immediately.',
     stats: [['Passive', '+10% gold'], ['Active', '75-200 gold'], ['Duration', 'Immediate'], ['Cooldown', '55s'], ['Weak Against', 'Immediate danger']],
   },
   lastStandBeacon: {
@@ -5907,8 +5962,8 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const BUILD_VERSION = '7.17.2';
-const BUILD_NAME = 'Relay';
+const BUILD_VERSION = '7.18.1';
+const BUILD_NAME = 'DoorLock';
 function upgradeIcon(id, kind = 'generic') {
   const up = HERO_UPGRADES[id] || TRAP_UPGRADES[id] || BOSS_UPGRADES[id] || {};
   const explicit = up.targetIcon || up.targetItem || up.targetIconAlt || up.targetItemAlt;
@@ -6323,6 +6378,126 @@ function expeditionStoredSurgeTooltipHTML() {
     </div>`;
 }
 
+const EXPEDITION_RIFT_UPGRADE_CAP = 5;
+const EXPEDITION_RIFT_UPGRADES = {
+  shield: { name: 'Rift Shield', desc: 'The Rift periodically gains a temporary shield.', icon: '◌' },
+  pulse: { name: 'Rift Pulse', desc: 'The Rift periodically damages nearby enemies.', icon: '✦' },
+  field: { name: 'Containment Field', desc: 'Enemies near the Rift are slowed.', icon: '⟐' },
+};
+
+function expeditionRiftUpgradeIds() {
+  return Array.isArray(S.expedition?.riftUpgrades) ? S.expedition.riftUpgrades : [];
+}
+
+function expeditionHasRiftUpgrade(id) {
+  return expeditionRiftUpgradeIds().includes(id);
+}
+
+function expeditionAvailableRiftUpgrades() {
+  return Object.keys(EXPEDITION_RIFT_UPGRADES).filter(id => !expeditionHasRiftUpgrade(id));
+}
+
+function expeditionRiftUpgradeLabelList() {
+  return expeditionRiftUpgradeIds().map(id => EXPEDITION_RIFT_UPGRADES[id]?.name || id).filter(Boolean);
+}
+
+function expeditionGrantRiftUpgrade(id, source = 'room clear') {
+  const ex = S.expedition;
+  if (!isExpeditionRun() || !ex || !EXPEDITION_RIFT_UPGRADES[id]) return false;
+  ex.riftUpgrades ||= [];
+  ex.riftUpgradeTimers ||= {};
+  if (ex.riftUpgrades.includes(id) || ex.riftUpgrades.length >= EXPEDITION_RIFT_UPGRADE_CAP) return false;
+  ex.riftUpgrades.push(id);
+  ex.riftUpgradeTimers[id] = 0;
+  const def = EXPEDITION_RIFT_UPGRADES[id];
+  ex.message = `${def.name} installed.`;
+  ex.messageTime = 5;
+  if (ex.rift) {
+    floatText(def.name.toUpperCase(), ex.rift.x - 52, ex.rift.y - 34, '#8edcff');
+    shockwave(ex.rift.x, ex.rift.y, '#8edcff', 110, .28);
+    burst(ex.rift.x, ex.rift.y, '#d8ffd8', 10, 'spark', 110);
+  }
+  ui();
+  return true;
+}
+
+function expeditionApplyRiftUpgrades(dt) {
+  const ex = S.expedition;
+  if (!isExpeditionRun() || !ex?.riftActivated || !ex.rift || ex.completed) return;
+  const rift = ex.rift;
+  const now = performance.now() / 1000;
+  const upgrades = new Set(expeditionRiftUpgradeIds());
+  ex.riftUpgradeTimers ||= {};
+  if (upgrades.has('shield') && (ex.riftUpgradeTimers.shield || 0) <= now) {
+    ex.riftShieldUntil = Math.max(ex.riftShieldUntil || 0, now + 2.5);
+    ex.riftUpgradeTimers.shield = now + 10;
+    rift.flash = Math.max(rift.flash || 0, .2);
+  }
+  if (upgrades.has('pulse') && (ex.riftUpgradeTimers.pulse || 0) <= now) {
+    ex.riftUpgradeTimers.pulse = now + 4.5;
+    let hitCount = 0;
+    for (const e of S.enemies) {
+      if (!e || e.dead) continue;
+      const d = dist(rift.x, rift.y, e.x, e.y);
+      if (d > 150) continue;
+      hit(e, 12 + Math.floor((S.wave || 0) * .16), null);
+      e.slow = Math.max(e.slow || 0, .32);
+      hitCount++;
+    }
+    if (hitCount) {
+      shockwave(rift.x, rift.y, '#8edcff', 120, .22);
+      burst(rift.x, rift.y, '#d8f2ff', 7, 'spark', 90);
+      floatText('RIFT PULSE', rift.x - 34, rift.y - 42, '#8edcff');
+    }
+  }
+  if (upgrades.has('field')) {
+    for (const e of S.enemies) {
+      if (!e || e.dead) continue;
+      const d = dist(rift.x, rift.y, e.x, e.y);
+      if (d > 165) continue;
+      e.slow = Math.max(e.slow || 0, .6);
+      e.chill = Math.max(e.chill || 0, .25);
+    }
+  }
+}
+
+function buildExpeditionRiftUpgradeChoices() {
+  const ids = expeditionAvailableRiftUpgrades();
+  const shuffled = ids.slice();
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled.slice(0, 3).map(id => {
+    const def = EXPEDITION_RIFT_UPGRADES[id];
+    return { kind: 'rift', id, name: def.name, desc: def.desc, icon: def.icon, raw: def };
+  });
+}
+
+function showExpeditionRiftUpgradeOverlay() {
+  S.pendingRiftUpgradeChoices = buildExpeditionRiftUpgradeChoices();
+  if (!S.pendingRiftUpgradeChoices.length) return false;
+  S.pendingMutationChoices = S.pendingRiftUpgradeChoices;
+  S.pendingRiftUpgradeMode = true;
+  S.rewardRerollsUsed = 0;
+  S.rewardRerollSalt = 0;
+  prepareQuartermasterForWave();
+  clearCombatInputState();
+  S.mutationPending = true;
+  S.gameState = 'upgradeChoice';
+  S.paused = false;
+  maybeShowMissionHint('Tune the Rift.', 'expedition-rift-choice', 4);
+  $('clear').classList.add('hidden');
+  if ($('mutation')?.parentElement !== document.body) document.body.appendChild($('mutation'));
+  renderMutationOverlay();
+  return true;
+}
+
+function clearExpeditionRiftUpgradeOverlay() {
+  S.pendingRiftUpgradeChoices = null;
+  S.pendingRiftUpgradeMode = false;
+}
+
 function expeditionRiftShieldPoint() {
   const ex = S.expedition;
   if (!isExpeditionRun() || !ex?.rift || !isCarryingExpeditionRift()) return null;
@@ -6696,6 +6871,8 @@ function createExpeditionState(levelId = S.levelId) {
     roomTerminalPrompt: '',
     roomTerminalPromptTime: 0,
     extractionKeys: 0,
+    riftUpgrades: [],
+    riftUpgradeTimers: {},
     keyContainersOpened: {},
     blackoutKeyCollected: false,
   };
@@ -6704,6 +6881,9 @@ function createExpeditionState(levelId = S.levelId) {
 function resetExpeditionState() {
   S.expedition = createExpeditionState(S.levelId);
   if (S.expedition) {
+    S.expedition.riftUpgrades = [];
+    S.expedition.riftUpgradeTimers = {};
+    clearExpeditionRiftUpgradeOverlay();
     const cfg = expeditionConfig();
     S.waveCountdown = 0;
     S.waveActive = false;
@@ -6856,7 +7036,6 @@ function expeditionPointInLava(x, y, room = null) {
 }
 
 function isExpeditionRoomBlockedCell(c, r) {
-  if (!expeditionStrictRoomSealingEnabled()) return false;
   const ex = S?.expedition;
   return !!(ex && Array.isArray(ex.roomBlockers) && ex.roomBlockers.some(b => b.c === c && b.r === r));
 }
@@ -7826,6 +8005,7 @@ function updateExpedition(dt) {
   updateKeyLabyrinthAwakening(dt);
   updateKeyLabyrinthSlimeKing(dt);
   updateExpeditionExtractionEvent(dt);
+  expeditionApplyRiftUpgrades(dt);
   if (ex.completed) return;
 
   const room = expeditionRoomAtHero();
@@ -8790,6 +8970,16 @@ function devSpawnSurgeSelection() {
   toast('Powerup staged: Bullet Hell.');
 }
 
+function devGrantRiftUpgrade() {
+  const ex = S.expedition;
+  if (!isExpeditionRun() || !ex?.rift) return toast('Rift upgrades are Expedition-only.');
+  const next = expeditionAvailableRiftUpgrades()[0];
+  if (!next) return toast('No Rift upgrades left.');
+  if (!expeditionGrantRiftUpgrade(next, 'debug')) return false;
+  ui();
+  return true;
+}
+
 function devDamageCore(amount = 100) {
   const ex = S.expedition;
   if (isExpeditionRun() && ex?.rift) {
@@ -8802,6 +8992,23 @@ function devDamageCore(amount = 100) {
   }
   devKillHero();
   return false;
+}
+
+function expeditionHealRift(amount = 0, source = 'unknown') {
+  const ex = S.expedition;
+  if (!isExpeditionRun() || !ex?.rift || ex.rift.max <= 0) return false;
+  const heal = Math.max(0, Math.floor(amount || 0));
+  if (!heal) return false;
+  const before = ex.rift.hp;
+  ex.rift.hp = Math.min(ex.rift.max, ex.rift.hp + heal);
+  if (ex.rift.hp <= before) return false;
+  ex.rift.flash = Math.max(ex.rift.flash || 0, .45);
+  ex.message = `Rift repaired.`;
+  ex.messageTime = 3;
+  floatText(`RIFT +${ex.rift.hp - before}`, ex.rift.x - 32, ex.rift.y - 42, '#9fffc8');
+  shockwave(ex.rift.x, ex.rift.y, '#9fffc8', 95, .24);
+  console.log('[expedition] rift healed', { source, amount: ex.rift.hp - before, hp: ex.rift.hp });
+  return true;
 }
 
 function devRevealMap() {
@@ -8993,25 +9200,25 @@ function updateActiveTrinketEffects(dt) {
 }
 
 const EFFECT_VISUALS = {
-  gold: { label: 'GOLD FEVER', icon: '¤', color: '#f4c24f' },
-  frenzy: { label: 'BLOOD RUSH', icon: '⚡', color: '#ff6d3a' },
+  gold: { label: 'BONUS GOLD', icon: '¤', color: '#f4c24f' },
+  frenzy: { label: 'ATTACK SPEED', icon: '⚡', color: '#ff6d3a' },
   haste: { label: 'OVERCLOCK', icon: '⏩', color: '#6ad6ff' },
   freeze: { label: 'FROSTBITE', icon: '❄', color: '#9fe8ff' },
-  asColdAsLife: { label: 'AS COLD AS LIFE', icon: '❄', color: '#dff4ff' },
+  asColdAsLife: { label: 'SECONDARY FREEZE', icon: '❄', color: '#dff4ff' },
   rift: { label: 'CORE SHIELD', icon: '◌', color: '#8edcff' },
   thunder: { label: 'STORM CLOUD', icon: '⚡', color: '#fff34d' },
   orbital: { label: 'ORBITAL BEAM', icon: '☄', color: '#fff0b8' },
   stampede: { label: 'STAMPEDE', icon: '♞', color: '#d99b54' },
-  bullethell: { label: 'BULLET HELL', icon: '✶', color: '#ffd56a' },
+  bullethell: { label: 'FULL SALVO', icon: '✶', color: '#ffd56a' },
   blackhole: { label: 'BLACK HOLE', icon: '◉', color: '#d7c8ff' },
   tinyarmy: { label: 'TINY ARMY', icon: '⚔', color: '#f7d38a' },
   goblinunion: { label: 'GOBLIN UNION', icon: '✊', color: '#d7c8ff' },
-  kittens: { label: 'KITTEN RIFT', icon: '🐾', color: '#ffffff' },
+  kittens: { label: 'CAT SWARM', icon: '🐾', color: '#ffffff' },
   goose: { label: 'GOOSE SHIELD', icon: 'G', color: '#ffffff' },
   bees: { label: 'BEE SWARM', icon: '🐝', color: '#ffe56b' },
-  summoncat: { label: 'SUMMON CAT', icon: '🐈', color: '#ffffff' },
+  summoncat: { label: 'CAT DISTRACTION', icon: '🐈', color: '#ffffff' },
   physics: { label: 'PHYSICS ERROR', icon: '∿', color: '#8edcff' },
-  wronggame: { label: 'WRONG GAME', icon: '⌘', color: '#b37cff' },
+  wronggame: { label: 'OUT OF PHASE', icon: '⌘', color: '#b37cff' },
 };
 
 const MUTAGEN_VISUALS = {
@@ -9729,13 +9936,13 @@ function updateLoadoutInspector() {
   if (!panel) return;
   const k = LOADOUT_STATE.inspectedId || LOADOUT_STATE.selectedIds[0] || '';
   if (!k) {
-    panel.innerHTML = `<div class="selGrid"><div class="selIcon"><span class="icon">⚔</span></div><div><div class="selTitle">LOADOUT</div><div class="selRole">Pick a weapon, tower, trap, and trinket.</div><div class="selDesc">Short list, clear choice.</div></div></div>`;
+    panel.innerHTML = `<div class="selGrid"><div class="selIcon"><span class="icon">⚔</span></div><div><div class="selTitle">LOADOUT</div><div class="selRole">Pick a weapon, then add towers, traps, or trinkets as needed.</div><div class="selDesc">Short list, clear choice.</div></div></div>`;
     return;
   }
   const copy = LOADOUT_INSPECTOR_COPY[k];
   if (!copy) {
     const label = WEAPONS[k]?.name || TOWERS[k]?.n || TRINKETS[k]?.name || shortTowerName(k) || k;
-    panel.innerHTML = `<div class="selGrid"><div class="selIcon"><span class="icon">${loadoutFeatureIcon(k)}</span></div><div><div class="selTitle">${label}</div><div class="selRole">Unknown trick</div><div class="selDesc">No battle note on file.</div></div></div>`;
+    panel.innerHTML = `<div class="selGrid"><div class="selIcon"><span class="icon">${loadoutFeatureIcon(k)}</span></div><div><div class="selTitle">${label}</div><div class="selRole">No details available</div><div class="selDesc">No details available.</div></div></div>`;
     return;
   }
   if (WEAPONS[k] && copy.identity) {
@@ -9788,11 +9995,10 @@ function updateLoadoutSummary() {
   }
   const lastBtn = $('playLastRun');
   if (lastBtn) {
-    const enabled = !!LOADOUT_STATE.selectedIds.some(k => !!WEAPONS[k]);
+    const enabled = canStartRun();
     lastBtn.disabled = !enabled;
     lastBtn.classList.toggle('disabled', !enabled);
   }
-  // Show selected count per category on tabs
   const selectedByKind = { weapon: 0, tower: 0, trap: 0, trinket: 0 };
   LOADOUT_STATE.selectedIds.forEach(k => {
     if (WEAPONS[k]) selectedByKind.weapon++;
@@ -9802,6 +10008,23 @@ function updateLoadoutSummary() {
       else selectedByKind.tower++;
     }
   });
+  const missionStep = $('loadoutStatusBar')?.querySelector('[data-step="mission"]');
+  const weaponStep = $('loadoutStatusBar')?.querySelector('[data-step="weapon"]');
+  const towerStep = $('loadoutStatusBar')?.querySelector('[data-step="tower"]');
+  const readyStep = $('loadoutStatusBar')?.querySelector('[data-step="ready"]');
+  const missionReady = !!getSelectedMissionLevel();
+  const weaponReady = selectedByKind.weapon > 0;
+  const towerReady = selectedByKind.tower > 0;
+  const readyToDeploy = missionReady && weaponReady && towerReady;
+  const setStep = (el, state) => {
+    if (!el) return;
+    el.classList.toggle('complete', state === 'complete' || state === 'ready');
+    el.classList.toggle('ready', state === 'ready');
+  };
+  setStep(missionStep, missionReady ? 'complete' : 'none');
+  setStep(weaponStep, weaponReady ? 'complete' : 'none');
+  setStep(towerStep, towerReady ? 'complete' : 'none');
+  setStep(readyStep, readyToDeploy ? 'ready' : 'none');
   document.querySelectorAll('#loadoutTabs [data-loadout-tab]').forEach(tab => {
     const k = tab.dataset.loadoutTab;
     const count = selectedByKind[k] || 0;
@@ -9817,6 +10040,8 @@ function updateLoadoutSummary() {
       badge.remove();
     }
   });
+  const statusBar = $('loadoutStatusBar');
+  if (statusBar) statusBar.dataset.ready = readyToDeploy ? 'true' : 'false';
 }
 
 function developerOverlayText() {
@@ -9825,12 +10050,14 @@ function developerOverlayText() {
   const roomState = roomId !== 'none' ? expeditionRoomState(roomId) : 'none';
   const riftHp = ex?.rift ? `${Math.round(ex.rift.hp)} / ${Math.round(ex.rift.max)}` : 'n/a';
   const hunters = S.enemies.filter(e => !e.dead && e.expeditionTarget === 'rift').length;
+  const riftUpgrades = expeditionRiftUpgradeLabelList();
   return [
     `MISSION: ${isExpeditionRun() ? 'EXPEDITION' : 'ARENA'}`,
     `LEVEL: ${S.levelId}`,
     `ROOM: ${String(roomId).toUpperCase()}`,
     `ROOM STATE: ${String(roomState).toUpperCase()}`,
     `RIFT HP: ${riftHp}${ex?.riftCarried ? ' CARRYING RIFT' : ''}`,
+    `RIFT UPGRADES: ${riftUpgrades.length ? riftUpgrades.join(', ').toUpperCase() : 'NONE'}`,
     `ENEMIES: ${S.enemies.filter(e => !e.dead).length}`,
     `RIFT HUNTERS: ${hunters}`,
     `PLAYER TOWER COLLISION: ${S.devPlayerTowerCollision ? 'ON' : 'OFF'}`,
@@ -9857,6 +10084,7 @@ function renderWarRoomStatus() {
   const objective = missionObjectiveText();
   const bossActive = !!(S.bossActive || S.bossSpawned || S.enemies.some(e => !e.dead && (e.type === 'slimeking' || e.boss)));
   const riftHp = ex?.rift ? `${Math.round(ex.rift.hp)} / ${Math.round(ex.rift.max)}` : 'n/a';
+  const riftUpgrades = expeditionRiftUpgradeLabelList();
   const rows = expeditionMode
     ? [
         ['Mission', 'EXPEDITION'],
@@ -9865,6 +10093,7 @@ function renderWarRoomStatus() {
         ['Enemies', String(enemies)],
         ['Hunters', String(hunters)],
         ['Rift HP', `${riftHp}${ex?.riftCarried ? ' CARRYING RIFT' : ''}`],
+        ['Rift Upgrades', riftUpgrades.length ? riftUpgrades.join(', ') : 'None'],
         ['Objective', objective],
       ]
     : [
@@ -10169,12 +10398,12 @@ function clearLoadout() {
 function validateLoadoutState() {
   if (!LOADOUT_STATE.selectedIds.length) {
     console.log('[loadout] validation fails', 'empty loadout');
-    toast('Pick something. Anything with teeth.');
+    toast('Pick at least one item.');
     return false;
   }
   if (!LOADOUT_STATE.selectedIds.some(k => !!WEAPONS[k])) {
     console.log('[loadout] validation fails', 'missing weapon');
-    toast('Pick at least one gun. Do not be a coward.');
+    toast('Pick at least one weapon.');
     return false;
   }
   return true;
@@ -10411,11 +10640,11 @@ function renderCodices() {
       ['slinger', 'Stone Slinger', 'Ranged enemy.', 'Attacks from behind other enemies.'],
       ['brute', 'Butcher Brute', 'Heavy enemy.', 'High health. Use focused damage or splash damage.'],
       ['ogre', 'Gate Ogre', 'Large heavy enemy.', 'Very high health and slow movement.'],
-      ['hunter', 'Saboteur', 'Defense attacker.', 'Targets towers and traps when it reaches them.'],
+      ['hunter', 'Saboteur', 'Targets towers and traps.', 'Targets towers and traps when it reaches them.'],
       ['bomber', 'Powder Lunatic', 'Explosive enemy.', 'Punishes crowded defenses and tight groups.'],
       ['shield', 'Shield Bearer', 'Protected enemy.', 'Blocks some direct hero fire from the front.'],
-      ['healer', 'Plague Monk', 'Support enemy.', 'Heals nearby enemies. Kill it early.'],
-      ['warden', 'Aegis Warden', 'Defensive enemy.', 'Reduces simple frontal attacks. Use angles or area damage.'],
+      ['healer', 'Plague Monk', 'Heals nearby enemies.', 'Heals nearby enemies. Kill it early.'],
+      ['warden', 'Aegis Warden', 'Resists frontal attacks.', 'Resists frontal attacks. Use angles or area damage.'],
       ['sapper', 'Sapper Imp', 'Barrier breaker.', 'Attacks barriers and choke-point defenses first.'],
       ['phase', 'Phase Skulk', 'Control-resistant enemy.', 'Ignores the first slow, stun, or freeze effect.'],
       ['splitter', 'Splitter', 'Splitting enemy.', 'Can create extra enemies when killed.'],
@@ -10638,11 +10867,11 @@ function renderMutationOverlay() {
     const kind = u.kind === 'mutagen' ? 'mutiverse' : u.kind;
     const category = kind === 'mutiverse'
       ? 'SURGE'
-      : (u.kind === 'weapon' ? 'WEAPON UPGRADE' : 'TOWER UPGRADE');
+      : (u.kind === 'weapon' ? 'WEAPON UPGRADE' : u.kind === 'tower' ? 'TOWER UPGRADE' : u.kind === 'rift' ? 'RIFT UPGRADE' : 'UPGRADE');
     const mechanics = u.desc || u.raw?.desc || '';
     const footer = u.kind === 'mutagen'
       ? { icon: '⚡', label: 'NEXT WAVE ONLY' }
-      : { icon: '✓', label: 'PERMANENT UPGRADE' };
+      : { icon: '✓', label: u.kind === 'rift' ? 'PERMANENT RIFT UPGRADE' : 'PERMANENT UPGRADE' };
     return { category, mechanics: mechanics || 'Directly strengthens your build.', footer };
   };
   if (!options.length) {
@@ -10665,9 +10894,9 @@ function renderMutationOverlay() {
   } else {
     for (const u of options) {
       const b = document.createElement('button');
-      const kindClass = u.kind === 'mutagen' ? 'multiverse' : (u.kind === 'weapon' ? 'weapon' : 'tower');
+      const kindClass = u.kind === 'mutagen' ? 'multiverse' : (u.kind === 'weapon' ? 'weapon' : u.kind === 'rift' ? 'multiverse' : 'tower');
       b.className = `pickerTile rewardCard ${kindClass}`.trim();
-      const icon = u.icon || (u.kind === 'mutagen' ? iconImgWithFallback('assets/icons/powerups/superpower.png', u.name) : upgradeIcon(u.id, u.kind));
+      const icon = u.icon || (u.kind === 'mutagen' ? iconImgWithFallback('assets/icons/powerups/superpower.png', u.name) : u.kind === 'rift' ? `<span class="icon">${EXPEDITION_RIFT_UPGRADES[u.id]?.icon || '◌'}</span>` : upgradeIcon(u.id, u.kind));
       const meta = cardMeta(u);
       b.innerHTML = `
         <div class="mutationTop">
@@ -10684,18 +10913,22 @@ function renderMutationOverlay() {
     }
   }
   const title = mutationEl.querySelector('h1');
-  if (title) title.textContent = 'Choose a Boon';
+  if (title) title.textContent = S.pendingRiftUpgradeMode ? 'Tune the Rift' : 'Choose a Boon';
   const subtitle = mutationEl.querySelector('#mutationSubtitle') || mutationEl.querySelector('p');
   const cost = getRewardRerollCost();
   const freeNote = (S.freeRewardRerolls || 0) > 0 ? ' One reserve reroll is free.' : '';
-  if (subtitle) subtitle.textContent = `Choose one of three random rewards from your loadout upgrades. Powerups appear some waves, not all of them.${freeNote}`;
+  if (subtitle) subtitle.textContent = S.pendingRiftUpgradeMode
+    ? 'Choose one Rift upgrade. Room rewards now advance the Rift first.'
+    : `Choose one of three random rewards from your loadout upgrades. Powerups appear some waves, not all of them.${freeNote}`;
   let footer = mutationEl.querySelector('.mutationFooter');
   if (!footer) {
     footer = document.createElement('div');
     footer.className = 'mutationFooter';
     mutationEl.querySelector('.card')?.appendChild(footer);
   }
-  footer.innerHTML = `
+  footer.innerHTML = S.pendingRiftUpgradeMode ? `
+    <div class="mutationFooterNote">Rift upgrades are permanent for this run.</div>
+  ` : `
       <button id="mutationRerollBtn" class="secondary wide diceButton" type="button" aria-label="Reroll reward options">
       <span class="diceIcon">🎲</span>
       <span class="diceText">Reroll Options${cost ? ` - ${cost}g` : (S.freeRewardRerolls || 0) > 0 ? ' - FREE' : ''}</span>
@@ -10773,23 +11006,28 @@ function renderMutationOverlay() {
 
 function showMutationOverlay() {
   console.log("SHOW MUTATION CALLED");
+  const riftMode = !!S.pendingRiftUpgradeMode;
   S.pendingUpgrade = true;
   S.rewardRerollsUsed = 0;
   S.rewardRerollSalt = 0;
-  S.pendingMutationChoices = buildWaveRewardChoices();
-  if (!S.pendingMutationChoices.length) {
-    S.pendingMutationChoices = [
-      buildUpgradeChoice('weapon', (Object.values(HERO_UPGRADES)[0] || {}).id),
-      buildUpgradeChoice('tower', (Object.values(TRAP_UPGRADES)[0] || {}).id),
-      buildMutagenChoice('mirrorShot'),
-    ].filter(Boolean);
+  if (!riftMode) {
+    S.pendingMutationChoices = buildWaveRewardChoices();
+    if (!S.pendingMutationChoices.length) {
+      S.pendingMutationChoices = [
+        buildUpgradeChoice('weapon', (Object.values(HERO_UPGRADES)[0] || {}).id),
+        buildUpgradeChoice('tower', (Object.values(TRAP_UPGRADES)[0] || {}).id),
+        buildMutagenChoice('mirrorShot'),
+      ].filter(Boolean);
+    }
+  } else if (!Array.isArray(S.pendingMutationChoices) || !S.pendingMutationChoices.length) {
+    S.pendingMutationChoices = buildExpeditionRiftUpgradeChoices();
   }
   prepareQuartermasterForWave();
   clearCombatInputState();
   S.mutationPending = true;
   S.gameState = 'upgradeChoice';
   S.paused = false;
-  maybeShowMissionHint('Choose a Boon.', 'arena-boon-choice', 4);
+  maybeShowMissionHint(riftMode ? 'Tune the Rift.' : 'Choose a Boon.', riftMode ? 'expedition-rift-choice' : 'arena-boon-choice', 4);
   $('clear').classList.add('hidden');
   if ($('mutation')?.parentElement !== document.body) document.body.appendChild($('mutation'));
   renderMutationOverlay();
@@ -10806,6 +11044,22 @@ function chooseMutation(choice) {
   // Resolve the modal, clear the upgrade gate, and return to the between-waves state.
   const u = choice && typeof choice === 'object' ? choice : null;
   if (!u) return;
+  if (u.kind === 'rift') {
+    if (!expeditionGrantRiftUpgrade(u.id, 'room clear')) {
+      toast('Rift upgrade failed.');
+      return;
+    }
+    console.log('[reward] selected rift upgrade', u.id);
+    clearExpeditionRiftUpgradeOverlay();
+    S.mutationPending = false;
+    S.pendingUpgrade = false;
+    S.gameState = 'betweenWaves';
+    clearCombatInputState();
+    $('mutation').classList.add('hidden');
+    $('clear').classList.add('hidden');
+    ui();
+    return;
+  }
   if (u.kind === 'mutagen') {
     S.pendingWaveMutagen = u.id;
     S.lastWaveMutagen = u.id;
@@ -10841,6 +11095,7 @@ function chooseMutation(choice) {
   clearCombatInputState();
   $('mutation').classList.add('hidden');
   $('clear').classList.add('hidden');
+  clearExpeditionRiftUpgradeOverlay();
   updateLoadoutSummary();
   const rail = $('buildHotbar');
   if (rail) rail.dataset.sig = '';
@@ -13225,7 +13480,7 @@ function startWave() {
     return toast('Pick a Boon first.');
   }
   if (!S.started || S.waveActive || S.gameOver) return;
-  if (!(S.loadout || []).some(k => !!WEAPONS[k])) return toast('Pick at least one gun. Do not be a coward.');
+  if (!(S.loadout || []).some(k => !!WEAPONS[k])) return toast('Pick at least one weapon.');
 
   S.waveCountdown = 0;
   S.wave++;
@@ -14930,6 +15185,7 @@ function expeditionRoomClearRewardType(profile) {
 
 function dropExpeditionRoomClearReward(room) {
   if (!isExpeditionRun() || !room) return;
+  if (expeditionAvailableRiftUpgrades().length && showExpeditionRiftUpgradeOverlay()) return;
   const profile = expeditionRoomRewardProfile(room);
   const type = expeditionRoomClearRewardType(profile);
   let x = clamp(S.hero.x + (Math.random() - .5) * 72, OX + 24, OX + COLS * G - 24);
@@ -15018,12 +15274,12 @@ function powerupColor(type, full = false) {
 
 const POWERUP_DEFS = {
   health: { rarity: 'common', label: 'HEALTH FLASK', icon: '✚', desc: 'Restores health.' },
-  gold: { rarity: 'common', label: 'GOLD FEVER', icon: '¤', desc: 'Kills drop bonus gold.' },
-  frenzy: { rarity: 'common', label: 'BLOOD RUSH', icon: '⚡', desc: 'Hero attack speed surges.' },
-  haste: { rarity: 'common', label: 'OVERCLOCK', icon: '⏩', desc: 'All fire rates spike.' },
-  freeze: { rarity: 'common', label: 'FROSTBITE', icon: '❄', desc: 'Damage slows enemies.' },
-  asColdAsLife: { rarity: 'common', label: 'AS COLD AS LIFE', icon: '❄', desc: 'Your secondary weapon has no cooldown.' },
-  rift: { rarity: 'common', label: 'RIFT SHIELD', icon: '◌', desc: 'The Rift absorbs the next leaks briefly.' },
+  gold: { rarity: 'common', label: 'BONUS GOLD', icon: '¤', desc: 'Kills drop bonus gold.' },
+  frenzy: { rarity: 'common', label: 'ATTACK SPEED', icon: '⚡', desc: 'Increases hero attack speed.' },
+  haste: { rarity: 'common', label: 'OVERCLOCK', icon: '⏩', desc: 'Increases all fire rates.' },
+  freeze: { rarity: 'common', label: 'FROSTBITE', icon: '❄', desc: 'Hits apply a slowing effect.' },
+  asColdAsLife: { rarity: 'common', label: 'SECONDARY FREEZE', icon: '❄', desc: 'Your secondary weapon has no cooldown.' },
+  rift: { rarity: 'common', label: 'RIFT SHIELD', icon: '◌', desc: 'The Rift absorbs the next few hits.' },
   containmentKey: { rarity: 'rare', label: 'CONTAINMENT KEY', icon: 'K', desc: 'Unlocks the final Expedition route.' },
   expeditionKey: { rarity: 'rare', label: 'GOLDEN KEY', icon: '⚿', desc: 'Unlocks the final Expedition chamber.' },
   bomb: { rarity: 'rare', label: 'CHAIN REACTION', icon: '✹', desc: 'Enemies explode on death.' },
@@ -15031,16 +15287,16 @@ const POWERUP_DEFS = {
   thunder: { rarity: 'rare', label: 'THUNDERSTORM', icon: '⚡', desc: 'Random lightning strikes.' },
   stampede: { rarity: 'rare', label: 'STAMPEDE', icon: '♞', desc: 'Allied boars charge in.' },
   orbital: { rarity: 'rare', label: 'ORBITAL STRIKE', icon: '☄', desc: 'Sky beams rain down.' },
-  bullethell: { rarity: 'epic', label: 'BULLET HELL', icon: '✶', desc: 'The hero fires everywhere.' },
+  bullethell: { rarity: 'epic', label: 'FULL SALVO', icon: '✶', desc: 'Hero fire rate and spread increase.' },
   blackhole: { rarity: 'epic', label: 'BLACK HOLE', icon: '◉', desc: 'A temporary vortex forms.' },
   tinyarmy: { rarity: 'epic', label: 'TINY ARMY', icon: '⚔', desc: 'Rows of tiny soldiers march through enemies.' },
-  goblinunion: { rarity: 'epic', label: 'GOBLIN UNION', icon: '✊', desc: 'Enemies stop and protest.' },
-  kittens: { rarity: 'legendary', label: 'KITTENPOCALYPSE', icon: '🐾', desc: 'Thousands of kittens erupt from dimensional rifts.' },
-  goose: { rarity: 'legendary', label: 'GOOSE EVENT', icon: '🪿', desc: 'Geese orbit the hero and absorb contact.' },
-  bees: { rarity: 'legendary', label: 'BEE EMERGENCY', icon: '🐝', desc: 'This has gotten out of hand.' },
-  summoncat: { rarity: 'legendary', label: 'SUMMON CAT', icon: '🐈', desc: 'Enemies abandon the rift to adore a cat.' },
+  goblinunion: { rarity: 'epic', label: 'PROTEST LINE', icon: '✊', desc: 'Enemies are briefly halted.' },
+  kittens: { rarity: 'legendary', label: 'CAT SWARM', icon: '🐾', desc: 'A large number of cats appear and overwhelm the lane.' },
+  goose: { rarity: 'legendary', label: 'GOOSE SHIELD', icon: '🪿', desc: 'Geese circle the hero and block contact.' },
+  bees: { rarity: 'legendary', label: 'BEE SWARM', icon: '🐝', desc: 'A swarm appears near the pickup point.' },
+  summoncat: { rarity: 'legendary', label: 'CAT DISTRACTION', icon: '🐈', desc: 'Enemies are redirected toward the cat.' },
   physics: { rarity: 'legendary', label: 'PHYSICS ERROR', icon: '∿', desc: 'Reality becomes unstable.' },
-  wronggame: { rarity: 'legendary', label: 'WRONG GAME', icon: '⌘', desc: 'Assets from another universe.' },
+  wronggame: { rarity: 'legendary', label: 'OUT OF PHASE', icon: '⌘', desc: 'Assets from another universe.' },
 };
 
 const MULTIVERSE_MUTAGENS = {
@@ -15812,7 +16068,7 @@ function applyPowerupEffect(type, orb) {
   }
   if (type === 'frenzy') {
     S.mods.frenzyUntil = Math.max(S.mods.frenzyUntil || 0, now + 8);
-    floatText('BLOOD RUSH', orb.x - 28, orb.y - 14, '#ff6d3a');
+    floatText('ATTACK SPEED', orb.x - 28, orb.y - 14, '#ff6d3a');
     return;
   }
   if (type === 'haste') {
@@ -15836,7 +16092,7 @@ function applyPowerupEffect(type, orb) {
   if (type === 'asColdAsLife') {
     S.mods.asColdAsLifeUntil = Math.max(S.mods.asColdAsLifeUntil || 0, now + 10);
     S.hero.secondaryCd = 0;
-    floatText('AS COLD AS LIFE', orb.x - 48, orb.y - 14, '#dff4ff');
+    floatText('SECONDARY FREEZE', orb.x - 48, orb.y - 14, '#dff4ff');
     shockwave(orb.x, orb.y, '#dff4ff', 120, .32);
     return;
   }
@@ -15921,12 +16177,12 @@ function triggerLegendaryPowerup(type, orb) {
   }
   if (type === 'wronggame') {
     startTempEffect('wronggame', 10, { x: orb.x, y: orb.y });
-    floatText('WRONG GAME', orb.x - 34, orb.y - 32, '#b37cff');
+    floatText('OUT OF PHASE', orb.x - 34, orb.y - 32, '#b37cff');
     return;
   }
   if (type === 'bullethell') {
     startTempEffect('bullethell', 10, { x: orb.x, y: orb.y });
-    floatText('BULLET HELL', orb.x - 34, orb.y - 32, '#ffd56a');
+    floatText('FULL SALVO', orb.x - 34, orb.y - 32, '#ffd56a');
     return;
   }
   if (type === 'blackhole') {
@@ -16125,7 +16381,7 @@ function collectHealthOrbs(dt) {
         const now = performance.now() / 1000;
         S.mods.asColdAsLifeUntil = Math.max(S.mods.asColdAsLifeUntil || 0, now + (o.asColdAsLife || 10));
         S.hero.secondaryCd = 0;
-        floatText('AS COLD AS LIFE', o.x - 48, o.y - 14, '#dff4ff');
+        floatText('SECONDARY FREEZE', o.x - 48, o.y - 14, '#dff4ff');
         shockwave(o.x, o.y, '#dff4ff', 120, .32);
       } else if (type === 'bomb') {
         const radius = 180;
@@ -16146,11 +16402,13 @@ function collectHealthOrbs(dt) {
       const now = performance.now() / 1000;
       S.mods.riftShieldUntil = Math.max(S.mods.riftShieldUntil || 0, now + (o.rift || 8));
       floatText('CORE SHIELD', o.x - 34, o.y - 14, '#8edcff');
+      if (S.expedition) expeditionHealRift(Math.max(18, Math.floor(S.hero.max * .18)), 'rift pickup');
       } else if (['thunder','orbital','stampede','bullethell','blackhole','tinyarmy','goblinunion','kittens','goose','bees','summoncat','physics','wronggame'].includes(type)) {
         applyPowerupEffect(type, o);
       } else {
         const amt = o.full ? S.hero.max : (o.hp || Math.floor(S.hero.max * .45));
         S.hero.hp = o.full ? S.hero.max : Math.min(S.hero.max, S.hero.hp + amt);
+        if (S.expedition) expeditionHealRift(amt, 'health pickup');
         floatText(o.full ? 'FULL HEAL' : 'HEALTH FLASK', o.x - (o.full ? 28 : 34), o.y - 28, o.full ? '#ffe09c33' : '#b9d84f');
         floatText('+' + (o.full ? S.hero.max : amt) + ' HP', o.x - 22, o.y - 10, '#d5ef7d');
       }
@@ -19419,6 +19677,14 @@ function drawExpeditionObjects(t) {
   const staticY = cy(cfg.rift.r);
   const nearRift = ex.riftActivated || ex.riftFound || dist(S.hero.x, S.hero.y, staticX, staticY) < 360;
   if (nearRift) drawExpeditionRiftCore(ex.riftActivated ? ex.rift.x : staticX, ex.riftActivated ? ex.rift.y : staticY, t, ex.riftActivated, !!ex.riftCarried);
+  if (ex.riftActivated && expeditionRiftUpgradeIds().length) {
+    ctx.save();
+    ctx.fillStyle = '#d6f4ff';
+    ctx.font = 'bold 10px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(`RIFT: ${expeditionRiftUpgradeIds().map(id => (EXPEDITION_RIFT_UPGRADES[id]?.name || id).split(' ')[0].toUpperCase()).join(' / ')}`, ex.rift.x, ex.rift.y - 112);
+    ctx.restore();
+  }
   for (const nest of ex.roomNests || []) {
     if (nest.dead) continue;
     const pct = Math.max(0, nest.hp / nest.max);
@@ -20116,7 +20382,7 @@ function drawPowerupEffectSource(fx, t) {
     return;
   }
   if (fx.type === 'bullethell') {
-    drawLabeledDisc(S.hero.x, S.hero.y, '✶', 'BULLET HELL', vis.color, t, { r: 34, alpha: .28, pulse: .18 });
+    drawLabeledDisc(S.hero.x, S.hero.y, '✶', 'FULL SALVO', vis.color, t, { r: 34, alpha: .28, pulse: .18 });
     return;
   }
   drawLabeledDisc(x, y, vis.icon, vis.label, vis.color, t, { r: 24, alpha: .35 });
@@ -22681,6 +22947,7 @@ $('devKillBoss').onclick = () => devKillSlimeKing();
 $('devClearEnemies').onclick = () => devClearEnemies();
 $('devSpawnBoon').onclick = () => devSpawnBoonSelection();
 $('devSpawnSurge').onclick = () => devSpawnSurgeSelection();
+$('devGrantRiftUpgrade').onclick = () => devGrantRiftUpgrade();
 $('devTriggerPowerup').onclick = () => forcePowerupDebug($('devPowerupSelect')?.value);
 $('devTriggerMutagen').onclick = () => {
   const id = sanitizeMutagenId($('devMutagenSelect')?.value);
@@ -22843,7 +23110,12 @@ if ($('guideModal')) {
 }
 
 function canStartRun() {
-  return !!LOADOUT_STATE.selectedIds.length && LOADOUT_STATE.selectedIds.some(k => !!WEAPONS[k]);
+  const selectedByKind = { weapon: 0, tower: 0 };
+  for (const k of LOADOUT_STATE.selectedIds) {
+    if (WEAPONS[k]) selectedByKind.weapon++;
+    else if (TOWERS[k] && !TRINKETS[k]) selectedByKind.tower++;
+  }
+  return selectedByKind.weapon > 0 && selectedByKind.tower > 0;
 }
 addEventListener('keydown', e => {
   if (isGuideOpen()) {
