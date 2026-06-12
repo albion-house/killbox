@@ -5082,7 +5082,7 @@ const LEVELS = {
             riftLightRadius: 265,
             softEdge: 62,
           },
-          terminal: { c: 17, r: 12 },
+          terminal: { c: 3, r: 6 },
           key: { c: 18, r: 12 },
           entrances: [
             { c: 26, r: 7, side: 'east', kind: 'door', label: 'LABYRINTH GATE' },
@@ -13693,6 +13693,17 @@ function kill(e, tower, byHero = false) {
   e.dead = true;
   if (e.type === 'slimeking') {
     S.bossActive = false;
+    if (isExpeditionRun()) {
+      const ex = S.expedition;
+      const room = (expeditionConfig()?.rooms || []).find(r => r.id === 'keyLabyrinth');
+      if (ex && room) {
+        ex.roomBlockers = [];
+        if (ex.activeRoomId === room.id) {
+          ex.message = 'Labyrinth doors unlocked.';
+          ex.messageTime = 4;
+        }
+      }
+    }
     S.bossDeathPause = Math.max(S.bossDeathPause || 0, 3);
     clearSlimeTrail();
     S.waveBanner = '';
@@ -15991,7 +16002,6 @@ function collectHealthOrbs(dt) {
           S.expedition.keyLabyrinthSlimeTimer = 2.2;
           S.expedition.message = 'Golden key acquired. Run.';
           S.expedition.messageTime = 7;
-          if (S.expedition.activeRoomId === o.expeditionRoomId) S.expedition.roomBlockers = [];
         }
         floatText('GOLDEN KEY', o.x - 48, o.y - 34, '#ffd45a');
         floatText('FINAL CHAMBER UNLOCKED', o.x - 82, o.y - 12, '#fff1c0');
@@ -16874,6 +16884,56 @@ function healerPulse(e, dt) {
 
 // Hex Caller: wards nearby enemies against slows and damage spikes.
 function hexCallerPulse(e, dt) {
+  e.hexBlinkCd = Math.max(0, (e.hexBlinkCd || 0) - dt);
+  e.hexBlinkTelegraph = Math.max(0, (e.hexBlinkTelegraph || 0) - dt);
+  e.hexShotCd = Math.max(0, (e.hexShotCd || 0) - dt);
+
+  if ((e.hexBlinkTelegraph || 0) > 0) {
+    e.stun = 0;
+    e.freeze = 0;
+    e.chill = 0;
+    e.slow = 0;
+    if ((e.hexBlinkTelegraph || 0) <= .12 && !e.hexBlinkFlashDone) {
+      e.hexBlinkFlashDone = true;
+      floatText('BLINK', S.hero.x - 20, S.hero.y - 28, '#f0b8ff');
+      shockwave(S.hero.x, S.hero.y, '#f0b8ff', 36, .14);
+      boom(S.hero.x, S.hero.y, '#b37cff33', 8);
+    }
+    if ((e.hexBlinkTelegraph || 0) <= 0) {
+      const dx = e.x - S.hero.x;
+      const dy = e.y - S.hero.y;
+      const l = Math.hypot(dx, dy) || 1;
+      const ang = Math.atan2(dy, dx) + (Math.random() - .5) * .7;
+      const distAway = 92 + Math.random() * 42;
+      const tx = clamp(S.hero.x + Math.cos(ang) * distAway, OX + 16, OX + COLS * G - 16);
+      const ty = clamp(S.hero.y + Math.sin(ang) * distAway, OY + 16, OY + ROWS * G - 16);
+      e.x = tx;
+      e.y = ty;
+      e.hexBlinkCd = 4.8 + Math.random() * 1.2;
+      e.hexShotCd = 0.2;
+      e.hexBlinkFlashDone = false;
+      floatText('HEX', e.x - 12, e.y - 24, '#d8a7ff');
+      shockwave(e.x, e.y, '#b37cff', 42, .18);
+      burst(e.x, e.y, '#f0b8ff', 6, 'spark', 90);
+      return;
+    }
+  } else if (e.hexBlinkCd <= 0 && dist(e.x, e.y, S.hero.x, S.hero.y) < 520) {
+    e.hexBlinkTelegraph = 0.45;
+    e.hexBlinkFlashDone = false;
+    e.stun = Math.max(e.stun || 0, .08);
+    e.kx = 0;
+    e.ky = 0;
+    floatText('BLINKING', e.x - 30, e.y - 24, '#d8a7ff');
+    boom(e.x, e.y, '#b37cff22', 4);
+    shockwave(e.x, e.y, '#f0b8ff', 24, .12);
+    return;
+  }
+
+  if (e.hexShotCd <= 0 && dist(e.x, e.y, S.hero.x, S.hero.y) < 320) {
+    e.hexShotCd = 1.25 + Math.random() * .4;
+    hexCallerSpellVolley(e, S.hero);
+  }
+
   e.healCool -= dt;
   if (e.healCool > 0) return;
   e.healCool = 1.15;
@@ -16889,6 +16949,40 @@ function hexCallerPulse(e, dt) {
   }
   boom(e.x, e.y, '#b37cff33', 6);
   shockwave(e.x, e.y, '#d8a7ff', 44, .16);
+}
+
+function hexCallerSpellVolley(e, target = S.hero) {
+  const base = Math.atan2(target.y - e.y, target.x - e.x);
+  const count = 3;
+  for (let i = 0; i < count; i++) {
+    const spread = (i - (count - 1) / 2) * .16;
+    const a = base + spread;
+    const sp = 182 + Math.random() * 26;
+    const vx = Math.cos(a) * sp;
+    const vy = Math.sin(a) * sp;
+    const nx = -Math.sin(a);
+    const ny = Math.cos(a);
+    S.enemyShots.push({
+      x: e.x, y: e.y,
+      vx, vy,
+      life: 2.4,
+      dmg: 6 + S.wave * .28,
+      source: 'hexcaller',
+      sourceX: e.x,
+      sourceY: e.y,
+      hexWave: true,
+      waveAmp: 10 + Math.random() * 4,
+      waveFreq: 11 + Math.random() * 3,
+      wavePhase: Math.random() * Math.PI * 2,
+      waveT: 0,
+      wavePrev: 0,
+      wavePerpX: nx,
+      wavePerpY: ny,
+      tint: '#b37cff',
+    });
+  }
+  boom(e.x, e.y, '#b37cff33', 5);
+  shockwave(e.x, e.y, '#f0b8ff', 26, .12);
 }
 
 function attackStructureLikeImp(e, target, dt, kind = 'sapper') {
@@ -17589,16 +17683,26 @@ function projectiles(dt) {
   // Enemy shots
   for (const s of S.enemyShots) {
     s.life -= dt;
-    s.x += s.vx * dt;
-    s.y += s.vy * dt;
+    if (s.hexWave) {
+      s.waveT = (s.waveT || 0) + dt;
+      const wave = Math.sin(s.waveT * (s.waveFreq || 12) + (s.wavePhase || 0)) * (s.waveAmp || 0);
+      const prev = s.wavePrev || 0;
+      const delta = wave - prev;
+      s.wavePrev = wave;
+      s.x += s.vx * dt + (s.wavePerpX || 0) * delta;
+      s.y += s.vy * dt + (s.wavePerpY || 0) * delta;
+    } else {
+      s.x += s.vx * dt;
+      s.y += s.vy * dt;
+    }
     if (dist(s.x, s.y, S.hero.x, S.hero.y) < 17) {
       hurtHero(s.dmg, s.source || (s.slime ? 'slimeking' : 'enemy projectile'), Number.isFinite(s.sourceX) && Number.isFinite(s.sourceY) ? { x: s.sourceX, y: s.sourceY } : s); s.dead = true;
-      boom(s.x, s.y, s.slime ? '#7cff4f' : '#ff1f1f', 5);
+      boom(s.x, s.y, s.hexWave ? '#d8a7ff' : s.slime ? '#7cff4f' : '#ff1f1f', 5);
     } else if (S.engineer.active && S.engineer.hp > 0 && !S.aiEngineerOwned
                && dist(s.x, s.y, S.engineer.x, S.engineer.y) < 17) {
       // Only co-op P2 takes ranged fire — AI engineer is not a valid projectile target
       hurtEngineer(s.dmg); s.dead = true;
-      boom(s.x, s.y, s.slime ? '#7cff4f' : '#8edcff', 5);
+      boom(s.x, s.y, s.hexWave ? '#d8a7ff' : s.slime ? '#7cff4f' : '#8edcff', 5);
     }
     if (s.life <= 0) s.dead = true;
   }
@@ -21807,6 +21911,22 @@ function drawArrow(s, c, glow = false) {
     ctx.beginPath();
     ctx.arc(s.x, s.y, 3.2, 0, 7);
     ctx.stroke();
+    ctx.restore();
+  }
+
+  if (s.hexWave) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = .78;
+    ctx.strokeStyle = '#f0b8ff';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, 5 + Math.sin((s.waveT || 0) * 6) * 1.5, 0, 7);
+    ctx.stroke();
+    ctx.fillStyle = '#b37cff';
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, 2.2, 0, 7);
+    ctx.fill();
     ctx.restore();
   }
 
