@@ -4535,8 +4535,8 @@ h2,
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-            <b id="warRoomVersion">v7.18.5</b>
-      <span id="warRoomBuildName">RiftMutant</span>
+            <b id="warRoomVersion">v7.18.8</b>
+      <span id="warRoomBuildName">InkCrown</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -4624,7 +4624,7 @@ h2,
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.18.5 RiftMutant</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.18.8 InkCrown</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -5987,8 +5987,8 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const BUILD_VERSION = '7.18.5';
-const BUILD_NAME = 'RiftMutant';
+const BUILD_VERSION = '7.18.8';
+const BUILD_NAME = 'InkCrown';
 function upgradeIcon(id, kind = 'generic') {
   const up = HERO_UPGRADES[id] || TRAP_UPGRADES[id] || BOSS_UPGRADES[id] || {};
   const explicit = up.targetIcon || up.targetItem || up.targetIconAlt || up.targetItemAlt;
@@ -6416,9 +6416,9 @@ const EXPEDITION_RIFT_UPGRADES = {
     icon: `<svg class="riftCardArt" viewBox="0 0 96 96" aria-hidden="true"><path d="M48 5 55 28 75 14 68 38 93 34 72 48 93 62 68 58 75 82 55 68 48 91 41 68 21 82 28 58 3 62 24 48 3 34 28 38 21 14 41 28Z" fill="#6a0a0f" stroke="#ff9b8a" stroke-width="4"/><ellipse cx="48" cy="48" rx="24" ry="17" fill="#18040b" stroke="#2a0205" stroke-width="7"/><circle cx="48" cy="48" r="10" fill="#ff1f4f"/><path d="M34 65c8 10 20 10 29 0" fill="none" stroke="#2a0205" stroke-width="5"/></svg>`,
   },
   field: {
-    name: 'Grave Drag',
+    name: 'Black Orbit',
     desc: 'The Rift twists gravity. Enemies caught near it crawl toward the wound.',
-    icon: `<svg class="riftCardArt" viewBox="0 0 96 96" aria-hidden="true"><rect x="0" y="0" width="96" height="96" rx="18" fill="#100512"/><path d="M18 31c20-20 55-13 61 14M78 65C58 86 23 78 17 52" fill="none" stroke="#4a0511" stroke-width="9" stroke-linecap="round"/><path d="M22 27c19 13 37 13 54 0M20 69c20-14 38-14 56 0" fill="none" stroke="#8edcff" stroke-width="3" opacity=".65"/><ellipse cx="48" cy="48" rx="20" ry="12" fill="#1a071f" stroke="#f0b8ff" stroke-width="4"/><circle cx="48" cy="48" r="8" fill="#080208"/><path d="M48 11v22M48 63v22M11 48h22M63 48h22" stroke="#1a071f" stroke-width="7" stroke-linecap="round"/></svg>`,
+    icon: `<svg class="riftCardArt" viewBox="0 0 96 96" aria-hidden="true"><rect x="0" y="0" width="96" height="96" rx="18" fill="#100512"/><path d="M18 31c20-20 55-13 61 14M78 65C58 86 23 78 17 52" fill="none" stroke="#4a0511" stroke-width="9" stroke-linecap="round"/><path d="M22 27c19 13 37 13 54 0M20 69c20-14 38-14 56 0" fill="none" stroke="#2b0010" stroke-width="5"/><ellipse cx="48" cy="48" rx="20" ry="12" fill="#1a071f" stroke="#6a0a0f" stroke-width="4"/><circle cx="48" cy="48" r="8" fill="#080208"/><path d="M48 11v22M48 63v22M11 48h22M63 48h22" stroke="#080208" stroke-width="7" stroke-linecap="round"/></svg>`,
   },
 };
 
@@ -6440,6 +6440,28 @@ function expeditionRiftUpgradeLabelList() {
 
 function expeditionRiftThreatScale() {
   return clamp(expeditionRiftUpgradeIds().length / EXPEDITION_RIFT_UPGRADE_CAP, 0, 1);
+}
+
+function expeditionSawCrownProfile(e) {
+  const type = e?.type || 'grunt';
+  const maxHp = Math.max(1, e?.max || e?.hp || 1);
+  const boss = type === 'slimeking' || !!e?.boss || !!e?.eliteRoomTarget || isLargeEnemy(e);
+  if (boss) {
+    return { mult: .16, bloodHits: 1, killHits: 2, stain: false, execute: false };
+  }
+  if (type === 'runner') {
+    return { mult: 1.95, bloodHits: 3, killHits: 6, stain: true, execute: true };
+  }
+  if (['grunt', 'slinger', 'bomber', 'splitter'].includes(type) || maxHp <= 95) {
+    return { mult: 1.45, bloodHits: 3, killHits: 5, stain: true, execute: true };
+  }
+  if (['healer', 'shield', 'warden', 'sapper', 'phase', 'hexcaller'].includes(type) || maxHp <= 185) {
+    return { mult: .82, bloodHits: 2, killHits: 4, stain: true, execute: false };
+  }
+  if (['brute', 'ogre', 'siege'].includes(type) || maxHp <= 260) {
+    return { mult: .58, bloodHits: 2, killHits: 4, stain: true, execute: false };
+  }
+  return { mult: .74, bloodHits: 2, killHits: 4, stain: true, execute: false };
 }
 
 function expeditionRiftUpgradeVisualScale(count = expeditionRiftUpgradeIds().length) {
@@ -6500,7 +6522,7 @@ function expeditionGrantRiftUpgrade(id, source = 'room clear') {
 
 function expeditionApplyRiftUpgrades(dt) {
   const ex = S.expedition;
-  if (!isExpeditionRun() || !ex?.riftActivated || !ex.rift || ex.completed) return;
+  if (!isExpeditionRun() || !ex?.riftActivated || !ex.rift || ex.completed || ex.riftCarried) return;
   const rift = ex.rift;
   const now = performance.now() / 1000;
   const upgrades = new Set(expeditionRiftUpgradeIds());
@@ -6519,19 +6541,34 @@ function expeditionApplyRiftUpgrades(dt) {
       if (!e || e.dead) continue;
       const d = dist(rift.x, rift.y, e.x, e.y);
       if (d > 150 + threat * 40) continue;
-      hit(e, 12 + Math.floor((S.wave || 0) * .16) + Math.floor(threat * 6), null);
+      const saw = expeditionSawCrownProfile(e);
+      const wasAlive = !e.dead;
+      const baseDmg = 12 + Math.floor((S.wave || 0) * .16) + Math.floor(threat * 6);
+      hit(e, baseDmg * saw.mult, null);
       e.slow = Math.max(e.slow || 0, .32 + threat * .12);
-      if (bloodHits < 12) {
-        spawnBloodSplats(e.x, e.y, e);
-        burst(e.x, e.y, '#6a0a0f', 7 + Math.floor(threat * 6), 'blood', 210);
+      const a = Math.atan2(e.y - rift.y, e.x - rift.x);
+      e.kx = (e.kx || 0) + Math.cos(a) * (34 + threat * 18);
+      e.ky = (e.ky || 0) + Math.sin(a) * (34 + threat * 18);
+      e.stun = Math.max(e.stun || 0, .04 + threat * .03);
+      if (saw.stain && Math.random() < .55) createCorruptionPatch(e.x, e.y);
+      if (bloodHits < 16) {
+        for (let i = 0; i < saw.bloodHits; i++) spawnBloodSplats(e.x, e.y, e);
+        burst(e.x, e.y, '#6a0a0f', 24 + Math.floor(threat * 20), 'blood', 240);
+        if (wasAlive && e.dead) {
+          for (let i = 0; i < saw.killHits; i++) spawnBloodSplats(e.x, e.y, e);
+          burst(e.x, e.y, '#2a0205', 36 + Math.floor(threat * 22), 'blood', 280);
+          if (saw.stain) createCorruptionPatch(e.x, e.y);
+        } else if (saw.execute && e.hp > 0 && e.hp <= Math.max(6, e.max * .26)) {
+          e.hp = 0;
+          createCorruptionPatch(e.x, e.y);
+        }
         bloodHits++;
       }
       hitCount++;
     }
     if (hitCount) {
-      shockwave(rift.x, rift.y, threat >= .65 ? '#ff9b8a' : '#8edcff', 120 + threat * 26, .22);
-      burst(rift.x, rift.y, threat >= .65 ? '#ffb7aa' : '#d8f2ff', 7 + Math.floor(threat * 4), 'spark', 90);
-      floatText('RIFT PULSE', rift.x - 34, rift.y - 42, '#8edcff');
+      shockwave(rift.x, rift.y, threat >= .65 ? '#6a0a0f' : '#2b0010', 120 + threat * 26, .22);
+      burst(rift.x, rift.y, threat >= .65 ? '#3b0107' : '#080208', 7 + Math.floor(threat * 4), 'spark', 90);
     }
   }
   if (upgrades.has('field')) {
@@ -6559,6 +6596,27 @@ function expeditionApplyRiftUpgrades(dt) {
         });
         fieldFxCount++;
       }
+    }
+  }
+  if (expeditionRiftUpgradeIds().length >= 3 && (ex.riftEvilFxAt || 0) <= now) {
+    ex.riftEvilFxAt = now + .12 + Math.random() * .18;
+    const moteCount = S.parts.filter(p => p && p.riftMote).length;
+    if (moteCount < 22) {
+      const a = Math.random() * Math.PI * 2;
+      const r = 48 + Math.random() * 92;
+      const pull = 22 + Math.random() * 44;
+      S.parts.push({
+        kind: Math.random() < .72 ? 'smoke' : 'debris',
+        riftMote: true,
+        x: rift.x + Math.cos(a) * r,
+        y: rift.y + Math.sin(a) * r,
+        vx: -Math.cos(a) * pull + (Math.random() - .5) * 12,
+        vy: -Math.sin(a) * pull + (Math.random() - .5) * 12,
+        life: .55 + Math.random() * .55,
+        maxLife: 1.1,
+        c: Math.random() < .78 ? '#080208' : '#4a0511',
+        r: 3 + Math.random() * 6,
+      });
     }
   }
 }
@@ -19781,6 +19839,46 @@ function drawExpeditionRiftCore(x, y, t, activated = false, carried = false) {
   ctx.save();
   ctx.translate(x, y);
   ctx.scale(visual.scale, visual.scale);
+  if (carried) {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = .94;
+    ctx.fillStyle = '#10050b';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 52, 68, -.12, 0, 7);
+    ctx.fill();
+    ctx.strokeStyle = '#2b0010';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 52, 68, -.12, 0, 7);
+    ctx.stroke();
+    ctx.fillStyle = '#1a071f';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 28, 18, 0, 0, 7);
+    ctx.fill();
+    ctx.fillStyle = '#080208';
+    ctx.beginPath();
+    ctx.ellipse(0, -3, 12, 22, 0, 0, 7);
+    ctx.fill();
+    ctx.strokeStyle = '#4a0511';
+    ctx.lineWidth = 3;
+    for (let i = 0; i < 4; i++) {
+      const a = i * Math.PI / 2 + .18;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * 18, Math.sin(a) * 14);
+      ctx.lineTo(Math.cos(a) * 40, Math.sin(a) * 34);
+      ctx.stroke();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = '#fff4ff';
+    ctx.strokeStyle = '#18081f';
+    ctx.lineWidth = 3;
+    ctx.font = 'bold 10px Georgia';
+    ctx.textAlign = 'center';
+    ctx.strokeText('CARRIED', 0, -78);
+    ctx.fillText('CARRIED', 0, -78);
+    ctx.restore();
+    return;
+  }
   ctx.globalCompositeOperation = 'screen';
 
   if (visual.danger) {
@@ -19796,50 +19894,128 @@ function drawExpeditionRiftCore(x, y, t, activated = false, carried = false) {
   }
 
   if (visual.hasField) {
-    ctx.globalAlpha = .42 + Math.sin(vt * 4) * .08;
-    ctx.strokeStyle = '#080208';
-    ctx.lineWidth = 11;
-    for (let i = 0; i < 3; i++) {
-      const r = 86 + i * 22 + Math.sin(vt * 3 + i) * 7;
+    ctx.globalCompositeOperation = 'source-over';
+    for (let ring = 0; ring < 3; ring++) {
+      const r = 74 + ring * 34 + Math.sin(vt * 2.4 + ring) * 7;
+      ctx.globalAlpha = .18 + visual.threat * .08;
+      ctx.strokeStyle = ring === 1 ? '#1a071f' : '#080208';
+      ctx.lineWidth = 12 - ring * 2;
       ctx.beginPath();
-      ctx.arc(0, 0, r, vt * .7 + i * 1.4, vt * .7 + i * 1.4 + Math.PI * 1.05);
+      ctx.arc(0, 0, r, vt * .42 + ring * 1.6, vt * .42 + ring * 1.6 + Math.PI * 1.25);
       ctx.stroke();
     }
-    ctx.globalAlpha = .55;
-    ctx.strokeStyle = '#6f0c1a';
-    ctx.lineWidth = 5;
-    for (let i = 0; i < 12; i++) {
-      const a = i * Math.PI / 6 - vt * .9;
+    const inkColors = ['#080208', '#10050b', '#1a071f', '#2b0010'];
+    for (let i = 0; i < 20; i++) {
+      const phase = (vt * .22 + i * .137) % 1;
+      const a = i * 2.399 - vt * .18 + Math.sin(vt * .7 + i) * .16;
+      const r = 44 + phase * (116 + visual.threat * 32);
+      const wobble = Math.sin(vt * 2.1 + i * 1.9) * 9;
+      const sx = Math.cos(a) * (r + wobble);
+      const sy = Math.sin(a) * (r - wobble * .45);
+      const size = (10 + (i % 5) * 3 + Math.sin(vt * 3.2 + i) * 2) * (1.15 - phase * .28);
+      ctx.globalAlpha = Math.max(.14, .52 - phase * .32);
+      ctx.fillStyle = inkColors[i % inkColors.length];
       ctx.beginPath();
-      ctx.moveTo(Math.cos(a) * 122, Math.sin(a) * 122);
-      ctx.lineTo(Math.cos(a + Math.sin(vt + i) * .14) * 58, Math.sin(a + Math.cos(vt + i) * .14) * 58);
-      ctx.stroke();
+      for (let p = 0; p < 9; p++) {
+        const pa = p * Math.PI * 2 / 9;
+        const pr = size * (.62 + .28 * Math.sin(i * 1.73 + p * 2.17));
+        const px = sx + Math.cos(pa) * pr * (1.25 + (i % 3) * .12);
+        const py = sy + Math.sin(pa) * pr * (.72 + (i % 4) * .08);
+        if (p === 0) ctx.moveTo(px, py);
+        else ctx.quadraticCurveTo(sx + Math.cos(pa - .35) * size * .45, sy + Math.sin(pa - .35) * size * .35, px, py);
+      }
+      ctx.closePath();
+      ctx.fill();
+      if (i % 3 === 0) {
+        ctx.globalAlpha = Math.max(.08, .28 - phase * .16);
+        ctx.beginPath();
+        ctx.ellipse(sx - Math.cos(a) * size * .9, sy - Math.sin(a) * size * .9, size * .42, size * .24, a, 0, 7);
+        ctx.fill();
+      }
     }
     ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'screen';
   }
 
   if (visual.hasPulse) {
-    const rot = vt * 2.7;
-    ctx.globalAlpha = .86;
-    ctx.fillStyle = '#3b0107';
-    ctx.strokeStyle = '#ff324f';
-    ctx.lineWidth = 4;
-    for (let i = 0; i < 18; i++) {
-      const a = rot + i * Math.PI * 2 / 18;
-      const r1 = 62 + Math.sin(vt * 8 + i) * 2;
-      const r2 = 86 + (i % 2 ? 8 : 16);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = .96;
+    ctx.strokeStyle = '#1a1010';
+    ctx.lineWidth = 13;
+    ctx.beginPath(); ctx.arc(0, 0, 77 + Math.sin(vt * 8) * 3, 0, 7); ctx.stroke();
+    ctx.strokeStyle = '#cdbb91';
+    ctx.lineWidth = 9;
+    for (let i = 0; i < 9; i++) {
+      const a0 = vt * 1.3 + i * Math.PI * 2 / 9;
+      const r = 78 + Math.sin(i * 1.7) * 5;
       ctx.beginPath();
-      ctx.moveTo(Math.cos(a - .08) * r1, Math.sin(a - .08) * r1);
-      ctx.lineTo(Math.cos(a) * r2, Math.sin(a) * r2);
-      ctx.lineTo(Math.cos(a + .08) * r1, Math.sin(a + .08) * r1);
+      ctx.arc(0, 0, r, a0, a0 + .45 + (i % 3) * .08);
+      ctx.stroke();
+      ctx.fillStyle = i % 2 ? '#8d7a5a' : '#e2d0a5';
+      ctx.strokeStyle = '#1a1010';
+      ctx.lineWidth = 3;
+      const hornA = a0 + .24;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(hornA - .07) * (r - 3), Math.sin(hornA - .07) * (r - 3));
+      ctx.lineTo(Math.cos(hornA) * (r + 18 + (i % 2) * 8), Math.sin(hornA) * (r + 18 + (i % 2) * 8));
+      ctx.lineTo(Math.cos(hornA + .07) * (r - 3), Math.sin(hornA + .07) * (r - 3));
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
+      ctx.strokeStyle = '#cdbb91';
+      ctx.lineWidth = 9;
     }
-    ctx.globalAlpha = .42;
+    ctx.globalAlpha = .72;
+    ctx.strokeStyle = '#4a0511';
+    ctx.lineWidth = 3;
+    for (let i = 0; i < 7; i++) {
+      const a = i * Math.PI * 2 / 7 - vt * .4;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * 64, Math.sin(a) * 64);
+      ctx.lineTo(Math.cos(a + .11) * 88, Math.sin(a + .11) * 88);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  if (visual.shieldActive || visual.hasShield) {
+    const rot = vt * 2.7;
+    ctx.globalAlpha = .94;
+    ctx.fillStyle = '#cdbb91';
     ctx.strokeStyle = '#080208';
-    ctx.lineWidth = 9;
+    ctx.lineWidth = 4;
+    for (let i = 0; i < 18; i++) {
+      const a = rot + i * Math.PI * 2 / 18;
+      const jag = Math.sin(i * 2.31) * 7 + Math.cos(i * 1.17) * 4;
+      const r1 = 58 + Math.sin(vt * 8 + i) * 3;
+      const r2 = 86 + (i % 2 ? 7 : 18) + jag;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a - .10) * r1, Math.sin(a - .10) * r1);
+      ctx.lineTo(Math.cos(a) * r2, Math.sin(a) * r2);
+      ctx.lineTo(Math.cos(a + .11) * (r1 + (i % 3) * 2), Math.sin(a + .11) * (r1 + (i % 3) * 2));
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      if (i % 3 === 0) {
+        ctx.strokeStyle = '#6a0a0f';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a) * (r1 + 6), Math.sin(a) * (r1 + 6));
+        ctx.lineTo(Math.cos(a) * (r2 - 5), Math.sin(a) * (r2 - 5));
+        ctx.stroke();
+        ctx.strokeStyle = '#080208';
+        ctx.lineWidth = 4;
+      }
+    }
+    ctx.globalAlpha = .68;
+    ctx.strokeStyle = '#080208';
+    ctx.lineWidth = 11;
     ctx.beginPath(); ctx.arc(0, 0, 68 + Math.sin(vt * 7) * 3, 0, 7); ctx.stroke();
+    ctx.globalAlpha = .46;
+    ctx.strokeStyle = '#6a0a0f';
+    ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.arc(0, 0, 73 + Math.sin(vt * 9) * 3, vt * 1.4, vt * 1.4 + Math.PI * 1.4); ctx.stroke();
     ctx.globalAlpha = 1;
   }
 
@@ -19854,9 +20030,26 @@ function drawExpeditionRiftCore(x, y, t, activated = false, carried = false) {
   ctx.beginPath(); ctx.ellipse(0, 0, 48 * pulse, 64 * pulse, Math.sin(vt * 1.2) * .25, 0, 7); ctx.stroke();
   ctx.globalCompositeOperation = 'source-over';
   ctx.fillStyle = '#080208';
-  ctx.beginPath(); ctx.ellipse(0, 0, 35, 24, Math.sin(vt * 2) * .18, 0, 7); ctx.fill();
-  ctx.fillStyle = weak ? '#9e5bad' : visual.danger ? '#ff123a' : '#ff2f6b';
-  ctx.beginPath(); ctx.arc(Math.sin(vt * 3) * 9, Math.cos(vt * 2.5) * 5, weak ? 9 : 12 + visual.count, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0, 0, 38, 27, Math.sin(vt * 2) * .18, 0, 7); ctx.fill();
+  ctx.strokeStyle = visual.danger ? '#4a0511' : '#2b0010';
+  ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.ellipse(0, 0, 30, 20, Math.sin(vt * 2.4) * .22, 0, 7); ctx.stroke();
+  ctx.fillStyle = weak ? '#9e5bad' : visual.danger ? '#5f000d' : '#9b0d2a';
+  ctx.beginPath(); ctx.ellipse(Math.sin(vt * 3) * 6, Math.cos(vt * 2.5) * 3, weak ? 7 : 8 + visual.count * .7, weak ? 12 : 18 + visual.count, Math.sin(vt * 4) * .18, 0, 7); ctx.fill();
+  ctx.strokeStyle = visual.danger ? '#ff123a' : '#ff2f6b';
+  ctx.lineWidth = weak ? 2 : 3;
+  ctx.beginPath(); ctx.moveTo(0, -18 - visual.count); ctx.bezierCurveTo(7, -7, 7, 7, 0, 20 + visual.count); ctx.bezierCurveTo(-7, 7, -7, -7, 0, -18 - visual.count); ctx.stroke();
+  if (!weak) {
+    ctx.strokeStyle = '#6a0a0f';
+    ctx.lineWidth = 3;
+    for (let i = 0; i < Math.min(6, visual.count + 2); i++) {
+      const a = i * Math.PI * 2 / Math.min(6, visual.count + 2) + vt * .18;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * 22, Math.sin(a) * 16);
+      ctx.lineTo(Math.cos(a + .28) * (42 + i * 3), Math.sin(a + .28) * (34 + i * 2));
+      ctx.stroke();
+    }
+  }
   ctx.strokeStyle = weak ? '#7b5b95' : visual.danger ? '#7b0615' : '#b41d5f';
   ctx.lineWidth = weak ? 2 : 3;
   const tendrils = weak ? 5 : 8 + Math.min(4, visual.count);
@@ -19866,29 +20059,6 @@ function drawExpeditionRiftCore(x, y, t, activated = false, carried = false) {
     ctx.moveTo(Math.cos(a) * 42, Math.sin(a) * 52);
     ctx.lineTo(Math.cos(a) * (72 + Math.sin(vt * 4 + i) * (weak ? 4 : 8)), Math.sin(a) * (82 + Math.cos(vt * 5 + i) * (weak ? 4 : 8)));
     ctx.stroke();
-  }
-  if (visual.shieldActive) {
-    ctx.globalCompositeOperation = 'screen';
-    ctx.globalAlpha = .88;
-    ctx.strokeStyle = '#8edcff';
-    ctx.lineWidth = 10;
-    ctx.beginPath(); ctx.arc(0, 0, 74 + Math.sin(vt * 8) * 3, 0, 7); ctx.stroke();
-    ctx.strokeStyle = '#fff7bf';
-    ctx.lineWidth = 5;
-    for (let i = 0; i < 7; i++) {
-      const a0 = vt * 1.3 + i * Math.PI * 2 / 7;
-      ctx.beginPath();
-      ctx.arc(0, 0, 83, a0, a0 + .42);
-      ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
-    ctx.globalCompositeOperation = 'source-over';
-  } else if (visual.hasShield) {
-    ctx.globalAlpha = .38;
-    ctx.strokeStyle = '#8edcff';
-    ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc(0, 0, 70 + Math.sin(vt * 3) * 2, 0, 7); ctx.stroke();
-    ctx.globalAlpha = 1;
   }
   if (carried) {
     ctx.globalCompositeOperation = 'source-over';
@@ -20025,24 +20195,6 @@ function drawExpeditionObjects(t) {
   const staticY = cy(cfg.rift.r);
   const nearRift = ex.riftActivated || ex.riftFound || dist(S.hero.x, S.hero.y, staticX, staticY) < 360;
   if (nearRift) drawExpeditionRiftCore(ex.riftActivated ? ex.rift.x : staticX, ex.riftActivated ? ex.rift.y : staticY, t, ex.riftActivated, !!ex.riftCarried);
-  if (ex.riftActivated && expeditionRiftUpgradeIds().length) {
-    ctx.save();
-    const threat = expeditionRiftThreatLevel();
-    ctx.fillStyle = threat > .5 ? '#ffb7aa' : '#d6f4ff';
-    ctx.font = 'bold 10px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText(`RIFT: ${expeditionRiftUpgradeIds().map(id => (EXPEDITION_RIFT_UPGRADES[id]?.name || id).split(' ')[0].toUpperCase()).join(' / ')}`, ex.rift.x, ex.rift.y - 112);
-    if (threat > .2) {
-      ctx.globalAlpha = .15 + threat * .15;
-      ctx.strokeStyle = threat > .5 ? '#ff5a3a' : '#8edcff';
-      ctx.lineWidth = 2 + threat * 3;
-      ctx.beginPath();
-      ctx.arc(ex.rift.x, ex.rift.y, 90 + threat * 34 + Math.sin(t * 8) * 4, 0, 7);
-      ctx.stroke();
-      ctx.globalAlpha = 1;
-    }
-    ctx.restore();
-  }
   for (const nest of ex.roomNests || []) {
     if (nest.dead) continue;
     const pct = Math.max(0, nest.hp / nest.max);
@@ -22202,7 +22354,7 @@ function drawEnemy(e) {
     ctx.fillText('R', 0, -e.rad - 19);
     ctx.restore();
   }
-  if ((e.freeze || 0) > 0 || (e.chill || 0) > 0) {
+  if ((e.freeze || 0) > 0 || ((e.chill || 0) > 0 && (e.riftFieldDrag || 0) <= 0)) {
     ctx.save();
     ctx.globalAlpha = .7;
     ctx.fillStyle = '#bfefff';
@@ -22220,30 +22372,38 @@ function drawEnemy(e) {
   if ((e.riftFieldDrag || 0) > 0) {
     ctx.save();
     ctx.globalCompositeOperation = 'source-over';
-    ctx.globalAlpha = .58;
+    ctx.globalAlpha = .72;
     ctx.strokeStyle = '#080208';
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 6;
     const dragPhase = tNow * 14 + eSeed;
-    for (let i = 0; i < 4; i++) {
-      const a = dragPhase + i * Math.PI / 2;
+    for (let i = 0; i < 6; i++) {
+      const a = dragPhase + i * Math.PI / 3;
       ctx.beginPath();
-      ctx.moveTo(Math.cos(a) * (e.rad + 20), Math.sin(a) * (e.rad + 12));
-      ctx.lineTo(Math.cos(a + .28) * (e.rad + 2), Math.sin(a + .28) * (e.rad + 2));
+      ctx.moveTo(Math.cos(a) * (e.rad + 26), Math.sin(a) * (e.rad + 15));
+      ctx.lineTo(Math.cos(a + .34) * (e.rad + 1), Math.sin(a + .34) * (e.rad + 1));
       ctx.stroke();
     }
     ctx.globalCompositeOperation = 'multiply';
-    ctx.globalAlpha = .42;
+    ctx.globalAlpha = .55;
     ctx.fillStyle = '#080208';
     ctx.beginPath();
-    ctx.ellipse(0, 0, e.rad + 12, e.rad + 7, Math.sin(tNow * 12 + eSeed) * .35, 0, 7);
+    ctx.ellipse(0, 0, e.rad + 14, e.rad + 8, Math.sin(tNow * 12 + eSeed) * .35, 0, 7);
     ctx.fill();
     ctx.globalCompositeOperation = 'source-over';
-    ctx.globalAlpha = .55;
-    ctx.strokeStyle = '#6f0c1a';
-    ctx.lineWidth = 3;
+    ctx.globalAlpha = .72;
+    ctx.strokeStyle = '#2b0010';
+    ctx.lineWidth = 5;
     ctx.beginPath();
-    ctx.ellipse(0, 0, e.rad + 15 + Math.sin(tNow * 12 + eSeed) * 3, e.rad + 8, Math.sin(tNow * 8 + eSeed) * .55, 0, 7);
+    ctx.ellipse(0, 0, e.rad + 18 + Math.sin(tNow * 12 + eSeed) * 4, e.rad + 10, Math.sin(tNow * 8 + eSeed) * .55, 0, 7);
     ctx.stroke();
+    ctx.globalAlpha = .58;
+    ctx.fillStyle = '#080208';
+    for (let i = 0; i < 4; i++) {
+      const a = dragPhase * .6 + i * Math.PI / 2;
+      ctx.beginPath();
+      ctx.arc(Math.cos(a) * (e.rad + 18), Math.sin(a) * (e.rad + 12), 2 + (i % 2), 0, 7);
+      ctx.fill();
+    }
     ctx.restore();
   }
 
