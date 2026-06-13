@@ -1361,7 +1361,8 @@ button:disabled { opacity: .42; cursor: not-allowed; filter: grayscale(.45) brig
 .pickerTile.rewardCard.tower .mutationArt { background: linear-gradient(180deg, rgba(255,199,109,.12), rgba(255,255,255,.03)); }
 .pickerTile.rewardCard.tower .note { color: #f0d4a1; }
 .pickerTile.rewardCard.tower .meta { color: #fff3d1; }
-.pickerTile.rewardCard.multiverse {
+.pickerTile.rewardCard.multiverse,
+.pickerTile.rewardCard.rift {
   background:
     radial-gradient(circle at 50% 20%, rgba(179,124,255,.26), transparent 35%),
     linear-gradient(180deg, rgba(54, 22, 79, .98), rgba(16, 7, 30, .98));
@@ -1389,6 +1390,30 @@ button:disabled { opacity: .42; cursor: not-allowed; filter: grayscale(.45) brig
   text-shadow: 0 0 12px rgba(179,124,255,.20);
 }
 .pickerTile.rewardCard.multiverse .note { color: #f0d8ff; }
+.pickerTile.rewardCard.rift {
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 32, 58, .28), transparent 36%),
+    radial-gradient(circle at 50% 58%, rgba(0, 0, 0, .42), transparent 48%),
+    linear-gradient(180deg, rgba(62, 5, 13, .98), rgba(12, 2, 7, .98));
+  border-color: #ff324f;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.07), 0 0 24px rgba(255,50,79,.22), 0 4px 0 #130207;
+}
+.pickerTile.rewardCard.rift .mutationCategory { color: #ff9b8a; text-shadow: 0 0 10px rgba(255,50,79,.45); }
+.pickerTile.rewardCard.rift .name { color: #fff4ef; text-shadow: 0 0 10px rgba(255,50,79,.34), 0 1px 0 #080208; }
+.pickerTile.rewardCard.rift .mutationArt {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 50, 79, .18), rgba(0,0,0,0) 56%),
+    linear-gradient(180deg, rgba(50, 3, 9, .78), rgba(0,0,0,.28));
+  box-shadow: inset 0 0 0 1px rgba(255,155,138,.12), 0 0 18px rgba(255,50,79,.14);
+}
+.pickerTile.rewardCard.rift .meta { color: #ffe2d8; text-shadow: 0 0 12px rgba(255,50,79,.18); }
+.pickerTile.rewardCard.rift .note { color: #ffb7aa; }
+.pickerTile.rewardCard.rift .riftCardArt {
+  width: 132px;
+  height: 132px;
+  display: block;
+  filter: drop-shadow(0 0 14px rgba(255, 50, 79, .34));
+}
 #mutationChoices .pickerTile.rewardCard {
   min-height: 244px;
 }
@@ -4510,8 +4535,8 @@ h2,
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-            <b id="warRoomVersion">v7.18.4</b>
-      <span id="warRoomBuildName">RiftRelay</span>
+            <b id="warRoomVersion">v7.18.5</b>
+      <span id="warRoomBuildName">RiftMutant</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -4599,7 +4624,7 @@ h2,
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.18.4 RiftRelay</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.18.5 RiftMutant</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -5962,8 +5987,8 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const BUILD_VERSION = '7.18.4';
-const BUILD_NAME = 'RiftRelay';
+const BUILD_VERSION = '7.18.5';
+const BUILD_NAME = 'RiftMutant';
 function upgradeIcon(id, kind = 'generic') {
   const up = HERO_UPGRADES[id] || TRAP_UPGRADES[id] || BOSS_UPGRADES[id] || {};
   const explicit = up.targetIcon || up.targetItem || up.targetIconAlt || up.targetItemAlt;
@@ -6380,9 +6405,21 @@ function expeditionStoredSurgeTooltipHTML() {
 
 const EXPEDITION_RIFT_UPGRADE_CAP = 5;
 const EXPEDITION_RIFT_UPGRADES = {
-  shield: { name: 'Rift Shield', desc: 'The Rift periodically gains a temporary shield.', icon: '◌' },
-  pulse: { name: 'Rift Pulse', desc: 'The Rift periodically damages nearby enemies.', icon: '✦' },
-  field: { name: 'Containment Field', desc: 'Enemies near the Rift are slowed.', icon: '⟐' },
+  shield: {
+    name: 'Bone Halo',
+    desc: 'The Rift grows armor and periodically throws up a brutal shield.',
+    icon: `<svg class="riftCardArt" viewBox="0 0 96 96" aria-hidden="true"><defs><radialGradient id="riftShieldGlow" cx="50%" cy="45%" r="55%"><stop offset="0" stop-color="#fff7bf"/><stop offset=".38" stop-color="#8edcff"/><stop offset="1" stop-color="#130816"/></radialGradient></defs><circle cx="48" cy="48" r="38" fill="none" stroke="#8edcff" stroke-width="9"/><path d="M48 10 59 25 78 19 72 38 88 48 72 58 78 77 59 71 48 86 37 71 18 77 24 58 8 48 24 38 18 19 37 25Z" fill="#16202a" stroke="#fff7bf" stroke-width="4"/><ellipse cx="48" cy="48" rx="18" ry="12" fill="#12040a" stroke="#f0b8ff" stroke-width="3"/><circle cx="51" cy="46" r="7" fill="url(#riftShieldGlow)"/></svg>`,
+  },
+  pulse: {
+    name: 'Blood Crown',
+    desc: 'The Rift grows a spinning meat-saw aura that chews nearby enemies.',
+    icon: `<svg class="riftCardArt" viewBox="0 0 96 96" aria-hidden="true"><path d="M48 5 55 28 75 14 68 38 93 34 72 48 93 62 68 58 75 82 55 68 48 91 41 68 21 82 28 58 3 62 24 48 3 34 28 38 21 14 41 28Z" fill="#6a0a0f" stroke="#ff9b8a" stroke-width="4"/><ellipse cx="48" cy="48" rx="24" ry="17" fill="#18040b" stroke="#2a0205" stroke-width="7"/><circle cx="48" cy="48" r="10" fill="#ff1f4f"/><path d="M34 65c8 10 20 10 29 0" fill="none" stroke="#2a0205" stroke-width="5"/></svg>`,
+  },
+  field: {
+    name: 'Grave Drag',
+    desc: 'The Rift twists gravity. Enemies caught near it crawl toward the wound.',
+    icon: `<svg class="riftCardArt" viewBox="0 0 96 96" aria-hidden="true"><rect x="0" y="0" width="96" height="96" rx="18" fill="#100512"/><path d="M18 31c20-20 55-13 61 14M78 65C58 86 23 78 17 52" fill="none" stroke="#4a0511" stroke-width="9" stroke-linecap="round"/><path d="M22 27c19 13 37 13 54 0M20 69c20-14 38-14 56 0" fill="none" stroke="#8edcff" stroke-width="3" opacity=".65"/><ellipse cx="48" cy="48" rx="20" ry="12" fill="#1a071f" stroke="#f0b8ff" stroke-width="4"/><circle cx="48" cy="48" r="8" fill="#080208"/><path d="M48 11v22M48 63v22M11 48h22M63 48h22" stroke="#1a071f" stroke-width="7" stroke-linecap="round"/></svg>`,
+  },
 };
 
 function expeditionRiftUpgradeIds() {
@@ -6403,6 +6440,34 @@ function expeditionRiftUpgradeLabelList() {
 
 function expeditionRiftThreatScale() {
   return clamp(expeditionRiftUpgradeIds().length / EXPEDITION_RIFT_UPGRADE_CAP, 0, 1);
+}
+
+function expeditionRiftUpgradeVisualScale(count = expeditionRiftUpgradeIds().length) {
+  if (count <= 0) return .92;
+  if (count === 1) return 1.10;
+  if (count === 2) return 1.20;
+  if (count === 3) return 1.32;
+  return 1.50;
+}
+
+function expeditionRiftVisualState(t = 0) {
+  const ids = expeditionRiftUpgradeIds();
+  const upgrades = new Set(ids);
+  const shieldActive = expeditionRiftShieldActive();
+  const count = ids.length;
+  const baseScale = expeditionRiftUpgradeVisualScale(count);
+  const fieldAnimMult = upgrades.has('field') ? 2 : 1;
+  return {
+    count,
+    threat: expeditionRiftThreatScale(),
+    scale: baseScale * (shieldActive ? 1.33 : 1),
+    visualT: t * fieldAnimMult,
+    hasShield: upgrades.has('shield'),
+    shieldActive,
+    hasPulse: upgrades.has('pulse'),
+    hasField: upgrades.has('field'),
+    danger: count >= 3,
+  };
 }
 
 function expeditionRiftThreatLevel() {
@@ -6449,12 +6514,18 @@ function expeditionApplyRiftUpgrades(dt) {
   if (upgrades.has('pulse') && (ex.riftUpgradeTimers.pulse || 0) <= now) {
     ex.riftUpgradeTimers.pulse = now + Math.max(2.8, 4.5 - threat * 1.6);
     let hitCount = 0;
+    let bloodHits = 0;
     for (const e of S.enemies) {
       if (!e || e.dead) continue;
       const d = dist(rift.x, rift.y, e.x, e.y);
       if (d > 150 + threat * 40) continue;
       hit(e, 12 + Math.floor((S.wave || 0) * .16) + Math.floor(threat * 6), null);
       e.slow = Math.max(e.slow || 0, .32 + threat * .12);
+      if (bloodHits < 12) {
+        spawnBloodSplats(e.x, e.y, e);
+        burst(e.x, e.y, '#6a0a0f', 7 + Math.floor(threat * 6), 'blood', 210);
+        bloodHits++;
+      }
       hitCount++;
     }
     if (hitCount) {
@@ -6464,12 +6535,30 @@ function expeditionApplyRiftUpgrades(dt) {
     }
   }
   if (upgrades.has('field')) {
+    let fieldFxCount = S.parts.filter(p => p && p.riftField).length;
     for (const e of S.enemies) {
       if (!e || e.dead) continue;
       const d = dist(rift.x, rift.y, e.x, e.y);
       if (d > 165 + threat * 30) continue;
-      e.slow = Math.max(e.slow || 0, .6 + threat * .15);
-      e.chill = Math.max(e.chill || 0, .25 + threat * .1);
+      e.slow = Math.max(e.slow || 0, .75 + threat * .18);
+      e.chill = Math.max(e.chill || 0, .75 + threat * .2);
+      e.riftFieldDrag = Math.max(e.riftFieldDrag || 0, .22);
+      if (fieldFxCount < 24 && Math.random() < dt * 9) {
+        const a = Math.atan2(rift.y - e.y, rift.x - e.x);
+        S.parts.push({
+          kind: 'bolt',
+          riftField: true,
+          x: e.x + Math.cos(a + Math.PI) * 18,
+          y: e.y + Math.sin(a + Math.PI) * 18,
+          x2: e.x + Math.cos(a) * 34,
+          y2: e.y + Math.sin(a) * 34,
+          life: .18,
+          maxLife: .18,
+          c: '#080208',
+          w: 7,
+        });
+        fieldFxCount++;
+      }
     }
   }
 }
@@ -11018,7 +11107,7 @@ function renderMutationOverlay() {
   } else {
     for (const u of options) {
       const b = document.createElement('button');
-      const kindClass = u.kind === 'mutagen' ? 'multiverse' : (u.kind === 'weapon' ? 'weapon' : u.kind === 'rift' ? 'multiverse' : 'tower');
+      const kindClass = u.kind === 'mutagen' ? 'multiverse' : (u.kind === 'weapon' ? 'weapon' : u.kind === 'rift' ? 'rift' : 'tower');
       b.className = `pickerTile rewardCard ${kindClass}`.trim();
       const icon = u.icon || (u.kind === 'mutagen' ? iconImgWithFallback('assets/icons/powerups/superpower.png', u.name) : u.kind === 'rift' ? `<span class="icon">${EXPEDITION_RIFT_UPGRADES[u.id]?.icon || '◌'}</span>` : upgradeIcon(u.id, u.kind));
       const meta = cardMeta(u);
@@ -17082,6 +17171,7 @@ function simpleExpeditionEnemyStep(e, dt) {
   e.chill = Math.max(0, (e.chill || 0) - dt * .6);
   e.stun = Math.max(0, (e.stun || 0) - dt);
   e.slow = Math.max(0, (e.slow || 0) - dt);
+  e.riftFieldDrag = Math.max(0, (e.riftFieldDrag || 0) - dt);
   if (KB_PROFILE.active) profileAdd('enemyTimers', profileNow() - timerT0);
 
   if ((e.burn || 0) > 0) { e.burn -= dt; hit(e, e.burnD * dt, null); }
@@ -17091,7 +17181,7 @@ function simpleExpeditionEnemyStep(e, dt) {
   const target = expeditionEnemyTargetCell(e);
   const tx = cx(target.c), ty = cy(target.r);
   const d = dist(e.x, e.y, tx, ty) || 1;
-  const speed = (e.spd || 1) * G * dt * (e.slow > 0 ? .5 : .82);
+  const speed = (e.spd || 1) * G * dt * ((e.riftFieldDrag || 0) > 0 ? .28 : e.slow > 0 ? .5 : .82);
   const pathT0 = KB_PROFILE.active ? profileNow() : 0;
   if (d > 22) {
     e.x += (tx - e.x) / d * speed;
@@ -17147,6 +17237,7 @@ function enemyStep(e, dt) {
   e.phaseCd = Math.max(0, (e.phaseCd || 0) - dt);
   e.sapCd = Math.max(0, (e.sapCd || 0) - dt);
   e.air = Math.max(0, (e.air || 0) - dt * 1.3);
+  e.riftFieldDrag = Math.max(0, (e.riftFieldDrag || 0) - dt);
   if (KB_PROFILE.active) profileAdd('enemyTimers', profileNow() - timerT0);
 
   // DoT effects
@@ -17247,6 +17338,7 @@ function enemyStep(e, dt) {
   let slow = (e.slow > 0 ? .55 : 1) * enemyBehaviorSpeedMult(e);
   if (e.freeze > 0 && e.type !== 'slimeking') slow = Math.min(slow, .18);
   else if (e.chill > 0) slow = Math.min(slow, 1 - Math.min(.45, e.chill * .12));
+  if ((e.riftFieldDrag || 0) > 0) slow = Math.min(slow, .32);
   e.slow -= dt;
   for (const o of S.oilPatches) {
     if (dist(e.x, e.y, o.x, o.y) < o.r) {
@@ -19671,28 +19763,132 @@ function drawExpeditionDressing(t) {
 }
 
 function drawExpeditionRiftCore(x, y, t, activated = false, carried = false) {
+  const visual = activated ? expeditionRiftVisualState(t) : {
+    count: 0,
+    threat: 0,
+    scale: .92,
+    visualT: t,
+    hasShield: false,
+    shieldActive: false,
+    hasPulse: false,
+    hasField: false,
+    danger: false,
+  };
+  const vt = visual.visualT;
+  const weak = visual.count <= 0;
+  const pulse = 1 + Math.sin(vt * (weak ? 4 : 6)) * (weak ? .035 : .07);
+  const fragile = weak ? .82 + Math.sin(t * 11.7) * .06 : 1;
   ctx.save();
   ctx.translate(x, y);
+  ctx.scale(visual.scale, visual.scale);
   ctx.globalCompositeOperation = 'screen';
-  const pulse = 1 + Math.sin(t * 5) * .06;
-  ctx.fillStyle = carried ? '#8edcff55' : activated ? '#f0b8ff66' : '#b888ff55';
-  ctx.beginPath(); ctx.ellipse(0, 0, 54 * pulse, 72 * pulse, Math.sin(t * 1.2) * .25, 0, 7); ctx.fill();
-  ctx.strokeStyle = '#fff0ff';
-  ctx.lineWidth = 5;
-  ctx.beginPath(); ctx.ellipse(0, 0, 48 * pulse, 64 * pulse, Math.sin(t * 1.2) * .25, 0, 7); ctx.stroke();
+
+  if (visual.danger) {
+    ctx.globalAlpha = .28 + visual.threat * .2;
+    ctx.fillStyle = '#200006';
+    ctx.beginPath(); ctx.arc(0, 0, 96 + visual.threat * 30 + Math.sin(vt * 9) * 4, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#7b0615';
+    ctx.lineWidth = 4 + visual.threat * 4;
+    ctx.setLineDash([10, 9]);
+    ctx.beginPath(); ctx.arc(0, 0, 84 + Math.sin(vt * 12) * 5, 0, 7); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+  }
+
+  if (visual.hasField) {
+    ctx.globalAlpha = .42 + Math.sin(vt * 4) * .08;
+    ctx.strokeStyle = '#080208';
+    ctx.lineWidth = 11;
+    for (let i = 0; i < 3; i++) {
+      const r = 86 + i * 22 + Math.sin(vt * 3 + i) * 7;
+      ctx.beginPath();
+      ctx.arc(0, 0, r, vt * .7 + i * 1.4, vt * .7 + i * 1.4 + Math.PI * 1.05);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = .55;
+    ctx.strokeStyle = '#6f0c1a';
+    ctx.lineWidth = 5;
+    for (let i = 0; i < 12; i++) {
+      const a = i * Math.PI / 6 - vt * .9;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * 122, Math.sin(a) * 122);
+      ctx.lineTo(Math.cos(a + Math.sin(vt + i) * .14) * 58, Math.sin(a + Math.cos(vt + i) * .14) * 58);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  if (visual.hasPulse) {
+    const rot = vt * 2.7;
+    ctx.globalAlpha = .86;
+    ctx.fillStyle = '#3b0107';
+    ctx.strokeStyle = '#ff324f';
+    ctx.lineWidth = 4;
+    for (let i = 0; i < 18; i++) {
+      const a = rot + i * Math.PI * 2 / 18;
+      const r1 = 62 + Math.sin(vt * 8 + i) * 2;
+      const r2 = 86 + (i % 2 ? 8 : 16);
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a - .08) * r1, Math.sin(a - .08) * r1);
+      ctx.lineTo(Math.cos(a) * r2, Math.sin(a) * r2);
+      ctx.lineTo(Math.cos(a + .08) * r1, Math.sin(a + .08) * r1);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.globalAlpha = .42;
+    ctx.strokeStyle = '#080208';
+    ctx.lineWidth = 9;
+    ctx.beginPath(); ctx.arc(0, 0, 68 + Math.sin(vt * 7) * 3, 0, 7); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.fillStyle = carried
+    ? '#8edcff55'
+    : activated
+      ? weak ? `rgba(158, 91, 173, ${.30 * fragile})` : visual.danger ? '#7b061577' : '#b41d5f70'
+      : '#b888ff55';
+  ctx.beginPath(); ctx.ellipse(0, 0, 54 * pulse, 72 * pulse, Math.sin(vt * 1.2) * .25, 0, 7); ctx.fill();
+  ctx.strokeStyle = weak ? '#8d6aa0' : visual.danger ? '#ff324f' : '#f0b8ff';
+  ctx.lineWidth = weak ? 3 : 5;
+  ctx.beginPath(); ctx.ellipse(0, 0, 48 * pulse, 64 * pulse, Math.sin(vt * 1.2) * .25, 0, 7); ctx.stroke();
   ctx.globalCompositeOperation = 'source-over';
-  ctx.fillStyle = '#18081f';
-  ctx.beginPath(); ctx.ellipse(0, 0, 35, 24, Math.sin(t * 2) * .18, 0, 7); ctx.fill();
-  ctx.fillStyle = '#ff6bd6';
-  ctx.beginPath(); ctx.arc(Math.sin(t * 3) * 9, Math.cos(t * 2.5) * 5, 12, 0, 7); ctx.fill();
-  ctx.strokeStyle = '#e6b8ff';
-  ctx.lineWidth = 3;
-  for (let i = 0; i < 8; i++) {
-    const a = i * Math.PI / 4 + t * .4;
+  ctx.fillStyle = '#080208';
+  ctx.beginPath(); ctx.ellipse(0, 0, 35, 24, Math.sin(vt * 2) * .18, 0, 7); ctx.fill();
+  ctx.fillStyle = weak ? '#9e5bad' : visual.danger ? '#ff123a' : '#ff2f6b';
+  ctx.beginPath(); ctx.arc(Math.sin(vt * 3) * 9, Math.cos(vt * 2.5) * 5, weak ? 9 : 12 + visual.count, 0, 7); ctx.fill();
+  ctx.strokeStyle = weak ? '#7b5b95' : visual.danger ? '#7b0615' : '#b41d5f';
+  ctx.lineWidth = weak ? 2 : 3;
+  const tendrils = weak ? 5 : 8 + Math.min(4, visual.count);
+  for (let i = 0; i < tendrils; i++) {
+    const a = i * Math.PI * 2 / tendrils + vt * .4;
     ctx.beginPath();
     ctx.moveTo(Math.cos(a) * 42, Math.sin(a) * 52);
-    ctx.lineTo(Math.cos(a) * (72 + Math.sin(t * 4 + i) * 8), Math.sin(a) * (82 + Math.cos(t * 5 + i) * 8));
+    ctx.lineTo(Math.cos(a) * (72 + Math.sin(vt * 4 + i) * (weak ? 4 : 8)), Math.sin(a) * (82 + Math.cos(vt * 5 + i) * (weak ? 4 : 8)));
     ctx.stroke();
+  }
+  if (visual.shieldActive) {
+    ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = .88;
+    ctx.strokeStyle = '#8edcff';
+    ctx.lineWidth = 10;
+    ctx.beginPath(); ctx.arc(0, 0, 74 + Math.sin(vt * 8) * 3, 0, 7); ctx.stroke();
+    ctx.strokeStyle = '#fff7bf';
+    ctx.lineWidth = 5;
+    for (let i = 0; i < 7; i++) {
+      const a0 = vt * 1.3 + i * Math.PI * 2 / 7;
+      ctx.beginPath();
+      ctx.arc(0, 0, 83, a0, a0 + .42);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+  } else if (visual.hasShield) {
+    ctx.globalAlpha = .38;
+    ctx.strokeStyle = '#8edcff';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(0, 0, 70 + Math.sin(vt * 3) * 2, 0, 7); ctx.stroke();
+    ctx.globalAlpha = 1;
   }
   if (carried) {
     ctx.globalCompositeOperation = 'source-over';
@@ -22018,6 +22214,35 @@ function drawEnemy(e) {
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.arc(0, 0, e.rad + 12, 0, 7);
+    ctx.stroke();
+    ctx.restore();
+  }
+  if ((e.riftFieldDrag || 0) > 0) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = .58;
+    ctx.strokeStyle = '#080208';
+    ctx.lineWidth = 5;
+    const dragPhase = tNow * 14 + eSeed;
+    for (let i = 0; i < 4; i++) {
+      const a = dragPhase + i * Math.PI / 2;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * (e.rad + 20), Math.sin(a) * (e.rad + 12));
+      ctx.lineTo(Math.cos(a + .28) * (e.rad + 2), Math.sin(a + .28) * (e.rad + 2));
+      ctx.stroke();
+    }
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.globalAlpha = .42;
+    ctx.fillStyle = '#080208';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, e.rad + 12, e.rad + 7, Math.sin(tNow * 12 + eSeed) * .35, 0, 7);
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = .55;
+    ctx.strokeStyle = '#6f0c1a';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, e.rad + 15 + Math.sin(tNow * 12 + eSeed) * 3, e.rad + 8, Math.sin(tNow * 8 + eSeed) * .55, 0, 7);
     ctx.stroke();
     ctx.restore();
   }
