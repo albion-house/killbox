@@ -2096,6 +2096,44 @@ textarea {
 .waveBanner.danger { color: #ffb36b; border-color: #ff8a2a; text-shadow: 0 2px 0 #120905, 0 0 18px #ff8a2a88; }
 .waveBanner.boss { color: #ff7967; border-color: #ff7967; text-shadow: 0 2px 0 #120905, 0 0 20px #ff4a1f99; }
 
+.riftMutationAlert {
+  position: fixed;
+  left: 50%;
+  top: 24%;
+  transform: translateX(-50%) translateY(-10px) scale(.98);
+  width: min(520px, calc(100vw - 36px));
+  padding: 18px 22px 20px;
+  border: 2px solid #ff8a5a;
+  background: linear-gradient(180deg, rgba(31,8,14,.96), rgba(8,4,7,.94));
+  box-shadow: 0 0 0 4px #120407cc, 0 0 34px #ff4a3a55;
+  color: #ffe0d6;
+  text-align: center;
+  z-index: 999998;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .16s ease, transform .16s ease;
+}
+.riftMutationAlert.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+.riftMutationAlertHeader {
+  font: 800 15px system-ui, sans-serif;
+  letter-spacing: .08em;
+  color: #ff8a5a;
+}
+.riftMutationAlertName {
+  margin-top: 8px;
+  font: 900 34px Georgia, serif;
+  color: #f0b8ff;
+  text-shadow: 0 0 18px #ff87ff77;
+}
+.riftMutationAlertDesc {
+  margin-top: 8px;
+  font: 700 15px system-ui, sans-serif;
+  color: #ffd8c8;
+}
+
 .comboBanner,
 .threatToast {
   position: fixed;
@@ -4535,8 +4573,8 @@ h2,
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-            <b id="warRoomVersion">v7.18.9</b>
-      <span id="warRoomBuildName">OrbitCrown</span>
+      <b id="warRoomVersion">v7.18.12</b>
+      <span id="warRoomBuildName">EntryRift</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -4624,7 +4662,7 @@ h2,
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.18.9 OrbitCrown</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.18.12 EntryRift</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -4710,6 +4748,7 @@ h2,
 
 <div id="waveBanner" class="waveBanner hidden"></div>
 <div id="comboBanner" class="comboBanner hidden"></div>
+<div id="riftMutationAlert" class="riftMutationAlert hidden" aria-live="assertive" aria-atomic="true"></div>
 <div id="hotbarHoverTooltip" class="hotbarHoverTooltip" aria-hidden="true"></div>
 
 <!-- ═══════════════════════════════════════════════════════════════ -->
@@ -5115,9 +5154,9 @@ const LEVELS = {
       { c: 20, r: 38, label: 'FLESH VENT' },
     ],
     goal: { c: 55, r: 16 },
-    heroSpawn: { c: 53, r: 11 },
+    heroSpawn: { c: 3, r: 21 },
     expedition: {
-      rift: { c: 55, r: 8 },
+      rift: { c: 26, r: 20 },
       startWithRift: true,
       startingRoomCleared: 'rift',
       buildRadius: 260,
@@ -5142,7 +5181,7 @@ const LEVELS = {
         { id: 'security', name: 'Security Checkpoint', rect: [6, 18, 14, 25], color: '#7a6f5c' },
         {
           id: 'keyLabyrinth',
-          name: 'Key Labyrinth',
+          name: 'Dark Chapel',
           rect: [1, 4, 26, 15],
           color: '#514968',
           darkRoom: true,
@@ -5187,7 +5226,7 @@ const LEVELS = {
         },
         {
           id: 'barracks',
-          name: 'Barracks',
+          name: 'Rift Access',
           rect: [21, 16, 32, 25],
           color: '#6a6a6a',
           bedBlocks: [
@@ -5987,8 +6026,8 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const BUILD_VERSION = '7.18.9';
-const BUILD_NAME = 'OrbitCrown';
+const BUILD_VERSION = '7.18.12';
+const BUILD_NAME = 'EntryRift';
 function upgradeIcon(id, kind = 'generic') {
   const up = HERO_UPGRADES[id] || TRAP_UPGRADES[id] || BOSS_UPGRADES[id] || {};
   const explicit = up.targetIcon || up.targetItem || up.targetIconAlt || up.targetItemAlt;
@@ -6515,6 +6554,25 @@ function expeditionRiftThreatLevel() {
   return clamp((upgrades * .22) + (progress * .18), 0, 1);
 }
 
+const EXPEDITION_MINIBOSS_MUTATION_ALERTS = {
+  shield: { name: 'BONE HALO', desc: 'The Rift has grown a defensive carapace.' },
+  pulse: { name: 'SAW CROWN', desc: 'The Rift has learned to shred living matter.' },
+  field: { name: 'BLACK ORBIT', desc: 'The Rift has begun bending local gravity.' },
+};
+
+function showExpeditionMinibossMutationPopup(upgradeId) {
+  const meta = EXPEDITION_MINIBOSS_MUTATION_ALERTS[upgradeId];
+  const el = $('riftMutationAlert');
+  if (!meta || !el) return;
+  el.innerHTML = `
+    <div class="riftMutationAlertHeader">RIFT MUTATION DETECTED</div>
+    <div class="riftMutationAlertName">${meta.name}</div>
+    <div class="riftMutationAlertDesc">${meta.desc}</div>`;
+  el.classList.remove('hidden');
+  el.classList.add('show');
+  S.riftMutationAlertTime = 4.2;
+}
+
 function expeditionGrantRiftUpgrade(id, source = 'room clear') {
   const ex = S.expedition;
   if (!isExpeditionRun() || !ex || !EXPEDITION_RIFT_UPGRADES[id]) return false;
@@ -6532,6 +6590,19 @@ function expeditionGrantRiftUpgrade(id, source = 'room clear') {
     burst(ex.rift.x, ex.rift.y, '#d8ffd8', 10, 'spark', 110);
   }
   ui();
+  return true;
+}
+
+function expeditionGrantMinibossRiftUpgrade(sourceId, upgradeId, message) {
+  const ex = S.expedition;
+  if (!isExpeditionRun() || !ex || !EXPEDITION_RIFT_UPGRADES[upgradeId]) return false;
+  if (ex.riftUpgrades?.includes(upgradeId)) return false;
+  if (!expeditionGrantRiftUpgrade(upgradeId, sourceId)) return false;
+  if (message) {
+    ex.message = message;
+    ex.messageTime = 5;
+  }
+  showExpeditionMinibossMutationPopup(upgradeId);
   return true;
 }
 
@@ -7005,7 +7076,7 @@ function expeditionRelayCellBlockedForRiftStart(cfg, c, r) {
 }
 
 function expeditionRiftStartCell(level, cfg) {
-  const spawn = level?.heroSpawn || cfg?.rift;
+  const spawn = cfg?.rift || level?.heroSpawn;
   if (!spawn) return cfg?.rift || { c: 0, r: 0 };
   const validStartCell = (c, r) => {
     if (c < 0 || r < 0 || c >= COLS || r >= ROWS) return false;
@@ -7013,6 +7084,7 @@ function expeditionRiftStartCell(level, cfg) {
     return !expeditionRelayCellBlockedForRiftStart(cfg, c, r);
   };
   const preferred = [
+    { c: spawn.c, r: spawn.r },
     { c: spawn.c + 2, r: spawn.r },
     { c: spawn.c + 3, r: spawn.r },
     { c: spawn.c + 2, r: spawn.r + 1 },
@@ -7520,7 +7592,6 @@ function tryOpenExpeditionContainer() {
     ex.finalKeyCollected = true;
     ex.keyLabyrinthEscape = true;
     ex.keyLabyrinthWakeTimer = 1.2;
-    ex.keyLabyrinthSlimeTimer = 2.2;
     ex.message = 'Locker opened. Run.';
     ex.messageTime = 6;
     floatText('LOCKER KEY', pos.x - 38, pos.y - 34, '#ffd45a');
@@ -7690,10 +7761,10 @@ function expeditionEncounterDef(room) {
     entry:       { objective: 'clear', label: 'Clear Entry Breach', roomType: 'runner', enemies: ['grunt', 'grunt', 'runner'] },
     security:    { objective: 'elite', label: 'Clear Security Wing', enemies: ['grunt', 'shield', 'warden'], elite: 'warden' },
     spiral:      { objective: 'clear', label: 'Clear Spiral Keep', roomType: 'runner', enemies: ['grunt', 'runner', 'shield'] },
-    barracks:    { objective: 'clear', label: 'Clear Barracks', roomType: 'shield', enemies: ['grunt', 'runner', 'sapper', 'shield'] },
+    barracks:    { objective: 'clear', label: 'Clear Rift Access', roomType: 'shield', enemies: ['grunt', 'runner', 'sapper', 'shield'] },
     lab:         { objective: 'terminal', label: 'Restore Containment Power', terminalPrompt: 'Press E to restore power.', enemies: [], pressureEnemies: ['hexcaller', 'hexcaller', 'hexcaller'] },
     keyLabyrinth:{ objective: 'keyEscape', label: 'Open the locker. Escape.', terminalPrompt: 'Open the locker.', enemies: [], pressureEnemies: [] },
-    chapel:      { objective: 'clear', label: 'Clear Chapel', roomType: 'healer', enemies: ['grunt', 'shield', 'healer'] },
+    chapel:      { objective: 'clear', label: 'Clear Belvedere', roomType: 'healer', enemies: ['grunt', 'shield', 'healer'] },
     reactor:     { objective: 'elite', label: 'Clear Reactor Complex', enemies: ['runner', 'brute', 'sapper'], elite: 'brute' },
     flesh:       { objective: 'nest', label: 'Clear Flesh Garden', roomType: 'splitter', enemies: ['splitter', 'splitter', 'splitter'], nest: true },
     rift:        { objective: 'elite', label: 'Secure the Rift Chamber', enemies: ['shield', 'warden', 'hexcaller'], elite: 'warden' },
@@ -7976,8 +8047,10 @@ function startExpeditionRoomEncounter(room) {
   if (room.id === 'lab') ex.roomKeyStates[room.id] = 'hidden';
   primeExpeditionRoomBoundarySides(room);
   spawnExpeditionRoomSkulls(room);
+  spawnBoneWarden(room);
   if (room.id !== 'lab') ensureExpeditionRoomKey(room);
   if (def.nest) spawnExpeditionRoomNest(room);
+  if (room.id === 'flesh') spawnFleshGardenSlimeKing(room);
   if (room.id === 'flesh') ex.fleshNestSpawnAt = performance.now() / 1000 + 1.8;
   const placedThreats = room.id === 'keyLabyrinth' ? [] : spawnExpeditionRoomRouteThreats(room, true);
   if (Array.isArray(def.pressureEnemies) && def.pressureEnemies.length) {
@@ -8046,9 +8119,9 @@ function completeKeyLabyrinthEscape(room) {
   const ex = S.expedition;
   if (!ex || !room || expeditionRoomState(room.id) !== 'active' || !ex.finalKeyCollected) return false;
   completeExpeditionRoomEncounter(room.id);
-  ex.message = 'Key Labyrinth escaped.';
+  ex.message = 'Dark Chapel escaped.';
   ex.messageTime = 6;
-  announceWave('KEY LABYRINTH ESCAPED', 'resting', 1.1);
+  announceWave('DARK CHAPEL ESCAPED', 'resting', 1.1);
   return true;
 }
 
@@ -8104,7 +8177,8 @@ function updateExpeditionRoomEncounter() {
           }
         }
         const liveNest = (ex.roomNests || []).some(n => !n.dead && n.roomId === ex.activeRoomId);
-        if (!liveNest) completeExpeditionRoomEncounter(ex.activeRoomId);
+        const liveFleshSlime = ex.activeRoomId === 'flesh' && S.enemies.some(e => !e.dead && e.expeditionFleshSlime);
+        if (!liveNest && !liveFleshSlime) completeExpeditionRoomEncounter(ex.activeRoomId);
       } else if (!live.length) {
         completeExpeditionRoomEncounter(ex.activeRoomId);
       }
@@ -8283,7 +8357,6 @@ function updateExpedition(dt) {
   ex.promptTime = Math.max(0, (ex.promptTime || 0) - dt);
   discoverExpeditionCells();
   updateKeyLabyrinthAwakening(dt);
-  updateKeyLabyrinthSlimeKing(dt);
   updateExpeditionExtractionEvent(dt);
   expeditionApplyRiftUpgrades(dt);
   if (ex.completed) return;
@@ -8517,8 +8590,125 @@ function spawnExpeditionRoomSkulls(room) {
   return skulls;
 }
 
+function spawnBoneWarden(room) {
+  const ex = S.expedition;
+  if (!isExpeditionRun() || !ex || !room || room.id !== 'keyLabyrinth' || ex.boneWardenSpawned || ex.boneWardenDefeated) return null;
+  if (!Array.isArray(S.cornerSkulls)) S.cornerSkulls = [];
+  const spot = { c: 14, r: 9 };
+  const boss = {
+    ...createCornerSkull('boneWarden', cx(spot.c), cy(spot.r), 0),
+    expeditionRoomId: room.id,
+    boneWarden: true,
+    containmentSkull: true,
+    blocksMovement: false,
+    dormantLabyrinthSkull: false,
+    cell: spot,
+    rad: 126,
+    hp: 600,
+    maxHp: 600,
+    phase: 1,
+    state: 'idle',
+  };
+  S.cornerSkulls.push(boss);
+  ex.boneWardenSpawned = true;
+  floatText('BONE WARDEN', boss.x - 54, boss.y - 52, '#ffe09c');
+  return boss;
+}
+
 function spawnExpeditionLabSkulls(room) {
   return spawnExpeditionRoomSkulls(room);
+}
+
+function transformBoneWardenToFlamingSkull(skull) {
+  if (!skull || skull.dead || skull.phase >= 2) return;
+  skull.phase = 2;
+  skull.state = 'flying';
+  skull.flash = 1;
+  skull.phaseT = 0;
+  skull.spiralR = Math.max(190, dist(skull.x, skull.y, S.hero.x, S.hero.y));
+  skull.orbitA = Math.atan2(skull.y - S.hero.y, skull.x - S.hero.x);
+  boom(skull.x, skull.y, '#ff4a3a', 8);
+  burst(skull.x, skull.y, '#ffddd8', 14, 'spark', 120);
+  floatText('FLAME WARDEN', skull.x - 54, skull.y - 56, '#ffddd8');
+}
+
+function completeBoneWardenEncounter(ghost) {
+  const ex = S.expedition;
+  if (!isExpeditionRun() || !ex || ex.boneWardenDefeated) return false;
+  ex.boneWardenDefeated = true;
+  if (ghost) {
+    ghost.mode = 'fade';
+    ghost.fade = 1;
+    ghost.life = 0.5;
+  }
+  const x = Number.isFinite(ghost?.x) ? ghost.x : S.hero.x;
+  const y = Number.isFinite(ghost?.y) ? ghost.y : S.hero.y;
+  if (expeditionGrantMinibossRiftUpgrade('keyLabyrinth', 'shield', 'RIFT MUTATION: BONE HALO')) {
+    floatText('RIFT MUTATION: BONE HALO', x - 86, y - 56, '#f0b8ff');
+  }
+  shockwave(x, y, '#f0b8ff', 180, .35);
+  burst(x, y, '#ffd8ff', 18, 'spark', 150);
+  return true;
+}
+
+function spawnBoneWardenGhost(skull) {
+  if (!skull || skull.dead) return null;
+  let ghost = spawnCornerGhost(skull);
+  if (!ghost) {
+    if (!Array.isArray(S.cornerGhosts)) S.cornerGhosts = [];
+    ghost = {
+      id: 'boneWardenGhost',
+      x: skull.x, y: skull.y,
+      vx: 0, vy: 0,
+      life: 18,
+      mode: 'chase',
+      flash: 0,
+      grabClicks: 10,
+      grabTimer: 0,
+      fade: 0,
+      dead: false,
+      targetSkullId: skull.id,
+    };
+    S.cornerGhosts.push(ghost);
+  }
+  ghost.boneWardenFinal = true;
+  ghost.id = 'boneWardenGhost';
+  ghost.life = 18;
+  ghost.hp = 450;
+  ghost.maxHp = 450;
+  ghost.rad = 144;
+  ghost.grabDamage = .25;
+  ghost.flash = 1;
+  S.waveBanner = 'BONE WARDEN GHOST';
+  S.waveBannerKind = 'danger';
+  S.waveBannerTime = 1.8;
+  const b = $('waveBanner');
+  if (b) {
+    b.textContent = S.waveBanner;
+    b.className = 'waveBanner show danger';
+  }
+  floatText('BONE WARDEN GHOST', ghost.x - 74, ghost.y - 48, '#ff87ff');
+  return ghost;
+}
+
+function destroyBoneWardenSkull(skull) {
+  if (!skull || skull.dead) return;
+  spawnBoneWardenGhost(skull);
+  skull.dead = true;
+  boom(skull.x, skull.y, '#ff4a3a', 12);
+  shockwave(skull.x, skull.y, '#ff4a3a', 160, .36);
+  burst(skull.x, skull.y, '#ffddd8', 18, 'spark', 150);
+}
+
+function damageBoneWardenSkull(skull, shot) {
+  if (!skull || skull.dead) return;
+  const dmg = Math.max(4, Math.round((shot?.dmg || 12) * .55));
+  skull.hp = Math.max(0, (skull.hp || 0) - dmg);
+  skull.crack = Math.min(8, (skull.crack || 0) + 1);
+  skull.flash = 1;
+  if ((skull.phase || 1) === 1 && skull.hp <= skull.maxHp * .9) transformBoneWardenToFlamingSkull(skull);
+  floatText(`${Math.ceil(skull.hp)}/${skull.maxHp}`, skull.x - 24, skull.y - 48, '#ffffff');
+  if (skull.hp <= 0) destroyBoneWardenSkull(skull);
 }
 
 function wakeExpeditionLabyrinthSkull(skull) {
@@ -8586,7 +8776,7 @@ function spawnKeyLabyrinthSlimeKing() {
   S.slimeKingAppearances = Math.max(S.slimeKingAppearances || 0, 1);
   S.bossAppearance = Math.max(S.bossAppearance || 0, 1);
   S.bossIntro = Math.max(S.bossIntro || 0, 1.35);
-  boss.entry = 'Key Labyrinth';
+  boss.entry = 'Dark Chapel';
   boss.path = path;
   boss.node = 0;
   boss.wild = false;
@@ -8618,6 +8808,51 @@ function updateKeyLabyrinthSlimeKing(dt) {
   ex.keyLabyrinthSlimeTimer = Math.max(0, (ex.keyLabyrinthSlimeTimer || 0) - dt);
   if (ex.keyLabyrinthSlimeTimer > 0) return;
   spawnKeyLabyrinthSlimeKing();
+}
+
+function spawnFleshGardenSlimeKing(room) {
+  const ex = S.expedition;
+  if (!isExpeditionRun() || !ex || !room || room.id !== 'flesh' || ex.fleshSlimeKingSpawned) return null;
+  const spawnCell = { c: 28, r: 36, x: cx(28), y: cy(36), label: 'FLESH GARDEN' };
+  const target = cellAt(S.hero.x, S.hero.y);
+  let path = routePath({ c: spawnCell.c, r: spawnCell.r }, target);
+  if (!path.length) path = [{ c: spawnCell.c, r: spawnCell.r, x: spawnCell.x, y: spawnCell.y }, { ...target, x: cx(target.c), y: cy(target.r) }];
+  const oldWave = S.wave;
+  S.wave = Math.max(S.wave, 9);
+  const boss = spawnEnemyAt('slimeking', spawnCell.x, spawnCell.y, path, 0);
+  S.wave = oldWave;
+  if (!boss) return null;
+  ex.fleshSlimeKingSpawned = true;
+  S.bossActive = true;
+  S.bossSpawned = true;
+  S.slimeKingAppearances = Math.max(S.slimeKingAppearances || 0, 1);
+  S.bossAppearance = Math.max(S.bossAppearance || 0, 1);
+  S.bossIntro = Math.max(S.bossIntro || 0, 1.35);
+  boss.entry = 'Flesh Garden';
+  boss.path = path;
+  boss.node = 0;
+  boss.wild = false;
+  boss.off = 0;
+  boss.expeditionFleshSlime = true;
+  boss.expeditionRoomId = room.id;
+  boss.expeditionEncounter = true;
+  boss.expeditionTarget = 'hero';
+  boss.lockedRoomId = room.id;
+  boss.lockedRoomSide = 'inside';
+  boss.baseSpd = boss.spd;
+  boss.bossPhase = boss.bossPhase || 1;
+  boss.minionTimer = 2.2;
+  boss.puddleTimer = .3;
+  boss.leapCd = 2.8;
+  boss.leapState = 'idle';
+  boss.leapDuration = 0.45;
+  announceWave('KING SLIME STIRS', 'boss', 1.4);
+  playSfx('bossWarning');
+  shake(12, .55);
+  shockwave(boss.x, boss.y, '#7bdf5b', 220, .5);
+  burst(boss.x, boss.y, '#c6ff8a', 28, 'goo', 220);
+  floatText('KING SLIME', boss.x - 44, boss.y - 58, '#ffe09c');
+  return boss;
 }
 
 function updateKeyLabyrinthAwakening(dt) {
@@ -8655,8 +8890,12 @@ function destroyContainmentSkull(skull) {
   floatText('PATH OPEN', skull.x - 30, skull.y - 24, '#ffe09c');
 }
 
-function activateCornerSkullFromShot(skull) {
+function activateCornerSkullFromShot(skull, shot = null) {
   if (!skull || skull.dead) return;
+  if (skull.boneWarden) {
+    damageBoneWardenSkull(skull, shot);
+    return;
+  }
   skull.hp = Math.max(0, (skull.hp || 10) - 1);
   skull.crack = Math.min(5, (skull.crack || 0) + 1);
   skull.flash = 1;
@@ -8709,6 +8948,10 @@ function spawnCornerGhost(skull) {
 
 function destroyCornerSkull(skull, source = 'shot') {
   if (!skull || skull.dead) return;
+  if (skull.boneWarden) {
+    destroyBoneWardenSkull(skull);
+    return;
+  }
   const x = Number.isFinite(skull.x) ? skull.x : 0;
   const y = Number.isFinite(skull.y) ? skull.y : 0;
   const useGhost = Math.random() < 0.5;
@@ -8787,6 +9030,7 @@ function updateCornerGhosts(dt) {
     g.life = Math.max(0, (g.life || 0) - dt);
     if (g.mode === 'chase') {
       if (g.life <= 0) {
+        if (g.boneWardenFinal) completeBoneWardenEncounter(g);
         g.mode = 'fade';
         g.fade = 1;
         continue;
@@ -8816,6 +9060,10 @@ function updateCornerGhosts(dt) {
         mouse.down = false;
         S.selected = null;
         S.sel = null;
+        if (g.boneWardenFinal && !g.grabDamageApplied) {
+          g.grabDamageApplied = true;
+          hurtHero(Math.ceil((h.max || 100) * (g.grabDamage || .25)), 'bone warden ghost', g);
+        }
         S.waveBanner = 'CLICK 10 TIMES TO BREAK FREE';
         S.waveBannerKind = 'danger';
         S.waveBannerTime = 2.4;
@@ -8847,11 +9095,13 @@ function updateCornerGhosts(dt) {
         hero.secondaryCd = Math.max(hero.secondaryCd || 0, .15);
         hero.charging = false;
       }
-      if (g.grabClicks <= 0 || g.grabTimer >= 6) {
+      const grabDone = g.boneWardenFinal ? g.grabClicks <= 0 : (g.grabClicks <= 0 || g.grabTimer >= 6);
+      if (grabDone) {
         if (S.hero) {
           S.hero.ghostGrabbed = false;
           S.hero.ghostId = null;
         }
+        if (g.boneWardenFinal) completeBoneWardenEncounter(g);
         g.mode = 'fade';
         g.fade = 1;
         g.life = 0.8;
@@ -8866,6 +9116,16 @@ function updateCornerGhosts(dt) {
     if (g.mode === 'fade' && g.fade <= 0) g.dead = true;
   }
   S.cornerGhosts = S.cornerGhosts.filter(g => !g.dead || g.fade > 0);
+}
+
+function damageCornerGhostFromShot(ghost, shot) {
+  if (!ghost || ghost.dead || ghost.mode === 'fade') return;
+  if (!ghost.boneWardenFinal) return;
+  ghost.hp = Math.max(0, (ghost.hp || 1) - Math.max(4, Math.round((shot?.dmg || 12) * .6)));
+  ghost.flash = 1;
+  burst(ghost.x, ghost.y, '#ff87ff', 6, 'spark', 80);
+  floatText(`${Math.ceil(ghost.hp)}/${ghost.maxHp || ghost.hp || 1}`, ghost.x - 22, ghost.y - 48, '#ffffff');
+  if (ghost.hp <= 0) completeBoneWardenEncounter(ghost);
 }
 
 function updateCornerSkulls(dt) {
@@ -8886,8 +9146,14 @@ function updateCornerSkulls(dt) {
       s.y += (ty - s.y) / d * sp * dt;
       s.flash = Math.max(s.flash || 0, .45);
       if (dist(s.x, s.y, S.hero.x, S.hero.y) < (s.rad || 17) + 14) {
-        hurtHero(14, 'skull', s);
-        destroyCornerSkull(s, 'impact');
+        if (s.boneWarden) {
+          hurtHero(16, 'bone warden', s);
+          s.flash = 1;
+          s.spiralR = Math.max(s.spiralR || 18, 90);
+        } else {
+          hurtHero(14, 'skull', s);
+          destroyCornerSkull(s, 'impact');
+        }
       }
     }
   }
@@ -14357,20 +14623,15 @@ function kill(e, tower, byHero = false) {
     floatText(label, e.x - Math.min(28, String(label).length * 4), e.y - 18, '#ffe09c33');
   }
   if (isExpeditionRun()) expeditionDropEnemyReward(e, byHero);
-  if (e.expeditionLabyrinthSlime) {
-    const ex = S.expedition;
-    if (expeditionGrantRiftUpgrade('pulse', 'keyLabyrinth')) {
-      if (ex) {
-        ex.message = 'RIFT MUTATION: SAW CROWN';
-        ex.messageTime = 5;
-      }
+  if (e.expeditionLabyrinthSlime || e.expeditionFleshSlime) {
+    if (expeditionGrantMinibossRiftUpgrade(e.expeditionFleshSlime ? 'flesh' : 'keyLabyrinth', 'pulse', 'RIFT MUTATION: SAW CROWN')) {
       floatText('RIFT MUTATION: SAW CROWN', e.x - 78, e.y - 56, '#8edcff');
     }
   }
   e.dead = true;
   if (e.type === 'slimeking') {
     S.bossActive = false;
-    if (isExpeditionRun()) {
+    if (isExpeditionRun() && e.expeditionLabyrinthSlime) {
       const ex = S.expedition;
       const room = (expeditionConfig()?.rooms || []).find(r => r.id === 'keyLabyrinth');
       if (ex && room) {
@@ -16684,7 +16945,6 @@ function collectHealthOrbs(dt) {
           S.expedition.finalKeyCollected = true;
           S.expedition.keyLabyrinthEscape = true;
           S.expedition.keyLabyrinthWakeTimer = 1.2;
-          S.expedition.keyLabyrinthSlimeTimer = 2.2;
           S.expedition.message = 'Locker key acquired. Run.';
           S.expedition.messageTime = 7;
         }
@@ -18313,10 +18573,21 @@ function projectiles(dt) {
       for (const skull of S.cornerSkulls) {
         if (!skull.dead && dist(s.x, s.y, skull.x, skull.y) < (skull.rad || 17) + 5) {
           if (skull.containmentSkull && s.weapon && !s.p2) {
-            activateCornerSkullFromShot(skull);
+            activateCornerSkullFromShot(skull, s);
           } else if (s.weapon && !s.p2) {
-            activateCornerSkullFromShot(skull);
+            activateCornerSkullFromShot(skull, s);
           }
+          s.dead = true;
+          break;
+        }
+      }
+      if (KB_PROFILE.active) profileAdd('collision', profileNow() - collisionT0);
+    }
+    if (!s.dead && Array.isArray(S.cornerGhosts)) {
+      collisionT0 = KB_PROFILE.active ? profileNow() : 0;
+      for (const ghost of S.cornerGhosts) {
+        if (!ghost.dead && ghost.boneWardenFinal && dist(s.x, s.y, ghost.x, ghost.y) < (ghost.rad || 18) + 5) {
+          if (s.weapon && !s.p2) damageCornerGhostFromShot(ghost, s);
           s.dead = true;
           break;
         }
@@ -19418,6 +19689,16 @@ function step(dt) {
       if (b) b.className = 'waveBanner hidden';
     }
   }
+  if (S.riftMutationAlertTime > 0) {
+    S.riftMutationAlertTime = Math.max(0, S.riftMutationAlertTime - dt);
+    if (S.riftMutationAlertTime <= 0) {
+      const alert = $('riftMutationAlert');
+      if (alert) {
+        alert.classList.remove('show');
+        alert.classList.add('hidden');
+      }
+    }
+  }
 
   // Screen shake decay
   if (S.shakeTime > 0) { S.shakeTime -= dt; if (S.shakeTime < 0) { S.shakeTime = 0; S.shakeAmt = 0; } }
@@ -19632,13 +19913,15 @@ function draw(t) {
       if (ghost.dead && (ghost.fade || 0) <= 0) continue;
       ctx.save();
       ctx.translate(ghost.x, ghost.y);
+      const ghostScale = ghost.boneWardenFinal ? Math.max(1.8, (ghost.rad || 18) / 18) : 1;
+      ctx.scale(ghostScale, ghostScale);
       const alpha = ghost.mode === 'fade' ? Math.max(0, ghost.fade || 0) : 0.9;
       ctx.globalAlpha = alpha;
       const wobble = Math.sin(t * 8 + (ghost.id ? ghost.id.length : 0)) * 2.8;
-      ctx.shadowColor = 'rgba(183,124,255,.55)';
+      ctx.shadowColor = ghost.boneWardenFinal ? 'rgba(255,135,255,.65)' : 'rgba(183,124,255,.55)';
       ctx.shadowBlur = 20;
-      ctx.fillStyle = 'rgba(235,228,255,.92)';
-      ctx.strokeStyle = '#d29cff';
+      ctx.fillStyle = ghost.boneWardenFinal ? 'rgba(255,190,245,.9)' : 'rgba(235,228,255,.92)';
+      ctx.strokeStyle = ghost.boneWardenFinal ? '#ff87ff' : '#d29cff';
       ctx.lineWidth = 4;
       ctx.beginPath();
       ctx.moveTo(-16, 18 + wobble);
@@ -19669,7 +19952,7 @@ function draw(t) {
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(0, 0);
-        ctx.lineTo(S.hero.x - ghost.x, S.hero.y - ghost.y);
+        ctx.lineTo((S.hero.x - ghost.x) / ghostScale, (S.hero.y - ghost.y) / ghostScale);
         ctx.stroke();
         ctx.restore();
       }
@@ -19681,6 +19964,17 @@ function draw(t) {
         ctx.beginPath();
         ctx.arc(0, 0, 30 + Math.sin(t * 10) * 2, 0, 7);
         ctx.stroke();
+      }
+      if (ghost.boneWardenFinal && ghost.maxHp) {
+        const pct = Math.max(0, (ghost.hp || 0) / ghost.maxHp);
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = '#210b20';
+        ctx.fillRect(-18, 30, 36, 5);
+        ctx.fillStyle = '#ff87ff';
+        ctx.fillRect(-18, 30, 36 * pct, 5);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(-18, 30, 36, 5);
       }
       ctx.restore();
     }
@@ -21488,6 +21782,8 @@ function drawExpeditionSkulls(t) {
 function drawCornerSkull(skull, t) {
   ctx.save();
   ctx.translate(skull.x, skull.y);
+  const scale = Math.max(1, (skull.rad || 21) / 21);
+  ctx.scale(scale, scale);
   const flying = skull.state === 'flying';
   const flash = flying ? (.45 + Math.abs(Math.sin(t * 18)) * .45) : 0;
   ctx.globalAlpha = 0.98;
