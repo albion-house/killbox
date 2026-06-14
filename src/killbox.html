@@ -4573,8 +4573,8 @@ h2,
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.18.12</b>
-      <span id="warRoomBuildName">EntryRift</span>
+      <b id="warRoomVersion">v7.18.14</b>
+      <span id="warRoomBuildName">SkullSplit</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -4662,7 +4662,7 @@ h2,
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.18.12 EntryRift</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.18.14 SkullSplit</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -6026,8 +6026,8 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const BUILD_VERSION = '7.18.12';
-const BUILD_NAME = 'EntryRift';
+const BUILD_VERSION = '7.18.14';
+const BUILD_NAME = 'SkullSplit';
 function upgradeIcon(id, kind = 'generic') {
   const up = HERO_UPGRADES[id] || TRAP_UPGRADES[id] || BOSS_UPGRADES[id] || {};
   const explicit = up.targetIcon || up.targetItem || up.targetIconAlt || up.targetItemAlt;
@@ -8653,32 +8653,36 @@ function completeBoneWardenEncounter(ghost) {
 
 function spawnBoneWardenGhost(skull) {
   if (!skull || skull.dead) return null;
-  let ghost = spawnCornerGhost(skull);
-  if (!ghost) {
-    if (!Array.isArray(S.cornerGhosts)) S.cornerGhosts = [];
-    ghost = {
-      id: 'boneWardenGhost',
-      x: skull.x, y: skull.y,
-      vx: 0, vy: 0,
-      life: 18,
-      mode: 'chase',
-      flash: 0,
-      grabClicks: 10,
-      grabTimer: 0,
-      fade: 0,
-      dead: false,
-      targetSkullId: skull.id,
-    };
-    S.cornerGhosts.push(ghost);
-  }
-  ghost.boneWardenFinal = true;
-  ghost.id = 'boneWardenGhost';
-  ghost.life = 18;
-  ghost.hp = 450;
-  ghost.maxHp = 450;
-  ghost.rad = 144;
-  ghost.grabDamage = .25;
-  ghost.flash = 1;
+  const room = (expeditionConfig()?.rooms || []).find(r => r.id === 'keyLabyrinth');
+  const center = room ? expeditionRoomCenter(room) : { x: skull.x, y: skull.y };
+  if (!Array.isArray(S.cornerGhosts)) S.cornerGhosts = [];
+  const ghost = {
+    id: 'boneWardenGhost',
+    x: center.x, y: center.y,
+    vx: 0, vy: 0,
+    life: 28,
+    mode: 'chase',
+    flash: 1,
+    grabClicks: 10,
+    grabTimer: 0,
+    fade: 0,
+    dead: false,
+    targetSkullId: skull.id,
+    boneWardenFinal: true,
+    hp: 420,
+    maxHp: 420,
+    rad: 180,
+    grabDamage: .25,
+    attackState: 'manifest',
+    attackTimer: .9,
+    splitCooldown: 6.5,
+    splitDuration: 5,
+    splitCount: 8,
+    splitGhosts: [],
+    recoverTimer: .9,
+    chargeHit: false,
+  };
+  S.cornerGhosts.push(ghost);
   S.waveBanner = 'BONE WARDEN GHOST';
   S.waveBannerKind = 'danger';
   S.waveBannerTime = 1.8;
@@ -8687,7 +8691,9 @@ function spawnBoneWardenGhost(skull) {
     b.textContent = S.waveBanner;
     b.className = 'waveBanner show danger';
   }
-  floatText('BONE WARDEN GHOST', ghost.x - 74, ghost.y - 48, '#ff87ff');
+  shockwave(ghost.x, ghost.y, '#ff87ff', 230, .45);
+  burst(ghost.x, ghost.y, '#ffd8ff', 22, 'spark', 190);
+  floatText('BONE WARDEN GHOST', ghost.x - 74, ghost.y - 78, '#ff87ff');
   return ghost;
 }
 
@@ -9020,6 +9026,175 @@ function destroyCornerSkull(skull, source = 'shot') {
   }
 }
 
+function boneWardenGhostVulnerable(ghost) {
+  return !!(ghost && ghost.boneWardenFinal && !ghost.dead && ghost.mode !== 'fade'
+    && !['manifest', 'splitTelegraph', 'split'].includes(ghost.attackState));
+}
+
+function startBoneWardenGhostSplit(ghost) {
+  const count = ghost.splitCount || 8;
+  ghost.attackState = 'split';
+  ghost.attackTimer = ghost.splitDuration || 5;
+  ghost.splitGhosts = [];
+  ghost.splitHitCd = 0;
+  ghost.flash = 1;
+  const hpPct = ghost.maxHp ? clamp((ghost.hp || 0) / ghost.maxHp, 0, 1) : 1;
+  const aggression = 1 + (1 - hpPct) * .45;
+  for (let i = 0; i < count; i++) {
+    const a = -Math.PI / 2 + (Math.PI * 2 * i / count);
+    ghost.splitGhosts.push({
+      angle: a,
+      radius: 145 + (i % 2) * 54,
+      dir: i % 2 ? -1 : 1,
+      speed: (1.35 + (i % 3) * .13) * aggression,
+      phase: i * .7,
+      x: ghost.x,
+      y: ghost.y,
+    });
+  }
+  shockwave(ghost.x, ghost.y, '#ff87ff', 260, .36);
+  burst(ghost.x, ghost.y, '#ffd8ff', 24, 'spark', 190);
+  floatText('SPLIT', ghost.x - 24, ghost.y - 95, '#ffd8ff');
+}
+
+function updateBoneWardenSplitGhosts(ghost, dt, hero) {
+  const room = (expeditionConfig()?.rooms || []).find(r => r.id === 'keyLabyrinth');
+  const center = room ? expeditionRoomCenter(room) : { x: ghost.x, y: ghost.y };
+  ghost.x = center.x;
+  ghost.y = center.y;
+  ghost.splitHitCd = Math.max(0, (ghost.splitHitCd || 0) - dt);
+  const hpPct = ghost.maxHp ? clamp((ghost.hp || 0) / ghost.maxHp, 0, 1) : 1;
+  const aggression = 1 + (1 - hpPct) * .5;
+  for (const shard of ghost.splitGhosts || []) {
+    shard.phase = (shard.phase || 0) + dt;
+    shard.angle += (shard.dir || 1) * (shard.speed || 1.4) * aggression * dt;
+    const pulse = Math.sin((shard.phase || 0) * 3.2) * 46;
+    const sweep = Math.sin((shard.phase || 0) * 1.7 + shard.angle) * 34;
+    const r = (shard.radius || 160) + pulse;
+    shard.x = center.x + Math.cos(shard.angle) * r + Math.cos(shard.angle + Math.PI / 2) * sweep;
+    shard.y = center.y + Math.sin(shard.angle) * r + Math.sin(shard.angle + Math.PI / 2) * sweep;
+    shard.x = clamp(shard.x, OX + 34, OX + COLS * G - 34);
+    shard.y = clamp(shard.y, OY + 34, OY + ROWS * G - 34);
+    if (hero && ghost.splitHitCd <= 0 && dist(shard.x, shard.y, hero.x, hero.y) < 32) {
+      ghost.splitHitCd = .55;
+      hurtHero(15, 'bone warden split', shard);
+      shake(5, .16);
+      burst(shard.x, shard.y, '#ff87ff', 7, 'spark', 80);
+    }
+  }
+}
+
+function updateBoneWardenFinalGhost(ghost, dt, hero) {
+  if (!ghost || !hero) return;
+  const state = ghost.attackState || 'recover';
+  ghost.attackTimer = Math.max(0, (ghost.attackTimer || 0) - dt);
+  ghost.splitCooldown = Math.max(0, (ghost.splitCooldown || 0) - dt);
+  const hpPct = ghost.maxHp ? clamp((ghost.hp || 0) / ghost.maxHp, 0, 1) : 1;
+  const aggression = 1 + (1 - hpPct) * .45;
+  const tx = Number.isFinite(hero.x) ? hero.x : ghost.x;
+  const ty = Number.isFinite(hero.y) ? hero.y : ghost.y;
+
+  if (state === 'manifest') {
+    ghost.flash = Math.max(ghost.flash || 0, .8);
+    if (ghost.attackTimer <= 0) {
+      ghost.attackState = 'telegraph';
+      ghost.attackTimer = .72;
+      ghost.chargeTargetX = tx;
+      ghost.chargeTargetY = ty;
+      ghost.flash = 1;
+      shockwave(ghost.x, ghost.y, '#ff87ff', 135, .24);
+      floatText('DODGE', ghost.x - 22, ghost.y - 92, '#ffd8ff');
+    }
+    return;
+  }
+
+  if (state === 'splitTelegraph') {
+    ghost.flash = Math.max(ghost.flash || 0, .95);
+    if (ghost.attackTimer <= 0) startBoneWardenGhostSplit(ghost);
+    return;
+  }
+
+  if (state === 'split') {
+    updateBoneWardenSplitGhosts(ghost, dt, hero);
+    if (ghost.attackTimer <= 0) {
+      ghost.attackState = 'recover';
+      ghost.attackTimer = 1.15;
+      ghost.splitCooldown = 9.5 - (1 - hpPct) * 2.5;
+      ghost.splitGhosts = [];
+      ghost.flash = 1;
+      shockwave(ghost.x, ghost.y, '#ffd8ff', 210, .3);
+      burst(ghost.x, ghost.y, '#ff87ff', 18, 'spark', 140);
+      floatText('REFORMED', ghost.x - 40, ghost.y - 95, '#d8ffd8');
+    }
+    return;
+  }
+
+  if (state === 'telegraph') {
+    ghost.chargeTargetX = tx;
+    ghost.chargeTargetY = ty;
+    ghost.flash = Math.max(ghost.flash || 0, .85);
+    if (ghost.attackTimer <= 0) {
+      const dx = (ghost.chargeTargetX || tx) - ghost.x;
+      const dy = (ghost.chargeTargetY || ty) - ghost.y;
+      const d = Math.max(1, Math.hypot(dx, dy));
+      ghost.chargeVx = dx / d;
+      ghost.chargeVy = dy / d;
+      ghost.attackState = 'charge';
+      ghost.attackTimer = .52;
+      ghost.chargeHit = false;
+      ghost.flash = 1;
+      burst(ghost.x, ghost.y, '#ff87ff', 10, 'spark', 120);
+    }
+    return;
+  }
+
+  if (state === 'charge') {
+    const speed = 700 + (1 - hpPct) * 190;
+    ghost.x += (ghost.chargeVx || 0) * speed * dt;
+    ghost.y += (ghost.chargeVy || 0) * speed * dt;
+    ghost.x = clamp(ghost.x, OX + 42, OX + COLS * G - 42);
+    ghost.y = clamp(ghost.y, OY + 42, OY + ROWS * G - 42);
+    ghost.flash = Math.max(ghost.flash || 0, .65);
+    if (!ghost.chargeHit && dist(ghost.x, ghost.y, hero.x, hero.y) < 58) {
+      ghost.chargeHit = true;
+      hurtHero(24, 'bone warden ghost', ghost);
+      shake(8, .22);
+      shockwave(hero.x, hero.y, '#ff87ff', 80, .18);
+    }
+    if (ghost.attackTimer <= 0) {
+      ghost.attackState = 'recover';
+      ghost.attackTimer = 1.05;
+      ghost.flash = .25;
+      burst(ghost.x, ghost.y, '#ffd8ff', 8, 'spark', 80);
+    }
+    return;
+  }
+
+  const d = Math.max(1, dist(ghost.x, ghost.y, tx, ty));
+  const drift = 38 * aggression;
+  ghost.x += ((tx - ghost.x) / d) * drift * dt;
+  ghost.y += ((ty - ghost.y) / d) * drift * dt;
+  ghost.x = clamp(ghost.x, OX + 42, OX + COLS * G - 42);
+  ghost.y = clamp(ghost.y, OY + 42, OY + ROWS * G - 42);
+  if (ghost.splitCooldown <= 0) {
+    ghost.attackState = 'splitTelegraph';
+    ghost.attackTimer = .9;
+    ghost.flash = 1;
+    shockwave(ghost.x, ghost.y, '#ff4a3a', 180, .28);
+    floatText('SPLITTING', ghost.x - 46, ghost.y - 95, '#ffb0ff');
+    return;
+  }
+  if (ghost.attackTimer <= 0) {
+    ghost.attackState = 'telegraph';
+    ghost.attackTimer = .72;
+    ghost.chargeTargetX = tx;
+    ghost.chargeTargetY = ty;
+    ghost.flash = 1;
+    shockwave(ghost.x, ghost.y, '#ff87ff', 130, .22);
+    floatText('DODGE', ghost.x - 22, ghost.y - 92, '#ffd8ff');
+  }
+}
+
 function updateCornerGhosts(dt) {
   if (!Array.isArray(S.cornerGhosts)) return;
   const h = S.hero;
@@ -9033,6 +9208,10 @@ function updateCornerGhosts(dt) {
         if (g.boneWardenFinal) completeBoneWardenEncounter(g);
         g.mode = 'fade';
         g.fade = 1;
+        continue;
+      }
+      if (g.boneWardenFinal) {
+        updateBoneWardenFinalGhost(g, dt, h);
         continue;
       }
       const tx = Number.isFinite(h?.x) ? h.x : g.x;
@@ -9121,7 +9300,14 @@ function updateCornerGhosts(dt) {
 function damageCornerGhostFromShot(ghost, shot) {
   if (!ghost || ghost.dead || ghost.mode === 'fade') return;
   if (!ghost.boneWardenFinal) return;
-  ghost.hp = Math.max(0, (ghost.hp || 1) - Math.max(4, Math.round((shot?.dmg || 12) * .6)));
+  if (!boneWardenGhostVulnerable(ghost)) {
+    ghost.flash = Math.max(ghost.flash || 0, .5);
+    floatText('PHASED', ghost.x - 22, ghost.y - 58, '#d7c7ff');
+    return;
+  }
+  const punish = ghost.attackState === 'recover';
+  const dmgMult = punish ? .8 : .35;
+  ghost.hp = Math.max(0, (ghost.hp || 1) - Math.max(3, Math.round((shot?.dmg || 12) * dmgMult)));
   ghost.flash = 1;
   burst(ghost.x, ghost.y, '#ff87ff', 6, 'spark', 80);
   floatText(`${Math.ceil(ghost.hp)}/${ghost.maxHp || ghost.hp || 1}`, ghost.x - 22, ghost.y - 48, '#ffffff');
@@ -15050,6 +15236,10 @@ function targetForTower(t) {
       bp = e.node; best = e;
     }
   }
+  if (!best && t.type !== 'barracks' && Array.isArray(S.cornerGhosts)) {
+    const ghost = S.cornerGhosts.find(g => boneWardenGhostVulnerable(g) && dist(t.x, t.y, g.x, g.y) <= rr);
+    if (ghost) best = ghost;
+  }
   return best;
 }
 
@@ -15115,6 +15305,29 @@ function towerTick(t, dt) {
         trig = true;
       }
     }
+    if (Array.isArray(S.cornerGhosts)) {
+      for (const ghost of S.cornerGhosts) {
+        if (!boneWardenGhostVulnerable(ghost)) continue;
+        const dx = ghost.x - t.x, dy = ghost.y - t.y;
+        const distG = Math.hypot(dx, dy);
+        if (d.triggerTrap) {
+          if (distG > 28) continue;
+          damageCornerGhostFromShot(ghost, { dmg: d.d * dmgMult * spikeDmgMult, tower: true });
+          trig = true;
+          continue;
+        }
+        if (d.directional) {
+          const dot = dx * nx + dy * ny;
+          const perp = Math.abs(dx * ny - dy * nx);
+          if (dot < 0 || dot > (d.coneRange || 120) || perp > (d.coneWidth || .8) * 64) continue;
+          damageCornerGhostFromShot(ghost, { dmg: d.d * dmgMult, tower: true });
+          trig = true;
+        } else if (distG <= d.r) {
+          damageCornerGhostFromShot(ghost, { dmg: d.d * dmgMult, tower: true });
+          trig = true;
+        }
+      }
+    }
     if (trig) boom(t.x + nx * 20, t.y + ny * 20, d.fill, d.spring ? 8 : 5);
     t.cool = d.rate * trapResetMult * (S.hero.trapCooldownMult || 1) / towerSpeed;
     t.anim = Math.max(t.anim || 0, d.spring ? .36 : d.directional ? .24 : .18);
@@ -15147,6 +15360,11 @@ function towerTick(t, dt) {
       seen.push(cur);
       const from = i ? seen[i - 1] : t;
       S.parts.push({ kind: 'bolt', x: from.x, y: from.y, x2: cur.x, y2: cur.y, life: .22, c: d.fill });
+      if (cur.boneWardenFinal) {
+        damageCornerGhostFromShot(cur, { dmg: d.d * (1 + .22 * (t.level - 1)) * Math.pow(.78, i) * S.mods.dmg, tower: true });
+        impactFx(cur.x, cur.y, 'lightning');
+        break;
+      }
       hit(cur, d.d * (1 + .22 * (t.level - 1)) * Math.pow(.78, i) * S.mods.dmg, t);
       impactFx(cur.x, cur.y, 'lightning');
       cur = S.enemies.filter(o => !o.dead && !seen.includes(o) && dist(cur.x, cur.y, o.x, o.y) < 135)
@@ -18485,7 +18703,10 @@ function projectiles(dt) {
     s.x += (s.tx.x - s.x) / l * s.spd * dt;
     s.y += (s.tx.y - s.y) / l * s.spd * dt;
     if (l < 12 || s.life <= 0) {
-      if (s.d.splash) {
+      if (s.tx?.boneWardenFinal) {
+        damageCornerGhostFromShot(s.tx, { dmg: s.dmg, tower: true });
+        impactFx(s.x, s.y, s.t?.type === 'cannon' ? 'explosion' : s.t?.type === 'spire' ? 'lightning' : 'arrow');
+      } else if (s.d.splash) {
         const splashT0 = KB_PROFILE.active ? profileNow() : 0;
         const splashTargets = S.enemies
           .filter(e => dist(s.tx.x, s.tx.y, e.x, e.y) < s.d.splash)
@@ -19911,11 +20132,49 @@ function draw(t) {
   if (Array.isArray(S.cornerGhosts)) {
     for (const ghost of S.cornerGhosts) {
       if (ghost.dead && (ghost.fade || 0) <= 0) continue;
+      if (ghost.boneWardenFinal && ghost.attackState === 'split' && Array.isArray(ghost.splitGhosts)) {
+        for (const shard of ghost.splitGhosts) {
+          ctx.save();
+          ctx.globalAlpha = .86;
+          ctx.translate(shard.x, shard.y);
+          ctx.scale(1.65, 1.65);
+          ctx.shadowColor = 'rgba(255,135,255,.65)';
+          ctx.shadowBlur = 16;
+          ctx.fillStyle = 'rgba(255,210,250,.82)';
+          ctx.strokeStyle = '#ff87ff';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(-13, 14);
+          ctx.quadraticCurveTo(-15, -12, 0, -17);
+          ctx.quadraticCurveTo(15, -12, 13, 14);
+          ctx.lineTo(7, 19);
+          ctx.lineTo(0, 13);
+          ctx.lineTo(-7, 19);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = '#120818';
+          ctx.beginPath();
+          ctx.arc(-5, -2, 2.3, 0, 7);
+          ctx.arc(5, -2, 2.3, 0, 7);
+          ctx.fill();
+          ctx.restore();
+          ctx.save();
+          ctx.globalAlpha = .22;
+          ctx.strokeStyle = '#ff87ff';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(ghost.x, ghost.y);
+          ctx.lineTo(shard.x, shard.y);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
       ctx.save();
       ctx.translate(ghost.x, ghost.y);
       const ghostScale = ghost.boneWardenFinal ? Math.max(1.8, (ghost.rad || 18) / 18) : 1;
       ctx.scale(ghostScale, ghostScale);
-      const alpha = ghost.mode === 'fade' ? Math.max(0, ghost.fade || 0) : 0.9;
+      const alpha = ghost.mode === 'fade' ? Math.max(0, ghost.fade || 0) : ghost.attackState === 'split' ? .26 : 0.9;
       ctx.globalAlpha = alpha;
       const wobble = Math.sin(t * 8 + (ghost.id ? ghost.id.length : 0)) * 2.8;
       ctx.shadowColor = ghost.boneWardenFinal ? 'rgba(255,135,255,.65)' : 'rgba(183,124,255,.55)';
@@ -19947,13 +20206,24 @@ function draw(t) {
       ctx.fill();
       if (ghost.mode === 'chase' && S.hero) {
         ctx.save();
-        ctx.globalAlpha = 0.4;
-        ctx.strokeStyle = '#d29cff';
-        ctx.lineWidth = 2;
+        const aiming = ghost.boneWardenFinal && ghost.attackState === 'telegraph';
+        ctx.globalAlpha = aiming ? .78 : 0.4;
+        ctx.strokeStyle = aiming ? '#ff4a3a' : '#d29cff';
+        ctx.lineWidth = aiming ? 4 : 2;
         ctx.beginPath();
         ctx.moveTo(0, 0);
-        ctx.lineTo((S.hero.x - ghost.x) / ghostScale, (S.hero.y - ghost.y) / ghostScale);
+        const lineX = aiming ? (ghost.chargeTargetX || S.hero.x) : S.hero.x;
+        const lineY = aiming ? (ghost.chargeTargetY || S.hero.y) : S.hero.y;
+        ctx.lineTo((lineX - ghost.x) / ghostScale, (lineY - ghost.y) / ghostScale);
         ctx.stroke();
+        if (ghost.boneWardenFinal) {
+          ctx.globalAlpha = ghost.attackState === 'recover' ? .55 : ghost.attackState === 'charge' ? .7 : .35;
+          ctx.strokeStyle = ghost.attackState === 'recover' ? '#d8ffd8' : '#ff87ff';
+          ctx.lineWidth = ghost.attackState === 'charge' ? 4 : 2;
+          ctx.beginPath();
+          ctx.arc(0, 0, ghost.attackState === 'charge' ? 25 : 32, 0, 7);
+          ctx.stroke();
+        }
         ctx.restore();
       }
       ctx.shadowBlur = 0;
