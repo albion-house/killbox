@@ -2,20 +2,45 @@
 
 ## Rift Vision
 
-Killbox is a strange, readable, chaotic co-op survival adventure about fighting through dangerous spaces, protecting a living Rift, and creating ridiculous stories with another player.
+Killbox is a strange, readable, chaotic co-op survival adventure about moving through dangerous places, protecting a living Rift, and creating ridiculous stories with another player.
 
 The long-term dream is not just to make a tower defense game.
 
 The dream is:
 
-**Two players exploring a hostile place together, improvising defenses, rescuing each other, and barely surviving weird disasters.**
+**Two players exploring a hostile world together, improvising defenses, rescuing each other, and barely surviving weird disasters.**
 
 Killbox should feel like the game Joel wanted as a kid:
 
 - Zelda, but you could bring a friend.
 - Ikari Warriors, but with towers, monsters, and a haunted base you have to protect.
-- A dungeon crawl where the room becomes a temporary battlefield.
+- A dungeon crawl where each room becomes a temporary battlefield.
 - A survival comedy where bad plans become good stories.
+
+---
+
+## Two Different Experiences
+
+Arena and Expedition are intentionally different.
+
+Arena is:
+
+- Fast
+- Chaotic
+- Escalating
+- Power-fantasy focused
+
+Expedition is:
+
+- Exploration
+- Discovery
+- Resource management
+- Risk and reward
+- Adventure
+
+Expedition should not simply become Arena with different maps.
+
+The player should feel the difference immediately.
 
 ---
 
@@ -47,7 +72,7 @@ The ideal future co-op loop:
 
 1. Players enter a dangerous room or zone.
 2. They place or protect the Rift.
-3. The Rift creates the buildable safe/defense area.
+3. The Rift creates the buildable safe or defense area.
 4. Enemies attack from readable directions.
 5. Players shoot, build, repair, kite, revive, and improvise.
 6. The room is cleared.
@@ -56,30 +81,19 @@ The ideal future co-op loop:
 
 ---
 
-## What Makes Killbox Different
+## Expedition Rhythm
 
-Killbox is not about perfect optimization.
+Expedition should alternate between:
 
-Killbox is about:
+- Exploration
+- Combat waves
+- Dungeons
+- Relays
 
-- Fast decisions
-- Readable chaos
-- Strange creatures
-- Funny disasters
-- Emergent stories
-- Tactical panic
-- Player-made defenses
-- Shared survival
-- Weird handmade personality
+That alternation is the point.
 
-A good Killbox encounter should create questions like:
-
-- Where should we put the Rift?
-- Can we defend this doorway?
-- Should we move now or hold longer?
-- Who is protecting the Rift?
-- Can we survive if we split up?
-- Is this tower placement brilliant or terrible?
+The player is not only clearing fights.
+The player is advancing through a hostile world and deciding when to push, when to fortify, and when to risk more ground.
 
 ---
 
@@ -115,52 +129,32 @@ Good Rift gameplay:
 
 Expedition should become the mode that best supports the long-term dream.
 
-It should feel like a dungeon crawl mixed with tower defense and twin-stick shooting.
+It should feel like Ikari Warriors plus Gauntlet plus Zelda-style exploration.
 
-Expedition should alternate between fast arcade run-and-gun overworld sections and dungeon assaults.
+The overworld should not be downtime between dungeons.
 
-The overworld is not downtime between dungeons.
+The overworld is part of the adventure.
 
-The overworld is one half of the game.
+Expedition should emphasize:
 
-In dungeon assaults, players deploy the Rift, establish a foothold, explore, build defenses, defeat a boss, and activate a Relay before pushing deeper north.
+- Exploration
+- Curiosity
+- Treasure
+- Weapon upgrades
+- Unexpected discoveries
+- Multiplayer adventure
 
-The player pushes into unknown territory, then temporarily turns part of it into civilization.
+The player pushes through hostile territory, then temporarily turns part of it into civilization.
 
 Expedition risk:
 
 Do not become a sequence of isolated combat rooms.
 
+Do not flatten Expedition into Arena on a bigger map.
+
 The player should feel like they are advancing through territory.
 
 Forward momentum is critical.
-
-The target loop:
-
-1. Enter room.
-2. Deploy Rift.
-3. Doors/exits lock or pressure begins.
-4. Build defenses around the Rift.
-5. Fight enemies.
-6. Clear the room objective.
-7. Stabilize the Rift.
-8. Move deeper.
-
-Rooms should have identities.
-
-Examples:
-
-- Swarm Room
-- Nest Room
-- Elite Room
-- Siege Room
-- Ambush Room
-- Boss Room
-- Treasure Risk Room
-- Narrow Hallway Defense
-- Big Open Panic Room
-
-Each room should ask a different tactical question.
 
 ---
 
@@ -219,47 +213,25 @@ Rooms should not just be spaces. They should be situations.
 
 A few meaningful decisions are better than many tiny upgrades.
 
-### 6. Weird Beats Generic
-
-Prefer strange monsters, handmade shapes, silly body horror, and memorable tower ideas over generic sci-fi or military realism.
-
-### 7. Fast Feedback
-
-Players should immediately understand danger, success, failure, cooldowns, damage, and objectives through clear visual/audio feedback.
-
 ---
 
-## Art Direction
+## The Current Expedition Hypothesis
 
-Killbox should look:
+Expedition is evolving toward a loop where exploration and pressure alternate.
 
-- Handmade
-- Bold
-- Readable
-- Strange
-- Slightly funny
-- Slightly gross
-- Toy-like but dangerous
+The current pressure-heavy dungeon style is valuable, but it should not be the only shape Expedition can take.
 
-Prefer:
+The best direction is a hybrid of:
 
-- Bold outlines
-- Flat colors
-- Strong silhouettes
-- Strange creatures
-- Multi-eyed monsters
-- Creature-machine hybrids
-- Emotional monsters
-- Silly body horror
-- Readable effects
+- Exploration between fights
+- Tactical pressure when rooms lock
+- Treasure and upgrade discovery
+- Relays as progression landmarks
+- Flexible dungeon archetypes
 
-Avoid:
+The world tone should keep curiosity ahead of explanation. A player should notice the strange object first and understand it later.
 
-- Generic military realism
-- Generic sci-fi UI
-- Over-polished AAA aesthetics
-- Visual clutter
-- Tiny unreadable details
+If this is working, the player should feel curious before they feel optimal.
 
 ---
 
@@ -273,8 +245,9 @@ When making changes, protect these qualities:
 - Player stories
 - Humor
 - Emergent tactics
-- Tower + shooting hybrid identity
+- Tower plus shooting hybrid identity
 - Future co-op possibility
+- Exploration breathing room
 
 ---
 
@@ -297,193 +270,6 @@ Do not build large systems until the gameplay need is proven.
 
 ---
 
-## Current Expedition Hypothesis
-
-The current strongest direction is:
-
-**The Rift is a vulnerable mobile base that players must deploy, defend, stabilize, and move forward through connected combat rooms.**
-
-This should be tested before adding more complex dungeon mechanics.
-
-Do not start with keys, puzzles, inventories, or procedural generation.
-
-Start with:
-
-- Rooms that lock
-- Enemies that threaten the Rift
-- Meaningful Rift placement
-- Build radius around the Rift
-- Clear room objectives
-- Room completion and forward movement
-
-If that loop is fun, everything else can grow from it.
-
----
-
 ## One-Sentence North Star
 
-**Killbox is a weird co-op survival dungeon shooter where players drag a living Rift through hostile rooms, build desperate defenses around it, and survive ridiculous monster chaos together.**
-
-
-# KILLBOX NORTH STAR — PART 2
-## The Rift, Civilization, and Shared Adventure
-
-### What We Discovered
-
-Expedition began as a mission to recover a lost Rift.
-
-Through playtesting, a different idea emerged.
-
-The interesting part is not finding the Rift.
-
-The interesting part is traveling with it.
-
-The Rift is not merely an objective.
-
-The Rift is civilization.
-
----
-
-## The Rift
-
-The Rift is the player's camp, shelter, power source, and connection to safety.
-
-It grants the ability to construct defenses.
-
-Without the Rift, the player is merely surviving.
-
-With the Rift, the player can establish territory.
-
-The player should care about where the Rift is located.
-
-The player should worry about it.
-
-The player should defend it.
-
-The player should occasionally make difficult decisions because of it.
-
----
-
-## Mobile Settlement
-
-Expedition should feel less like escorting a payload and more like moving a settlement.
-
-Bad Fantasy:
-
-> Move this object from Point A to Point B.
-
-Good Fantasy:
-
-> Bring your home deeper into dangerous territory.
-
-The Rift is not cargo.
-
-The Rift is home.
-
----
-
-## Starting Conditions
-
-The player should begin near the Rift.
-
-The adventure begins with:
-
-- The player
-- The Rift
-- Unknown territory ahead
-
-The Rift should matter from the first minute.
-
----
-
-## Territory Expansion
-
-The player pushes deeper into hostile territory while extending the reach of the Rift.
-
-Every successful advance should feel like civilization reclaiming dangerous ground.
-
----
-
-## Ancient Cauldrons
-
-Ancient Cauldrons are progression anchors.
-
-A Cauldron is a place where the Rift can be installed or connected.
-
-When activated:
-
-- The area becomes safer.
-- The player's influence expands.
-- New territory opens.
-- The next stage of the expedition begins.
-
-The feeling should be:
-
-> We found another Cauldron.
-
-Not:
-
-> We found the exit.
-
-Cauldrons should feel memorable.
-
-Almost sacred.
-
----
-
-## Defensible Spaces
-
-Players should frequently ask:
-
-- Where should we place the Rift?
-- Can we defend this location?
-- Should we move forward?
-- Should we fortify first?
-
----
-
-## Multiplayer North Star
-
-The long-term vision is cooperative adventure.
-
-The goal is shared stories.
-
-Examples:
-
-- One player scouting ahead.
-- One player defending the Rift.
-- One player building towers.
-- One player holding a hallway.
-- Players arguing about when it is safe to move.
-
----
-
-## Design Test
-
-When evaluating a new Expedition feature ask:
-
-Does this make players care more about the Rift?
-
-If the answer is no, the feature may be solving the wrong problem.
-
----
-
-## Ultimate Expedition Fantasy
-
-You and your companions carry a fragment of reality into hostile territory.
-
-You establish footholds.
-
-You defend them.
-
-You discover ancient Cauldrons.
-
-You expand civilization deeper into the unknown.
-
-The journey is dangerous.
-
-The Rift is fragile.
-
-The world wants it destroyed.
-
-And that is why it matters.
+**Killbox is a weird co-op survival adventure where players explore hostile territory, defend a living Rift, and create stories by surviving chaos together.**
