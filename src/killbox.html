@@ -68,6 +68,7 @@ body.menuOpen #menuToggle {
   pointer-events: auto;
 }
 body.hideGameplayHud #topHud,
+body.hideGameplayHud #combatHud,
 body.hideGameplayHud #objectiveHud,
 body.hideGameplayHud #playfieldCountdown {
   display: none !important;
@@ -4322,6 +4323,385 @@ h2,
   }
 }
 
+/* ── In-game HUD: expedition command layout ───────────────────── */
+.topHud {
+  top: 18px;
+  left: 26px;
+  width: min(310px, calc(100vw - 52px));
+  max-width: none;
+  display: grid;
+  gap: 3px;
+  color: #f6e8c7;
+  font-family: Arial, Helvetica, sans-serif;
+  white-space: normal;
+}
+
+.hudRoomName {
+  color: #fff0cf;
+  font: 900 clamp(20px, 2.2vw, 30px)/.95 Arial, Helvetica, sans-serif;
+  letter-spacing: -.025em;
+  text-transform: uppercase;
+  text-shadow: var(--ui-read-shadow);
+}
+
+.hudRoomStatus {
+  color: #63d8ee;
+  font: 900 13px/1.15 Arial, Helvetica, sans-serif;
+  letter-spacing: .025em;
+  text-shadow: var(--ui-read-shadow);
+}
+
+.hudVitals {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  width: fit-content;
+  margin-top: 6px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(221, 171, 73, .32);
+}
+
+.hudVitals .hudStat {
+  gap: 6px;
+}
+
+.hudVitals .hudLabel {
+  color: #d8aa55;
+  font-size: 11px;
+}
+
+.hudVitals .hudValue {
+  color: #fff2d3;
+  font-size: 18px;
+}
+
+body.expeditionGameplay .hudLivesStat,
+body.expeditionGameplay #combatHud {
+  display: none !important;
+}
+
+.combatHud {
+  position: absolute;
+  top: 28px;
+  right: 76px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid rgba(215, 163, 62, .44);
+  background: rgba(7, 8, 9, .7);
+  box-shadow: 0 8px 24px rgba(0,0,0,.35), inset 0 0 18px rgba(0,0,0,.38);
+  pointer-events: auto;
+}
+
+.combatHud .hudStat,
+.combatHud .hudSpeedWrap {
+  position: relative;
+  gap: 5px;
+}
+
+.combatHud .hudStat + .hudStat::before,
+.combatHud .hudSpeedWrap + .hudStat::before {
+  content: "";
+  position: absolute;
+  left: -9px;
+  top: 2px;
+  width: 1px;
+  height: 18px;
+  background: rgba(215, 163, 62, .32);
+}
+
+.combatHud .hudLabel,
+.combatHud .hudSpeedWrap > span {
+  color: #d8aa55;
+  font-size: 10px;
+}
+
+.combatHud .hudValue {
+  font-size: 15px;
+}
+
+.combatHud .hudWaveArchetype {
+  color: #ff7768;
+  font-size: 10px;
+}
+
+.combatHud .hudSpeedBtn {
+  height: 24px;
+  min-width: 42px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #fff2d3;
+  font-size: 14px;
+}
+
+.combatHud .hudSpeedBtn:hover,
+.combatHud .hudSpeedBtn:focus-visible {
+  color: #72d9ee;
+  outline: 1px solid rgba(114,217,238,.55);
+  outline-offset: 3px;
+}
+
+.objectiveHud {
+  top: 36px;
+  left: 50%;
+  width: min(520px, calc(100vw - 760px));
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.objectiveHud small {
+  display: none;
+}
+
+.objectiveHud b {
+  color: #f3c866;
+  font: 900 clamp(28px, 3.3vw, 48px)/.9 Arial, Helvetica, sans-serif;
+  letter-spacing: .015em;
+  text-transform: uppercase;
+}
+
+.objectiveHud span {
+  display: block;
+  margin-top: 10px;
+  color: #f5d890;
+  font: 900 clamp(13px, 1.3vw, 18px)/1 Arial, Helvetica, sans-serif;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  text-shadow: var(--ui-read-shadow);
+}
+
+.gameHudToggle {
+  top: 28px;
+  right: 22px;
+  width: 42px;
+  height: 42px;
+  border-color: rgba(215, 163, 62, .5);
+  border-radius: 5px;
+  background: rgba(7, 8, 9, .62);
+  color: #d9b668;
+  box-shadow: 0 6px 18px rgba(0,0,0,.32);
+}
+
+.gameHudToggle:hover,
+.gameHudToggle:focus-visible {
+  color: #fff0c7;
+  border-color: #d7a33e;
+  outline: 1px solid rgba(215,163,62,.55);
+  outline-offset: 2px;
+}
+
+.gameHudToggle:focus:not(:focus-visible) {
+  outline: 0;
+}
+
+.buildDock {
+  left: 24px;
+  right: auto;
+  bottom: 18px;
+  max-width: calc(100vw - 48px);
+}
+
+.buildRail {
+  flex: 0 1 auto;
+  gap: 7px;
+  max-height: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.buildRail::-webkit-scrollbar {
+  display: none;
+}
+
+.buildCard {
+  width: 112px;
+  flex-basis: 112px;
+  min-height: 104px;
+  padding: 7px 7px 6px;
+  border: 1px solid rgba(213, 166, 77, .38);
+  border-radius: 5px;
+  background: linear-gradient(180deg, rgba(12,14,15,.82), rgba(5,6,7,.92));
+  box-shadow: 0 7px 20px rgba(0,0,0,.44), inset 0 0 18px rgba(255,255,255,.015);
+}
+
+.buildCard:hover {
+  border-color: rgba(215, 163, 62, .78);
+  background: linear-gradient(180deg, rgba(20,22,23,.9), rgba(7,8,9,.96));
+}
+
+.buildCard .buildIcon {
+  width: 56px;
+  height: 56px;
+  margin: 2px auto 3px;
+}
+
+.buildCard .buildName {
+  display: block;
+  min-height: 0;
+  height: 13px;
+  color: #d8ccb0;
+  font-size: 10px;
+  line-height: 13px;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.buildCard .buildPrice {
+  min-height: 11px;
+  margin-top: 2px;
+  color: #d2a84f;
+  font-size: 10px;
+}
+
+.buildCard .buildHint {
+  display: none;
+}
+
+.buildCard .hotkey {
+  left: 7px;
+  top: 7px;
+  min-width: 22px;
+  padding: 3px 5px;
+  border: 1px solid rgba(215,163,62,.45);
+  background: rgba(0,0,0,.48);
+  color: #f1c967;
+  font-size: 10px;
+}
+
+.buildCard.activeBuild,
+.buildCard.activeHotbar {
+  border-color: #69d8ef;
+  box-shadow: 0 0 0 1px rgba(105,216,239,.72), 0 0 15px rgba(105,216,239,.36), 0 7px 20px rgba(0,0,0,.5);
+}
+
+.buildCard.equipped:not(.activeHotbar) {
+  border-color: #d7a33e;
+  box-shadow: 0 0 0 1px rgba(215,163,62,.32), 0 7px 20px rgba(0,0,0,.5);
+}
+
+.buildCard.weaponSlot.weaponReady,
+.buildCard.weaponSlot.weaponReady.upgraded {
+  border-color: rgba(215,163,62,.62);
+  box-shadow: 0 0 0 1px rgba(215,163,62,.18), 0 7px 20px rgba(0,0,0,.5);
+}
+
+.buildCard.weaponSlot.activeHotbar {
+  border-color: #69d8ef;
+  box-shadow: 0 0 0 1px rgba(105,216,239,.72), 0 0 15px rgba(105,216,239,.36), 0 7px 20px rgba(0,0,0,.5);
+}
+
+.buildCard.defenseLocked {
+  opacity: .43;
+  filter: grayscale(1) saturate(.15);
+  cursor: not-allowed;
+}
+
+.buildCard.defenseLocked:hover {
+  border-color: rgba(255,255,255,.22);
+  background: linear-gradient(180deg, rgba(12,14,15,.82), rgba(5,6,7,.92));
+}
+
+.riftLockBadge {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 3;
+  color: #c9c3b5;
+  font-size: 12px;
+  text-shadow: 0 2px 6px #000;
+}
+
+.buildCard.surgeSlot {
+  width: 92px;
+  flex-basis: 92px;
+  border-color: rgba(255,255,255,.18);
+  background: rgba(7,8,9,.72);
+}
+
+.buildCard.surgeSlot:disabled {
+  opacity: .4;
+  filter: grayscale(1);
+}
+
+.riftBuildNotice {
+  position: fixed;
+  right: 24px;
+  bottom: 28px;
+  z-index: 68;
+  padding: 9px 13px;
+  border: 1px solid rgba(215,163,62,.58);
+  background: rgba(7,8,9,.82);
+  color: #e5bd68;
+  font: 900 12px/1 Arial, Helvetica, sans-serif;
+  text-shadow: 0 2px 8px #000;
+  pointer-events: none;
+}
+
+@media (max-width: 980px) {
+  .combatHud {
+    right: 66px;
+    gap: 10px;
+    padding: 0 9px;
+  }
+
+  .objectiveHud {
+    width: min(340px, calc(100vw - 590px));
+  }
+
+  .buildCard {
+    width: 92px;
+    flex-basis: 92px;
+  }
+}
+
+@media (max-width: 700px) {
+  .topHud {
+    top: 12px;
+    left: 12px;
+    width: 190px;
+  }
+
+  .hudRoomName {
+    font-size: 18px;
+  }
+
+  .objectiveHud {
+    top: 88px;
+    width: calc(100vw - 24px);
+  }
+
+  .objectiveHud b {
+    font-size: 24px;
+  }
+
+  .combatHud {
+    top: 128px;
+    left: 12px;
+    right: auto;
+  }
+
+  .gameHudToggle {
+    top: 12px;
+    right: 12px;
+  }
+
+  .buildDock {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+  }
+
+  .riftBuildNotice {
+    right: 12px;
+    bottom: 126px;
+  }
+}
+
 #start .card.deathCard {
   width: min(980px, calc(100vw - 24px));
   max-height: calc(100vh - 24px);
@@ -4979,20 +5359,22 @@ h2,
 <canvas id="c"></canvas>
 <button id="menuToggle" class="gameHudToggle hudButton smallSquare" title="Toggle inspector" aria-label="Toggle inspector">⚙</button>
 <div id="topHud" class="topHud">
-  <div class="hudStat"><span class="hudLabel">LIVES</span><span id="hudLives" class="hudValue">15</span></div>
-  <div class="hudSep">|</div>
-  <div class="hudStat"><span class="hudLabel">GOLD</span><span id="hudGold" class="hudValue">180</span></div>
-  <div class="hudSep">|</div>
+  <div id="hudRoomName" class="hudRoomName">ENTRY BREACH</div>
+  <div id="hudRoomStatus" class="hudRoomStatus">Pressure Zone Active</div>
+  <div class="hudVitals">
+    <div class="hudStat hudLivesStat"><span class="hudLabel">♥ LIVES</span><span id="hudLives" class="hudValue">15</span></div>
+    <div class="hudStat"><span class="hudLabel">▣ GOLD</span><span id="hudGold" class="hudValue">180</span></div>
+  </div>
+</div>
+<div id="combatHud" class="combatHud">
   <div class="hudStat">
     <span class="hudLabel">WAVE</span>
     <span class="hudValue"><span id="hudWave">0</span> <small id="hudWaveArchetype" class="hudWaveArchetype">• --</small></span>
   </div>
-  <div class="hudSep">|</div>
   <div class="hudSpeedWrap">
     <span>SPEED</span>
     <button id="hudSpeedBtn" class="hudSpeedBtn" title="Change game speed" aria-label="Change game speed">1x ▾</button>
   </div>
-  <div class="hudSep">|</div>
   <div class="hudStat">
     <span class="hudLabel">COMBO</span>
     <span id="hudCombo" class="hudValue">x1</span>
@@ -5002,7 +5384,9 @@ h2,
 <div id="objectiveHud" class="objectiveHud" aria-live="polite">
   <small>OBJECTIVE</small>
   <b id="objectiveHudValue">Ready</b>
+  <span id="objectiveHudSub"></span>
 </div>
+<div id="riftBuildNotice" class="riftBuildNotice hidden">🔒 Rift required for defenses.</div>
 <div id="missionBriefing" class="missionBriefing hidden" aria-hidden="true" role="dialog" aria-label="Mission briefing">
   <div class="missionBriefingCard">
     <div id="missionBriefingTitle" class="missionBriefingTitle">ARENA</div>
@@ -5202,7 +5586,7 @@ h2,
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.21.0</b>
+      <b id="warRoomVersion">v7.22.1</b>
       <span id="warRoomBuildName">ArmoryShift</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
@@ -5290,7 +5674,7 @@ h2,
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.21.0 ArmoryShift</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.22.1 SealedRooms</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -6723,8 +7107,8 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const BUILD_VERSION = '7.21.0';
-const BUILD_NAME = 'ArmoryShift';
+const BUILD_VERSION = '7.22.1';
+const BUILD_NAME = 'SealedRooms';
 function upgradeIcon(id, kind = 'generic') {
   const up = HERO_UPGRADES[id] || TRAP_UPGRADES[id] || BOSS_UPGRADES[id] || {};
   const explicit = up.targetIcon || up.targetItem || up.targetIconAlt || up.targetItemAlt;
@@ -8948,16 +9332,17 @@ function updateExpeditionRoomEncounter(dt = 0) {
     const cfg = expeditionConfig();
     if (!isExpeditionRun() || !ex || !cfg || ex.completed) return;
     const heroRoom = expeditionRoomAtHero();
-    if (ex.activeRoomId && heroRoom && heroRoom.id !== ex.activeRoomId && expeditionRoomState(heroRoom.id) === 'inactive') {
-      ex.activeRoomId = null;
-      ex.roomObjective = null;
-      ex.roomBlockers = [];
-      startExpeditionRoomEncounter(heroRoom);
-      return;
-    }
     if (ex.activeRoomId) {
+      const activeRoom = (cfg.rooms || []).find(room => room.id === ex.activeRoomId) || null;
+      if (activeRoom && expeditionRoomState(activeRoom.id) === 'active' && !ex.roomBlockers?.length) {
+        const restoredBlockers = expeditionRoomDoorBlockers(activeRoom);
+        if (restoredBlockers.length) {
+          ex.roomBlockers = restoredBlockers;
+          primeExpeditionRoomBoundarySides(activeRoom);
+          rebuildPath();
+        }
+      }
       if (ex.roomObjective?.type === 'keyEscape') {
-        const activeRoom = (cfg.rooms || []).find(r => r.id === ex.activeRoomId);
         if (activeRoom && ex.finalKeyCollected && !expeditionRoomContainsPoint(activeRoom, S.hero.x, S.hero.y)) {
           completeKeyLabyrinthEscape(activeRoom);
         }
@@ -11265,6 +11650,7 @@ function ui(force = false) {
   const hideGameplayHud = uiOwnership.gameplayBlocked;
   const displayWave = S.waveActive ? S.wave : (S.started && !S.gameOver ? S.wave + 1 : S.wave);
   const displayArch = waveArchetypeForDisplay();
+  const bossActive = !!(S.bossActive || S.bossSpawned || S.enemies.some(e => !e.dead && (e.type === 'slimeking' || e.boss)));
   $('lives').textContent = S.lives;
   if ($('hudLives')) $('hudLives').textContent = S.lives;
   if ($('hp')) $('hp').textContent = Math.max(0, Math.floor(S.hero.hp));
@@ -11274,7 +11660,7 @@ function ui(force = false) {
   $('wave').textContent  = displayWave;
   if ($('hudWave')) $('hudWave').textContent = displayWave;
   if ($('statWave')) $('statWave').classList.toggle('hidden', expeditionMode);
-  if ($('hudWaveArchetype')) $('hudWaveArchetype').textContent = displayWave > 0 ? `• ${displayArch.label || 'Swarm'}` : '• --';
+  if ($('hudWaveArchetype')) $('hudWaveArchetype').textContent = bossActive ? '• BOSS' : displayWave > 0 ? `• ${displayArch.label || 'Swarm'}` : '• --';
   if ($('waveArchetypeLabel')) $('waveArchetypeLabel').textContent = displayWave > 0 ? `• ${displayArch.label || 'Swarm'}` : '• --';
   if ($('waveBtn')) {
     $('waveBtn').classList.toggle('hidden', expeditionMode);
@@ -11300,7 +11686,11 @@ function ui(force = false) {
   document.body.classList.toggle('menuOpen', !!S.menuOpen);
   document.body.classList.toggle('menuClosed', !S.menuOpen);
   document.body.classList.toggle('gameplayStarted', !!S.started);
+  document.body.classList.toggle('expeditionGameplay', !!(S.started && expeditionMode));
   document.body.classList.toggle('hideGameplayHud', hideGameplayHud);
+  if ($('riftBuildNotice')) {
+    $('riftBuildNotice').classList.toggle('hidden', hideGameplayHud || !isExpeditionRun() || expeditionDefensesUnlocked());
+  }
   if ($('menuToggle')) {
     $('menuToggle').textContent = S.menuOpen ? '✕' : '⚙';
     $('menuToggle').title = S.menuOpen ? 'Close War Room' : 'Open War Room';
@@ -11910,14 +12300,77 @@ function missionObjectiveText() {
   return `Survive Wave ${nextWave || 1}`;
 }
 
+function expeditionDefensesUnlocked() {
+  return !isExpeditionRun() || !!(S.expedition?.riftCarried || S.expedition?.riftEverCarried);
+}
+
+function selectedDefenseBuild() {
+  return !!(S.selected && TOWERS[S.selected] && !WEAPONS[S.selected] && !isTrinketItem(S.selected));
+}
+
+function showRiftDefenseRequired() {
+  const message = 'Rift required for defenses.';
+  showMissionHint(message, '', 2.4);
+  toast(message);
+}
+
+function missionObjectiveHudState() {
+  if (!S.started || S.gameOver) return { title: 'READY', sub: '' };
+  if (isExpeditionRun()) {
+    const ex = S.expedition;
+    if (!ex) return { title: 'EXPLORE', sub: 'FIND THE RIFT' };
+    if (ex.extractionActive) {
+      return { title: 'HOLD RELAY', sub: `${Math.ceil(ex.extractionTimer || 0)} SECONDS` };
+    }
+    if (expeditionExtractionUnlocked()) {
+      return { title: 'RETURN TO RELAY', sub: 'RIFT AND KEYS READY' };
+    }
+    return { title: 'COLLECT KEYS', sub: expeditionExtractionKeyProgressText() };
+  }
+  const nextWave = S.waveActive ? S.wave : Math.max(1, S.wave + 1);
+  return {
+    title: nextWave > 0 && nextWave % 3 === 0 ? 'BOSS WAVE' : 'SURVIVE',
+    sub: `WAVE ${nextWave || 1}`,
+  };
+}
+
+function currentRoomHudState() {
+  if (!isExpeditionRun()) {
+    return {
+      name: LEVELS[S.levelId]?.label || 'KILLBOX',
+      status: S.waveActive ? 'Combat Zone Active' : 'Prepare Defenses',
+    };
+  }
+  const ex = S.expedition;
+  const cfg = expeditionConfig();
+  const room = expeditionRoomAtHero()
+    || (cfg?.rooms || []).find(candidate => candidate.id === ex?.activeRoomId)
+    || null;
+  const roomState = room ? expeditionRoomState(room.id) : '';
+  let status = 'Facility Unsecured';
+  if (ex?.activeRoomId && ex.roomObjective) status = 'Pressure Zone Active';
+  else if (roomState === 'cleared') status = 'Zone Secured';
+  else if (ex?.riftActivated) status = ex.riftCarried ? 'Rift In Transit' : 'Rift Signal Active';
+  else if (ex?.riftFound) status = 'Rift Signal Located';
+  return {
+    name: (room?.name || LEVELS[S.levelId]?.label || 'EXPEDITION').toUpperCase(),
+    status,
+  };
+}
+
 function updateObjectiveHud(uiOwnership = getUiOwnershipState()) {
   const box = $('objectiveHud');
   const value = $('objectiveHudValue');
+  const sub = $('objectiveHudSub');
   if (!box || !value) return;
-  const text = missionObjectiveText();
-  value.textContent = text;
+  const objective = missionObjectiveHudState();
+  const room = currentRoomHudState();
+  value.textContent = objective.title;
+  if (sub) sub.textContent = objective.sub;
+  if ($('hudRoomName')) $('hudRoomName').textContent = room.name;
+  if ($('hudRoomStatus')) $('hudRoomStatus').textContent = room.status;
   box.classList.toggle('hidden', uiOwnership.objectiveBlocked);
-  box.classList.toggle('danger', /boss/i.test(text) || /relay/i.test(text));
+  box.classList.toggle('danger', /boss/i.test(objective.title) || /relay/i.test(objective.title));
 }
 
 function updateDevHotkeyHelp() {
@@ -13272,6 +13725,7 @@ function renderBuildButtons() {
     (S.trapMutations || []).join(','),
     String(S.hero.upgradeLevel || 0),
     isExpeditionRun() ? JSON.stringify(S.expedition?.storedSurges?.length ? S.expedition.storedSurges : S.expedition?.storedSurge || null) : '',
+    isExpeditionRun() ? String(expeditionDefensesUnlocked()) : '',
   ].join('|');
   if (rail.dataset.sig !== sig) {
     rail.innerHTML = '';
@@ -13314,6 +13768,7 @@ function renderBuildButtons() {
         b.onclick = () => { useTrinket(k); S.selected = null; S.sel = null; ui(); };
       } else {
         const t = TOWERS[k];
+        const defenseLocked = !expeditionDefensesUnlocked();
         const rotateHint = t.directional ? ` · RMB rotate` : '';
         const count = getHotbarUpgradeCount(k);
         const tier = getHotbarUpgradeTier(k);
@@ -13325,8 +13780,21 @@ function renderBuildButtons() {
         b.classList.toggle('upgradeTier2', tier === 2);
         b.classList.toggle('upgradeTier3', tier === 3);
         b.classList.toggle('upgradeTier4', tier === 4);
-        b.innerHTML = `<span class="hotkey">${hotkey}</span><span class="buildIcon">${miniTowerIcon(k)}</span><span class="buildName">${shortTowerName(k)}</span><span class="buildPrice">${t.c}g</span><span class="buildHint">Build${rotateHint}</span>${badge}`;
-        b.onclick   = () => { S.selected = k; S.sel = null; $('info').innerHTML = `<b>${t.n}</b><br>${towerLongDesc(k)}`; ui(); };
+        b.classList.toggle('defenseLocked', defenseLocked);
+        b.setAttribute('aria-disabled', defenseLocked ? 'true' : 'false');
+        b.innerHTML = `<span class="hotkey">${hotkey}</span>${defenseLocked ? '<span class="riftLockBadge" title="Rift required">🔒</span>' : ''}<span class="buildIcon">${miniTowerIcon(k)}</span><span class="buildName">${shortTowerName(k)}</span><span class="buildPrice">${t.c}g</span><span class="buildHint">Build${rotateHint}</span>${badge}`;
+        b.onclick   = () => {
+          if (!expeditionDefensesUnlocked()) {
+            S.selected = null;
+            showRiftDefenseRequired();
+            ui();
+            return;
+          }
+          S.selected = k;
+          S.sel = null;
+          $('info').innerHTML = `<b>${t.n}</b><br>${towerLongDesc(k)}`;
+          ui();
+        };
       }
       if (rail) rail.appendChild(b);
     }
@@ -13413,8 +13881,12 @@ function renderBuildButtons() {
       b.dataset.upgradeCount = '0';
       b.dataset.tier = surge ? '1' : '0';
     } else {
-      const active = b.dataset.t === S.selected && !S.sel;
+      const defenseLocked = !expeditionDefensesUnlocked();
+      if (defenseLocked && b.dataset.t === S.selected) S.selected = null;
+      const active = !defenseLocked && b.dataset.t === S.selected && !S.sel;
       b.classList.toggle('activeBuild', active);
+      b.classList.toggle('defenseLocked', defenseLocked);
+      b.setAttribute('aria-disabled', defenseLocked ? 'true' : 'false');
       b.classList.toggle('activeHotbar', false);
       b.classList.toggle('equipped', false);
       const count = getHotbarUpgradeCount(b.dataset.t);
@@ -13625,6 +14097,7 @@ function canBuild(px, py) {
   if (!canBuildOnCell(c, r)) return false;
   if (isExpeditionRoomBlockedCell(c, r)) return false;
   if (WEAPONS[S.selected] || isTrinketItem(S.selected)) return false;
+  if (!expeditionDefensesUnlocked()) return false;
   if (isCarryingExpeditionRift()) return false;
   if (!isWithinExpeditionRiftBuildRadius(px, py)) return false;
   if (SPAWN_POINTS.some(sp => sp && c === sp.c && r === sp.r)) return false;
@@ -13657,6 +14130,7 @@ function place(px, py) {
   const d = TOWERS[S.selected];
   if (!d) return;
   if (WEAPONS[S.selected] || isTrinketItem(S.selected)) return;
+  if (!expeditionDefensesUnlocked()) return showRiftDefenseRequired();
   if (isCarryingExpeditionRift()) return toast('Deploy the Rift first.');
   if (!isWithinExpeditionRiftBuildRadius(px, py)) return toast('Dude, you can only plant inside the Rift Ring.');
   if (!canBuild(px, py)) return;
@@ -21191,7 +21665,7 @@ function draw(t) {
   });
 
   // Build placement preview
-  if (S.phase === 'build' && S.selected && !S.sel) {
+  if (S.phase === 'build' && S.selected && !S.sel && expeditionDefensesUnlocked()) {
     const m = getMouseWorldPosition();
     const snap = getSnappedBuildTile(m.x, m.y);
     const ok = canBuild(m.x, m.y);
@@ -21726,30 +22200,27 @@ function drawExpeditionBuildRadius(t) {
   const ex = S.expedition;
   const cfg = expeditionConfig();
   if (!isExpeditionRun() || !ex?.rift || !cfg) return;
-  const staticX = cx(cfg.rift.c);
-  const staticY = cy(cfg.rift.r);
-  const nearRift = ex.riftActivated || ex.riftFound || dist(S.hero.x, S.hero.y, staticX, staticY) < 360;
-  if (!nearRift) return;
+  if (!expeditionDefensesUnlocked() || isCarryingExpeditionRift() || !selectedDefenseBuild()) return;
   const radius = cfg.buildRadius || 260;
-  const x = ex.riftActivated ? ex.rift.x : staticX;
-  const y = ex.riftActivated ? ex.rift.y : staticY;
+  const x = ex.rift.x;
+  const y = ex.rift.y;
   const pulse = Math.sin(t * 2.4) * .04;
   ctx.save();
-  ctx.globalAlpha = .10;
-  ctx.fillStyle = '#2f6f86';
+  ctx.globalAlpha = .08;
+  ctx.fillStyle = '#70d9ed';
   ctx.beginPath();
   ctx.arc(x, y, radius, 0, 7);
   ctx.fill();
-  ctx.globalAlpha = .62;
-  ctx.strokeStyle = '#4a8fa6';
+  ctx.globalAlpha = .68;
+  ctx.strokeStyle = '#70d9ed';
   ctx.lineWidth = 3;
   ctx.setLineDash([12, 10]);
   ctx.beginPath();
   ctx.arc(x, y, radius * (1 + pulse), 0, 7);
   ctx.stroke();
   ctx.setLineDash([]);
-  ctx.globalAlpha = .34;
-  ctx.strokeStyle = '#9f6fb5';
+  ctx.globalAlpha = .38;
+  ctx.strokeStyle = '#f0c96b';
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.arc(x, y, radius - 8, 0, 7);
@@ -22108,19 +22579,16 @@ function drawExpeditionHud(t) {
   const cfg = expeditionConfig();
   if (!isExpeditionRun() || !ex || !cfg) return;
   ctx.save();
-  const w = 188, h = 136;
-  const x = 18, y = 88;
-  ctx.fillStyle = 'rgba(0, 0, 0, .42)';
+  const w = 146, h = 104;
+  const x = 26, y = 104;
+  ctx.fillStyle = 'rgba(0, 0, 0, .20)';
   ctx.fillRect(x, y, w, h);
-  ctx.fillStyle = '#ffe09c';
-  ctx.font = '900 12px Arial';
-  ctx.lineWidth = 4;
-  ctx.strokeStyle = '#050302';
-  ctx.strokeText('EXPEDITION MAP', x + 10, y + 18);
-  ctx.fillText('EXPEDITION MAP', x + 10, y + 18);
-  const scale = Math.min((w - 20) / COLS, (h - 42) / ROWS);
-  const mx = x + 10, my = y + 28;
-  ctx.fillStyle = 'rgba(0, 0, 0, .62)';
+  ctx.strokeStyle = 'rgba(215, 163, 62, .58)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x + .5, y + .5, w - 1, h - 1);
+  const scale = Math.min((w - 16) / COLS, (h - 28) / ROWS);
+  const mx = x + 8, my = y + 8;
+  ctx.fillStyle = 'rgba(0, 0, 0, .34)';
   ctx.fillRect(mx, my, COLS * scale, ROWS * scale);
   for (const k of Object.keys(ex.discovered || {})) {
     const [c, r] = k.split(',').map(Number);
@@ -22142,43 +22610,21 @@ function drawExpeditionHud(t) {
     ctx.beginPath(); ctx.arc(mx + (cfg.extraction.c + .5) * scale, my + (cfg.extraction.r + .5) * scale, 4.5, 0, 7); ctx.fill();
   }
   ctx.fillStyle = expeditionExtractionUnlocked() ? '#9fffc8' : '#ffd45a';
-  ctx.font = '900 10px Arial';
-  ctx.strokeText(expeditionExtractionKeyProgressText(), x + 10, y + h - 10);
-  ctx.fillText(expeditionExtractionKeyProgressText(), x + 10, y + h - 10);
+  ctx.font = '900 9px Arial';
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = '#050302';
+  ctx.strokeText(expeditionExtractionKeyProgressText(), x + 8, y + h - 7);
+  ctx.fillText(expeditionExtractionKeyProgressText(), x + 8, y + h - 7);
   ctx.restore();
 
   const chapelCountdownActive = ex.activeRoomId === 'chapel'
     && ex.roomObjective?.type === 'chapelWaves'
     && (ex.chapelWave || 0) < 2
     && (ex.chapelCountdown || 0) > 0;
-  const title = chapelCountdownActive
-    ? 'CHAPEL LOCKED'
-    : ex.extractionActive
-      ? `HOLD RELAY: ${Math.ceil(ex.extractionTimer || 0)}`
-      : expeditionExtractionUnlocked()
-        ? 'ESCAPE'
-        : 'COLLECT KEYS';
-  const body = chapelCountdownActive
-    ? `WAVE ${(ex.chapelWave || 0) + 1} OF 2`
-    : ex.roomObjective?.label
-    ? `PRESSURE ZONE: ${ex.roomObjective.label}`
-    : ex.extractionActive
-      ? `Hold out for ${Math.ceil(ex.extractionTimer || 0)}s.`
-      : expeditionExtractionUnlocked()
-        ? 'Relay unlocked. Return and survive the holdout.'
-        : `Find containers. ${expeditionExtractionKeyProgressText()}.`;
   ctx.save();
   ctx.textAlign = 'center';
   ctx.lineWidth = 5;
   ctx.strokeStyle = '#120805';
-  ctx.fillStyle = '#ffe09c';
-  ctx.font = '900 24px Arial';
-  ctx.strokeText(title, W / 2, 90);
-  ctx.fillText(title, W / 2, 90);
-  ctx.font = '900 13px Arial';
-  ctx.fillStyle = '#fff6d6';
-  ctx.strokeText(body, W / 2, 116);
-  ctx.fillText(body, W / 2, 116);
   if (chapelCountdownActive) {
     ctx.font = '900 24px Arial';
     ctx.fillStyle = '#fff6d6';
@@ -25430,7 +25876,12 @@ addEventListener('keydown', e => {
         useTrinket(pick);
         S.selected = null;
       } else {
-        S.selected = pick;
+        if (!expeditionDefensesUnlocked()) {
+          S.selected = null;
+          showRiftDefenseRequired();
+        } else {
+          S.selected = pick;
+        }
       }
       S.sel = null; ui();
     }
