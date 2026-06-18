@@ -4342,6 +4342,635 @@ h2,
   }
 }
 
+/* ── Loadout screen: armory layout ─────────────────────────────── */
+#start .card {
+  width: min(1640px, calc(100vw - 28px));
+  height: calc(100vh - 28px);
+  max-height: 940px;
+  padding: 10px;
+  border-color: rgba(205, 146, 57, .32);
+  background:
+    linear-gradient(180deg, rgba(10, 11, 11, .97), rgba(4, 5, 5, .99)),
+    radial-gradient(circle at 50% 0%, rgba(145, 75, 20, .12), transparent 36%);
+}
+
+#start .startLayout,
+#start .startMain {
+  height: 100%;
+}
+
+#start .startLayout {
+  display: block;
+}
+
+#start .startMain {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+#start .loadoutMasthead {
+  grid-template-columns: minmax(470px, 1.2fr) minmax(240px, .7fr) minmax(330px, .8fr);
+  min-height: 94px;
+  padding: 8px 12px;
+  border: 1px solid rgba(205, 146, 57, .25);
+  border-radius: 9px;
+  background: rgba(7, 8, 8, .88);
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, .72);
+}
+
+#start .arenaPick {
+  display: grid;
+  grid-template-columns: minmax(300px, 1fr) minmax(130px, .45fr);
+  gap: 12px;
+  align-items: center;
+}
+
+#start .missionChoices {
+  gap: 8px;
+}
+
+#start .missionChoice {
+  min-height: 68px;
+  padding: 9px 12px;
+  gap: 3px;
+  border-color: rgba(205, 146, 57, .35);
+  border-radius: 6px;
+}
+
+#start .missionChoice.active {
+  color: #ffe4a0;
+  border-color: #d7a33e;
+  background: linear-gradient(180deg, rgba(47, 35, 17, .92), rgba(13, 14, 14, .98));
+  box-shadow: 0 0 15px rgba(222, 162, 51, .14), inset 3px 0 #d7a33e;
+}
+
+#start .missionChoice strong {
+  color: inherit;
+  font: 900 16px/1 Arial, Helvetica, sans-serif;
+}
+
+#start .missionChoice span {
+  color: #bba77b;
+  font: 700 10px/1.25 Arial, Helvetica, sans-serif;
+}
+
+#start .missionOptions,
+#start .arenaPickRow {
+  min-width: 0;
+}
+
+#start .arenaPickRow {
+  display: grid;
+  gap: 5px;
+}
+
+#start .arenaPickRow label {
+  color: #a99b7b;
+  font: 900 10px/1 Arial, Helvetica, sans-serif;
+  letter-spacing: .14em;
+}
+
+#start .arenaSelect {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  padding: 0 10px;
+  color: #fff0c5;
+  font: 900 16px/1 Arial, Helvetica, sans-serif;
+  border-color: rgba(205, 146, 57, .5);
+  background: #0b0d0d;
+}
+
+#start .loadoutTitle {
+  grid-column: 2;
+}
+
+#start .loadoutTitle h1 {
+  font-size: clamp(38px, 4vw, 58px);
+  letter-spacing: -.04em;
+  color: #d9c59c;
+}
+
+#start .loadoutVersion {
+  margin-top: 5px;
+  color: #d7a33e;
+  font-size: 13px;
+  letter-spacing: .08em;
+}
+
+#start .albionHouseLink {
+  display: none;
+}
+
+#start .mastheadActions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+#start .mastheadActions #playLastRun {
+  order: 1;
+  min-width: 138px;
+  height: 44px;
+  padding: 0 16px;
+  color: #ab9d7f;
+  font-size: 13px;
+  border-color: rgba(255,255,255,.14);
+  background: rgba(15, 16, 16, .9);
+  box-shadow: none;
+}
+
+#start .mastheadActions #begin {
+  order: 2;
+  min-width: 180px;
+  height: 62px;
+  padding: 0 26px;
+  color: #0c0b07;
+  font-size: 27px;
+  border: 1px solid #ffe7a1;
+  border-radius: 5px;
+  background: linear-gradient(180deg, #f3d573, #bd7b12);
+  box-shadow: 0 0 18px rgba(227, 170, 57, .24), inset 0 1px rgba(255,255,255,.55);
+}
+
+#start .loadoutBody {
+  grid-template-columns: 126px minmax(0, 1fr) minmax(330px, 390px);
+  gap: 10px;
+}
+
+#start .loadoutTabs {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-auto-rows: minmax(76px, 1fr);
+  gap: 0;
+  padding: 0;
+  border: 1px solid rgba(255,255,255,.11);
+  border-radius: 9px;
+  overflow: hidden;
+  background: rgba(4, 6, 6, .7);
+}
+
+#start .loadoutTab {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  padding: 10px 5px;
+  gap: 7px;
+  border: 0;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  border-radius: 0;
+  color: #887f6e;
+  background: transparent;
+  opacity: 1;
+  font: 900 12px/1 Arial, Helvetica, sans-serif;
+}
+
+#start .loadoutTab:last-child {
+  border-bottom: 0;
+}
+
+#start .loadoutTab .tabIcon {
+  color: #766d5b;
+  font-size: 25px;
+}
+
+#start .loadoutTab .tabCount {
+  font-size: 9px;
+  color: #655f53;
+}
+
+#start .loadoutTab[data-loadout-tab].active {
+  color: #f0bd54;
+  border-color: transparent;
+  background: linear-gradient(90deg, rgba(91, 60, 16, .48), rgba(16, 17, 16, .8));
+  box-shadow: inset 4px 0 #e1a934, inset 0 0 20px rgba(225,169,52,.08);
+}
+
+#start .loadoutTab.active::after {
+  display: none;
+}
+
+#start .loadoutCatalog {
+  grid-template-rows: auto minmax(0, 1fr);
+  border-color: rgba(255,255,255,.11);
+  border-radius: 9px;
+  background: rgba(5, 7, 7, .64);
+}
+
+#start .loadoutCatalogHeader {
+  min-height: 48px;
+  padding: 8px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  color: #d8c9aa;
+  text-transform: uppercase;
+}
+
+#start .loadoutCatalogHeader > div {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+#start .loadoutCatalogHeader b {
+  font-size: 15px;
+  letter-spacing: .08em;
+}
+
+#start .loadoutCatalogHeader span {
+  color: #766f61;
+  font: 800 10px/1 Arial, Helvetica, sans-serif;
+  letter-spacing: .06em;
+}
+
+#start .loadoutCatalogHeader .riftLoadoutNote {
+  color: #6ebed0;
+  text-align: right;
+}
+
+#start .loadoutGrid {
+  grid-template-columns: repeat(5, minmax(132px, 1fr));
+  grid-auto-rows: 210px;
+  gap: 10px;
+  padding: 12px;
+}
+
+#start .loadoutGrid .pickerTile.small {
+  height: 210px;
+  padding: 9px 9px 8px;
+  gap: 3px;
+  justify-content: start;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(73, 65, 48, .2), transparent 48%),
+    linear-gradient(180deg, rgba(15, 17, 17, .96), rgba(6, 7, 7, .98));
+}
+
+#start .loadoutGrid .pickerTile.small:hover {
+  border-color: rgba(224, 169, 52, .58);
+  transform: translateY(-1px);
+}
+
+#start .loadoutGrid .pickerTile.small.sel {
+  border-color: #e2ad3e;
+  box-shadow: 0 0 0 1px #e2ad3e inset, 0 0 15px rgba(226, 173, 62, .28);
+}
+
+#start .loadoutGrid .pickerTile.small .icon {
+  width: 100%;
+  height: 112px;
+  margin: 0;
+  font-size: 72px;
+}
+
+#start .loadoutGrid .pickerTile.small .name {
+  min-height: 18px;
+  color: #e2d5ba;
+  font-size: 14px;
+  line-height: 1.1;
+}
+
+#start .loadoutGrid .pickerTile .itemTag {
+  align-self: center;
+  padding: 2px 7px;
+  color: #d6a649;
+  border: 1px solid rgba(214,166,73,.45);
+  border-radius: 3px;
+  font: 900 9px/1 Arial, Helvetica, sans-serif;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+#start .loadoutGrid .pickerTile .itemTag.defense {
+  color: #69c7d6;
+  border-color: rgba(105,199,214,.4);
+}
+
+#start .loadoutGrid .pickerTile .itemTag.gear {
+  color: #bd9be1;
+  border-color: rgba(189,155,225,.4);
+}
+
+#start .loadoutGrid .pickerTile .fireCopy {
+  width: 100%;
+  margin-top: auto;
+  color: #8f856f;
+  font-size: 9px;
+  line-height: 1.15;
+}
+
+#start .loadoutGrid .pickerTile .fireCopy span {
+  color: inherit;
+}
+
+#start .loadoutGrid .pickerTile .riftRequirement {
+  position: absolute;
+  left: 7px;
+  top: 7px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  color: #7fcddd;
+  background: rgba(6, 21, 25, .86);
+  border: 1px solid rgba(105,199,214,.28);
+  font: 900 8px/1 Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+#start .loadoutGrid .pickerTile .slotBadge {
+  z-index: 2;
+  color: #151006;
+  background: #e2ad3e;
+  border-color: #ffe09a;
+}
+
+#start .loadoutInspectorPanel {
+  display: block;
+  border-color: rgba(205, 146, 57, .28);
+  border-radius: 9px;
+  background: rgba(5, 7, 7, .76);
+}
+
+#start .selectedInfoCard {
+  height: 100%;
+  padding: 15px 17px;
+}
+
+#start .selectedInfoCard .selGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-content: start;
+  gap: 8px;
+  text-align: left;
+}
+
+#start .selectedInfoCard .selTitle {
+  color: #e6dcc7;
+  font-size: 25px;
+  line-height: 1;
+}
+
+#start .selectedInfoCard .selRole {
+  margin-top: 5px;
+  color: #6dcddd;
+  font: 900 11px/1 Arial, Helvetica, sans-serif;
+  letter-spacing: .1em;
+}
+
+#start .selectedInfoCard .selIcon,
+#start .weaponInspector .selIcon {
+  width: 100%;
+  height: 190px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 6px;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(66, 105, 111, .18), transparent 52%),
+    rgba(0,0,0,.2);
+}
+
+#start .selectedInfoCard .selIcon .icon,
+#start .weaponInspector .selIcon .icon {
+  width: 86%;
+  height: 86%;
+  font-size: 96px;
+}
+
+#start .weaponInspector .weaponQuickStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+#start .weaponInspector .weaponQuickStat {
+  min-height: 40px;
+  padding: 6px;
+  display: grid;
+  gap: 3px;
+  align-content: center;
+  text-align: center;
+  color: #8e8676;
+  border-color: rgba(255,255,255,.1);
+  background: rgba(255,255,255,.025);
+  font-size: 9px;
+}
+
+#start .weaponInspector .weaponQuickStat b {
+  color: #dfcfae;
+  font-size: 12px;
+}
+
+#start .weaponInspector .weaponSectionLabel {
+  margin-top: 4px;
+  color: #d6a649;
+  font-size: 10px;
+}
+
+#start .weaponInspector .weaponAbilities {
+  margin-top: 0;
+}
+
+#start .weaponInspector .weaponAbility {
+  color: #d6c7a7;
+  border-color: rgba(205,146,57,.3);
+  background: rgba(42, 31, 14, .22);
+  font-size: 10px;
+}
+
+#start .weaponInspector .selFlavor,
+#start .weaponInspector .selMeta {
+  margin-top: 0;
+  padding-top: 8px;
+  color: #a79c85;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+#start .weaponInspector .selFlavor b,
+#start .weaponInspector .selMeta b {
+  color: #d6a649;
+  text-transform: uppercase;
+}
+
+#start .inspectorRiftTag {
+  float: right;
+  padding: 2px 5px;
+  color: #6dcddd;
+  border: 1px solid rgba(109,205,221,.25);
+  border-radius: 3px;
+  font: 900 8px/1 Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+#start .loadoutRailWrap {
+  display: grid;
+  grid-template-columns: 125px minmax(0, 1fr) 90px;
+  grid-template-rows: 1fr;
+  align-items: stretch;
+  min-height: 132px;
+  margin: 0;
+  border-color: rgba(205, 146, 57, .28);
+  border-radius: 9px;
+  background: rgba(5, 7, 7, .78);
+}
+
+#start .loadoutRailHeading {
+  padding: 14px 12px;
+  display: grid;
+  align-content: space-between;
+  border-right: 1px solid rgba(255,255,255,.09);
+  text-transform: uppercase;
+}
+
+#start .loadoutRailHeading b {
+  display: block;
+  color: #d6a649;
+  font-size: 15px;
+  letter-spacing: .08em;
+}
+
+#start .loadoutRailHeading span {
+  display: block;
+  margin-top: 8px;
+  color: #776e5d;
+  font: 800 9px/1.35 Arial, Helvetica, sans-serif;
+}
+
+#start .loadoutRailHeading .loadoutReadiness {
+  color: #c07d5c;
+}
+
+#start .loadoutRailHeading .loadoutReadiness.ready {
+  color: #6dcddd;
+}
+
+#start .loadoutPreviewRail {
+  min-height: 0;
+  padding: 10px;
+  gap: 8px;
+}
+
+#start .loadoutRailSlot {
+  min-height: 108px;
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  border-color: rgba(255,255,255,.14);
+  background: linear-gradient(180deg, rgba(15,17,17,.96), rgba(5,6,6,.98));
+}
+
+#start .loadoutRailSlot.filled {
+  border-color: rgba(205, 146, 57, .62);
+  box-shadow: inset 0 -3px rgba(205,146,57,.55);
+}
+
+#start .railIcon {
+  width: min(62px, 68%);
+  margin-top: 12px;
+  font-size: 39px;
+}
+
+#start .loadoutRailSlot.empty .railIcon {
+  margin: 0;
+  color: #35342f;
+  font-size: 30px;
+}
+
+#start .railName {
+  padding: 0 4px 2px;
+  font-size: 9px;
+}
+
+#start .railStatus {
+  padding-bottom: 5px;
+  color: #817763;
+  font: 900 8px/1 Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+#start .loadoutRemoveBtn {
+  width: 18px;
+  height: 18px;
+  border-color: rgba(255,255,255,.16);
+  background: rgba(8,9,9,.9);
+  color: #8a8172;
+  font-size: 11px;
+}
+
+#start .loadoutAttribution {
+  align-self: center;
+  padding: 8px;
+  color: #625d52;
+  border-left: 1px solid rgba(255,255,255,.08);
+  font-size: 8px;
+}
+
+#start .startFooter {
+  display: none;
+}
+
+@media (max-width: 1220px) {
+  #start .card {
+    height: auto;
+    max-height: none;
+  }
+
+  #start .loadoutMasthead {
+    grid-template-columns: 1fr auto;
+  }
+
+  #start .loadoutTitle {
+    display: none;
+  }
+
+  #start .mastheadActions {
+    grid-column: 2;
+  }
+
+  #start .loadoutBody {
+    grid-template-columns: 105px minmax(0, 1fr) 310px;
+  }
+
+  #start .loadoutGrid {
+    grid-template-columns: repeat(3, minmax(130px, 1fr));
+    max-height: 600px;
+  }
+}
+
+@media (max-width: 900px) {
+  #start .loadoutMasthead {
+    grid-template-columns: 1fr;
+  }
+
+  #start .mastheadActions {
+    grid-column: 1;
+  }
+
+  #start .loadoutBody {
+    grid-template-columns: 88px minmax(0, 1fr);
+  }
+
+  #start .loadoutInspectorPanel {
+    grid-column: 1 / -1;
+    min-height: 0;
+  }
+
+  #start .loadoutRailWrap {
+    grid-template-columns: 1fr;
+  }
+
+  #start .loadoutRailHeading,
+  #start .loadoutAttribution {
+    display: none;
+  }
+
+  #start .loadoutPreviewRail {
+    grid-template-columns: repeat(4, minmax(70px, 1fr));
+  }
+}
+
 </style>
 </head>
 <body class="hideGameplayHud">
@@ -4573,8 +5202,8 @@ h2,
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.18.14</b>
-      <span id="warRoomBuildName">SkullSplit</span>
+      <b id="warRoomVersion">v7.21.0</b>
+      <span id="warRoomBuildName">ArmoryShift</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -4625,7 +5254,6 @@ h2,
       <div class="startMain">
         <div class="loadoutMasthead">
           <div class="arenaPick">
-            <div class="loadoutFlowLabel">1. Choose mission</div>
             <div class="missionChoices" role="group" aria-label="Mission type">
               <button class="missionChoice active" data-mission-type="arena" type="button" aria-pressed="true">
                 <strong>ARENA</strong>
@@ -4662,7 +5290,7 @@ h2,
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.18.14 SkullSplit</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.21.0 ArmoryShift</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -4671,30 +5299,33 @@ h2,
           </div>
         </div>
         <div class="loadoutBody">
+          <nav class="loadoutTabs" id="loadoutTabs" aria-label="Loadout categories">
+            <button class="loadoutTab active" data-loadout-tab="all" type="button"><span class="tabIcon" aria-hidden="true">▦</span><span>All</span></button>
+            <button class="loadoutTab" data-loadout-tab="weapon" type="button"><span class="tabIcon" aria-hidden="true">⌁</span><span>Weapons</span></button>
+            <button class="loadoutTab" data-loadout-tab="defense" type="button"><span class="tabIcon" aria-hidden="true">▥</span><span>Defenses</span></button>
+            <button class="loadoutTab" data-loadout-tab="trinket" type="button"><span class="tabIcon" aria-hidden="true">✦</span><span>Gear</span></button>
+          </nav>
           <section class="loadoutCatalog" aria-label="Loadout catalog">
-            <div class="loadoutBar" id="loadoutStatusBar" aria-label="Loadout readiness">
-              <div class="loadoutStep" data-step="mission"><span class="stepDot" aria-hidden="true"></span><span class="stepLabel">Mission selected</span></div>
-              <div class="loadoutStep" data-step="weapon"><span class="stepDot" aria-hidden="true"></span><span class="stepLabel">Weapon selected</span></div>
-              <div class="loadoutStep" data-step="tower"><span class="stepDot" aria-hidden="true"></span><span class="stepLabel">Tower selected</span></div>
-              <div class="loadoutStep" data-step="ready"><span class="stepDot" aria-hidden="true"></span><span class="stepLabel">Ready to deploy</span></div>
-            </div>
-            <div class="loadoutRailWrap" aria-label="Selected loadout preview">
-              <div class="loadoutRailTitle">Your Loadout</div>
-              <div id="loadoutPreviewRail" class="loadoutPreviewRail"></div>
-              <div class="loadoutAttribution" aria-label="Project attribution"><b>ALBION HOUSE</b><span>albionhouse.games</span></div>
-            </div>
-            <div class="loadoutTabs" id="loadoutTabs" aria-label="Loadout categories">
-              <button class="loadoutTab active" data-loadout-tab="weapon" type="button">Weapons</button>
-              <button class="loadoutTab" data-loadout-tab="tower" type="button">Towers</button>
-              <button class="loadoutTab" data-loadout-tab="trap" type="button">Traps</button>
-              <button class="loadoutTab" data-loadout-tab="trinket" type="button">Trinkets</button>
+            <div class="loadoutCatalogHeader">
+              <div>
+                <b id="loadoutCatalogTitle">All Items</b>
+                <span id="loadoutCatalogCount">0 available</span>
+              </div>
+              <span class="riftLoadoutNote">Defenses usable after Rift acquired in Expedition</span>
             </div>
             <div id="loadoutPicker" class="pickerGrid loadoutGrid"></div>
           </section>
           <aside class="loadoutInspectorPanel" aria-label="Loadout inspector">
-            <h2>Loadout Inspector</h2>
             <div id="startSelectedInfo" class="selectedInfoCard" aria-live="polite"></div>
           </aside>
+        </div>
+        <div class="loadoutRailWrap" aria-label="Selected loadout preview">
+          <div class="loadoutRailHeading">
+            <div><b>Loadout</b><span>Drag to reorder for quick access in-game</span></div>
+            <span id="loadoutReadiness" class="loadoutReadiness">Weapon required</span>
+          </div>
+          <div id="loadoutPreviewRail" class="loadoutPreviewRail"></div>
+          <div class="loadoutAttribution" aria-label="Project attribution"><b>ALBION HOUSE</b><span>albionhouse.games</span></div>
         </div>
       </div>
       <div class="startFooter">
@@ -4759,6 +5390,7 @@ h2,
 const G = 44, OX = 28, OY = 88;
 let COLS = 30, ROWS = 15;
 const CAMERA = { x: 0, y: 0 };
+const EXPEDITION_ROOM_LOCK_CAMERA_ENABLED = false;
 const cx = c => OX + c * G + G / 2;
 const cy = r => OY + r * G + G / 2;
 const key = (c, r) => c + ',' + r;
@@ -5164,7 +5796,7 @@ const LEVELS = {
       riftHunterDamage: 22,
       extraction: { c: 55, r: 16 },
       requiredKeyCount: 4,
-      extractionHoldSeconds: 75,
+      extractionHoldSeconds: 90,
       requiredRoomIds: [],
       shortcuts: [
         [9, 27, 17, 29],
@@ -5177,8 +5809,26 @@ const LEVELS = {
         { id: 'reactorCache', name: 'Storage Container', kind: 'container', c: 55, r: 30 },
       ],
       rooms: [
-        { id: 'entry', name: 'Entry', rect: [1, 19, 6, 24], color: '#6f6253' },
-        { id: 'security', name: 'Security Checkpoint', rect: [6, 18, 14, 25], color: '#7a6f5c' },
+        {
+          id: 'entry',
+          name: 'Entrance',
+          rect: [1, 19, 6, 24],
+          color: '#6f6253',
+          blockedRects: [
+            [2, 19, 2, 19],
+            [2, 24, 2, 24],
+          ],
+        },
+        {
+          id: 'security',
+          name: 'Security Checkpoint',
+          rect: [6, 18, 14, 25],
+          color: '#7a6f5c',
+          blockedRects: [
+            [8, 19, 8, 20],
+            [12, 23, 12, 24],
+          ],
+        },
         {
           id: 'keyLabyrinth',
           name: 'Dark Chapel',
@@ -5229,6 +5879,12 @@ const LEVELS = {
           name: 'Rift Access',
           rect: [21, 16, 32, 25],
           color: '#6a6a6a',
+          blockedRects: [
+            [23, 18, 23, 19],
+            [29, 18, 29, 19],
+            [23, 22, 23, 23],
+            [29, 22, 29, 23],
+          ],
           bedBlocks: [
             { c: 22, r: 17 }, { c: 25, r: 17 }, { c: 28, r: 17 }, { c: 31, r: 17 },
             { c: 22, r: 20 }, { c: 25, r: 20 }, { c: 28, r: 20 }, { c: 31, r: 20 },
@@ -5243,18 +5899,10 @@ const LEVELS = {
         },
         {
           id: 'lab',
-          name: 'Blackout Containment',
+          name: 'Containment Vault',
           rect: [38, 13, 51, 25],
           color: '#49656b',
-          darkRoom: true,
-          darkness: {
-            darknessAlpha: .9,
-            floorReadabilityAlpha: .08,
-            playerLightRadius: 78,
-            riftLightRadius: 250,
-            softEdge: 65,
-          },
-          terminal: { c: 48, r: 16 },
+          treasureChest: { c: 48, r: 16 },
           key: { c: 49, r: 16 },
           lavaRects: [
             [38, 13, 51, 14],
@@ -5338,14 +5986,51 @@ const LEVELS = {
             { c: 49, r: 23 },
           ],
         },
-        { id: 'chapel', name: 'Chapel', rect: [26, 5, 42, 13], color: '#5d526b' },
-        { id: 'reactor', name: 'Reactor Complex', rect: [48, 26, 61, 36], color: '#6b5a39' },
-        { id: 'flesh', name: 'Flesh Garden', rect: [18, 32, 37, 40], color: '#6f3d4a' },
+        {
+          id: 'chapel',
+          name: 'Chapel',
+          rect: [26, 5, 42, 13],
+          color: '#5d526b',
+          countdownSeconds: 30,
+          blockedRects: [
+            [30, 7, 30, 8],
+            [38, 7, 38, 8],
+            [30, 11, 30, 12],
+            [38, 11, 38, 12],
+          ],
+        },
+        {
+          id: 'reactor',
+          name: 'Reactor Complex',
+          rect: [48, 26, 61, 36],
+          color: '#6b5a39',
+          blockedRects: [
+            [51, 28, 52, 28],
+            [57, 28, 58, 28],
+            [51, 33, 52, 33],
+            [57, 33, 58, 33],
+          ],
+        },
+        {
+          id: 'flesh',
+          name: 'Flesh Garden',
+          rect: [18, 32, 37, 40],
+          color: '#6f3d4a',
+          blockedRects: [
+            [22, 34, 23, 35],
+            [31, 34, 32, 35],
+            [25, 38, 26, 39],
+            [34, 38, 35, 39],
+          ],
+        },
         {
           id: 'rift',
           name: 'Rift Chamber',
           rect: [45, 2, 62, 14],
           color: '#483d77',
+          entrances: [
+            { c: 45, r: 8, side: 'west', kind: 'lockedDoor', label: 'RIFT CHAMBER LOCKED' },
+          ],
           blockedRects: [
             [48, 3, 59, 4],
             [48, 12, 59, 13],
@@ -5354,8 +6039,17 @@ const LEVELS = {
             [51, 6, 56, 10],
           ],
         },
-        { id: 'maintenance', name: 'Maintenance Tunnels', rect: [6, 33, 18, 40], color: '#3f4e52' },
-        { id: 'extraction', name: 'Relay Pad', rect: [52, 7, 55, 10], color: '#516b58' },
+        {
+          id: 'maintenance',
+          name: 'Maintenance Tunnels',
+          rect: [6, 33, 18, 40],
+          color: '#3f4e52',
+          blockedRects: [
+            [9, 35, 9, 36],
+            [14, 37, 14, 38],
+          ],
+        },
+        { id: 'extraction', name: 'Relay Pad', rect: [57, 6, 60, 10], color: '#516b58' },
       ],
     },
   },
@@ -5417,8 +6111,11 @@ function scaledExpeditionLevel(level) {
         ...room,
         rect: scaleExpeditionRect(room.rect, scale),
         terminal: scaleExpeditionPoint(room.terminal, scale),
+        treasureChest: scaleExpeditionPoint(room.treasureChest, scale),
         key: scaleExpeditionPoint(room.key, scale),
         entrances: (room.entrances || []).map(point => scaleExpeditionPoint(point, scale)),
+        blockedRects: (room.blockedRects || []).map(rect => scaleExpeditionRect(rect, scale)),
+        bedBlocks: (room.bedBlocks || []).map(point => scaleExpeditionPoint(point, scale)),
         lavaRects: (room.lavaRects || []).map(rect => scaleExpeditionRect(rect, scale)),
         skullCells: (room.skullCells || []).map(point => scaleExpeditionPoint(point, scale)),
         routeThreats: (room.routeThreats || []).map(point => scaleExpeditionPoint(point, scale)),
@@ -6026,8 +6723,8 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const BUILD_VERSION = '7.18.14';
-const BUILD_NAME = 'SkullSplit';
+const BUILD_VERSION = '7.21.0';
+const BUILD_NAME = 'ArmoryShift';
 function upgradeIcon(id, kind = 'generic') {
   const up = HERO_UPGRADES[id] || TRAP_UPGRADES[id] || BOSS_UPGRADES[id] || {};
   const explicit = up.targetIcon || up.targetItem || up.targetIconAlt || up.targetItemAlt;
@@ -6378,14 +7075,14 @@ function expeditionStoredSurgeMeta(surge) {
 }
 
 function expeditionStoredSurgeActive() {
-  return !!S.expedition?.storedSurge;
+  return !!S.expedition?.storedSurge || !!S.expedition?.storedSurges?.length;
 }
 
 function expeditionGrantStoredSurge(type, source = 'room clear') {
   const ex = S.expedition;
   if (!isExpeditionRun() || !ex || !EXPEDITION_STORED_SURGE_TYPES.has(type)) return false;
   const meta = expeditionStoredSurgeMeta({ type });
-  ex.storedSurge = {
+  const surge = {
     type,
     name: meta.name,
     desc: meta.desc,
@@ -6393,6 +7090,9 @@ function expeditionGrantStoredSurge(type, source = 'room clear') {
     source,
     acquiredAt: performance.now() / 1000,
   };
+  ex.storedSurges ||= ex.storedSurge ? [ex.storedSurge] : [];
+  ex.storedSurges.push(surge);
+  ex.storedSurge = ex.storedSurges[0];
   ex.message = `${meta.name} stored.`;
   ex.messageTime = 4;
   floatText(`${meta.name} STORED`, S.hero.x - 50, S.hero.y - 34, '#8edcff');
@@ -6402,17 +7102,20 @@ function expeditionGrantStoredSurge(type, source = 'room clear') {
 
 function activateExpeditionStoredSurge() {
   const ex = S.expedition;
-  const surge = ex?.storedSurge;
+  const surge = ex?.storedSurges?.[0] || ex?.storedSurge;
   if (!isExpeditionRun()) return false;
   if (!surge) {
     toast('No stored Surge.');
     return false;
   }
   const type = surge.type;
-  ex.storedSurge = null;
+  ex.storedSurges ||= [surge];
+  ex.storedSurges.shift();
+  ex.storedSurge = ex.storedSurges[0] || null;
   const orb = { x: S.hero.x, y: S.hero.y, full: true, type };
   const ok = applyPowerupEffect(type, orb);
   if (ok === false) {
+    ex.storedSurges.unshift(surge);
     ex.storedSurge = surge;
     toast('Stored Surge failed.');
     return false;
@@ -6425,7 +7128,7 @@ function activateExpeditionStoredSurge() {
 }
 
 function expeditionStoredSurgeTooltipHTML() {
-  const surge = S.expedition?.storedSurge;
+  const surge = S.expedition?.storedSurges?.[0] || S.expedition?.storedSurge;
   if (!surge) {
     return `
       <div class="loadoutStats">
@@ -6435,11 +7138,12 @@ function expeditionStoredSurgeTooltipHTML() {
   }
   const meta = expeditionStoredSurgeMeta(surge);
   return `
-    <div class="loadoutStats">
-      <div class="loadoutStat"><span>Key</span><b>9</b></div>
-      <div class="loadoutStat"><span>Status</span><b>Ready</b></div>
-      <div class="loadoutStat"><span>Type</span><b>${meta.name}</b></div>
-    </div>`;
+      <div class="loadoutStats">
+        <div class="loadoutStat"><span>Key</span><b>9</b></div>
+        <div class="loadoutStat"><span>Status</span><b>Ready</b></div>
+        <div class="loadoutStat"><span>Type</span><b>${meta.name}</b></div>
+        <div class="loadoutStat"><span>Stored</span><b>${S.expedition?.storedSurges?.length || 1}</b></div>
+      </div>`;
 }
 
 const EXPEDITION_RIFT_UPGRADE_CAP = 5;
@@ -6820,7 +7524,57 @@ function valid(c, r) { return canEnemyEnterCell(c, r); }
 function cellAt(x, y) { return { c: Math.floor((x - OX) / G), r: Math.floor((y - OY) / G) }; }
 function getMouseWorldPosition() { return { x: mouse.x + CAMERA.x, y: mouse.y + CAMERA.y }; }
 function getWorldBounds() { return { x: OX - 18, y: OY - 18, w: COLS * G + 36, h: ROWS * G + 36 }; }
-function updateCamera(immediate = false) {
+function getExpeditionActiveRoom() {
+  if (!isExpeditionRun()) return null;
+  const cfg = expeditionConfig();
+  const activeRoomId = S.expedition?.activeRoomId;
+  return (cfg?.rooms || []).find(room => room.id === activeRoomId) || expeditionRoomAtHero();
+}
+function getExpeditionRoomCameraTarget(room) {
+  const [x1, y1, x2, y2] = room?.rect || [];
+  if (![x1, y1, x2, y2].every(Number.isFinite)) return null;
+  const left = OX + x1 * G;
+  const top = OY + y1 * G;
+  const right = OX + (x2 + 1) * G;
+  const bottom = OY + (y2 + 1) * G;
+  const roomW = right - left;
+  const roomH = bottom - top;
+  const targetX = roomW <= W
+    ? left + roomW / 2 - W / 2
+    : clamp(S.hero.x - W / 2, left, right - W);
+  const targetY = roomH <= H
+    ? top + roomH / 2 - H / 2
+    : clamp(S.hero.y - H / 2, top, bottom - H);
+  const world = getWorldBounds();
+  return {
+    x: clamp(targetX, world.x, Math.max(world.x, world.x + world.w - W)),
+    y: clamp(targetY, world.y, Math.max(world.y, world.y + world.h - H)),
+    oversized: roomW > W || roomH > H,
+  };
+}
+function updateExpeditionRoomCamera(room, immediate = false, now = performance.now() / 1000) {
+  const target = getExpeditionRoomCameraTarget(room);
+  if (!target) return false;
+  const roomChanged = CAMERA.expeditionRoomId !== room.id;
+  const dt = clamp(now - (CAMERA.expeditionCameraAt || now - 1 / 60), 0, .05);
+  CAMERA.expeditionCameraAt = now;
+  if (roomChanged) CAMERA.expeditionTransitionUntil = now + .35;
+  if (immediate || !isFinite(CAMERA.x) || !isFinite(CAMERA.y)) {
+    CAMERA.x = target.x;
+    CAMERA.y = target.y;
+  } else {
+    const transitionActive = now < (CAMERA.expeditionTransitionUntil || 0);
+    const smooth = 1 - Math.exp(-dt / (target.oversized && !transitionActive ? .16 : .1));
+    CAMERA.x += (target.x - CAMERA.x) * smooth;
+    CAMERA.y += (target.y - CAMERA.y) * smooth;
+  }
+  CAMERA.expeditionRoomId = room.id;
+  return true;
+}
+function updateCamera(immediate = false, now = performance.now() / 1000) {
+  const expeditionRoom = EXPEDITION_ROOM_LOCK_CAMERA_ENABLED ? getExpeditionActiveRoom() : null;
+  if (expeditionRoom && updateExpeditionRoomCamera(expeditionRoom, immediate, now)) return;
+  CAMERA.expeditionRoomId = null;
   const bounds = getWorldBounds();
   const maxX = Math.max(bounds.x, bounds.x + bounds.w - W);
   const maxY = Math.max(bounds.y, bounds.y + bounds.h - H);
@@ -7142,6 +7896,8 @@ function createExpeditionState(levelId = S.levelId) {
     reinforceTimer: 0,
     rift: { x: riftX, y: riftY, hp: 900, max: 900 },
     riftCarried: false,
+    riftEverCarried: false,
+    riftAwakeningTime: 0,
     riftWarnState: 0,
     riftWarnPulse: 0,
     riftWarnFlash: 0,
@@ -7155,6 +7911,7 @@ function createExpeditionState(levelId = S.levelId) {
     roomThreatsSpawned: {},
     pressureReleaseTimer: 0,
     storedSurge: null,
+    storedSurges: [],
     roomTerminalStates: {},
     roomTerminalPrompt: '',
     roomTerminalPromptTime: 0,
@@ -7187,6 +7944,7 @@ function resetExpeditionState() {
       S.expedition.messageTime = 6;
       S.expedition.reinforceTimer = 1.2;
       if (cfg.startingRoomCleared) S.expedition.roomStates[cfg.startingRoomCleared] = 'cleared';
+      S.expedition.roomStates.entry = 'cleared';
       if (!S.expedition.shortcutsOpen) {
         for (const rect of cfg.shortcuts || []) roadRect(rect[0], rect[1], rect[2], rect[3]);
         S.expedition.shortcutsOpen = true;
@@ -7203,8 +7961,6 @@ function resetExpeditionState() {
 function isWithinExpeditionRiftBuildRadius(px, py) {
   if (!isExpeditionRun()) return true;
   if (isCarryingExpeditionRift()) return false;
-  const activeRoom = activeLockedExpeditionRoom() || expeditionRoomAtHero();
-  if (activeRoom && expeditionRoomContainsPoint(activeRoom, px, py)) return true;
   const cfg = expeditionConfig();
   const radius = cfg?.buildRadius || 260;
   const rift = S.expedition?.rift;
@@ -7261,7 +8017,7 @@ function expeditionBlockingSkullAtCell(c, r) {
 }
 
 function expeditionRoomTerminalCell(room) {
-  return room?.terminal || null;
+  return room?.treasureChest || room?.terminal || null;
 }
 
 function expeditionRoomKeyCell(room) {
@@ -7443,9 +8199,7 @@ function maybeWaitAtLockedExpeditionDoor(e) {
 function expeditionRoomCanThreatenRift(room) {
   const ex = S.expedition;
   if (!ex?.rift || !room) return false;
-  if (ex.riftActivated) return true;
-  const rc = cellAt(ex.rift.x, ex.rift.y);
-  return expeditionRoomContainsCell(room, rc.c, rc.r);
+  return !!(ex.riftActivated && ex.riftEverCarried);
 }
 
 function expeditionRoomState(roomId) {
@@ -7623,8 +8377,10 @@ function startExpeditionExtractionEvent() {
     return false;
   }
   ex.extractionActive = true;
-  ex.extractionTimer = cfg?.extractionHoldSeconds || 75;
-  ex.extractionSpawnTimer = 0.8;
+  ex.extractionTimer = cfg?.extractionHoldSeconds || 90;
+  ex.extractionWaveIndex = 0;
+  ex.extractionWaveQueue = [];
+  ex.extractionSpawnTimer = 0;
   ex.message = 'Relay started. Hold out.';
   ex.messageTime = 6;
   announceWave('RELAY HOLDOUT', 'danger', 1.2);
@@ -7633,6 +8389,43 @@ function startExpeditionExtractionEvent() {
   const relay = expeditionRelayPadCenter();
   if (relay) shockwave(relay.x, relay.y, '#9fffc8', 210, .45);
   return true;
+}
+
+const EXPEDITION_RELAY_WAVES = [
+  { at: 1, direction: 0, enemies: ['grunt', 'grunt', 'runner'] },
+  { at: 10, direction: 0, enemies: ['grunt', 'runner', 'grunt', 'runner'] },
+  { at: 20, direction: 0, enemies: ['grunt', 'shield', 'runner'] },
+  { at: 27, direction: 2, enemies: ['grunt', 'runner', 'sapper'] },
+  { at: 35, direction: 0, enemies: ['shield', 'grunt', 'runner', 'runner'] },
+  { at: 43, direction: 2, enemies: ['sapper', 'grunt', 'shield', 'runner'] },
+  { at: 50, direction: 1, enemies: ['slinger', 'slinger', 'runner', 'grunt'] },
+  { at: 58, direction: 3, enemies: ['runner', 'slinger', 'sapper', 'runner'] },
+  { at: 66, direction: 1, enemies: ['slinger', 'shield', 'runner', 'runner', 'grunt'] },
+  { at: 72, direction: 0, enemies: ['brute', 'grunt', 'runner', 'slinger'] },
+  { at: 78, direction: 2, enemies: ['shield', 'sapper', 'runner', 'slinger', 'grunt'] },
+  { at: 84, direction: 3, enemies: ['brute', 'shield', 'slinger', 'runner', 'runner', 'sapper'] },
+];
+
+function spawnExpeditionRelayEnemy(type, directionIndex) {
+  const spawn = (levelDef(S.levelId)?.spawns || [])[directionIndex];
+  if (!spawn) return null;
+  const ex = S.expedition;
+  const target = cellAt(ex.rift.x, ex.rift.y);
+  let path = routePath(spawn, target);
+  if (!path.length) path = [
+    { ...spawn, x: cx(spawn.c), y: cy(spawn.r) },
+    { ...target, x: cx(target.c), y: cy(target.r) },
+  ];
+  const oldWave = S.wave;
+  S.wave = Math.max(S.wave, 10);
+  const enemy = spawnEnemyAt(type, cx(spawn.c), cy(spawn.r), path, 0);
+  S.wave = oldWave;
+  if (!enemy) return null;
+  enemy.entry = spawn.label || 'Relay approach';
+  enemy.expeditionSpawn = true;
+  enemy.expeditionTarget = 'rift';
+  enemy.riftHunter = true;
+  return enemy;
 }
 
 function finishExpeditionExtraction() {
@@ -7664,14 +8457,20 @@ function finishExpeditionExtraction() {
 function updateExpeditionExtractionEvent(dt) {
   const ex = S.expedition;
   if (!isExpeditionRun() || !ex?.extractionActive || ex.completed) return;
+  const holdSeconds = expeditionConfig()?.extractionHoldSeconds || 90;
   ex.extractionTimer = Math.max(0, (ex.extractionTimer || 0) - dt);
   ex.extractionSpawnTimer = Math.max(0, (ex.extractionSpawnTimer || 0) - dt);
-  if (ex.extractionSpawnTimer <= 0) {
-    const pressure = 1 - Math.max(0, ex.extractionTimer || 0) / (expeditionConfig()?.extractionHoldSeconds || 75);
-    ex.extractionSpawnTimer = Math.max(1.25, 3.2 - pressure * 1.4);
-    const pool = pressure > .65 ? ['runner', 'shield', 'sapper', 'brute'] : pressure > .3 ? ['grunt', 'runner', 'shield', 'sapper'] : ['grunt', 'runner', 'runner'];
-    const count = pressure > .7 ? 3 : 2;
-    for (let i = 0; i < count; i++) spawnExpeditionEnemy(pool);
+  const elapsed = holdSeconds - ex.extractionTimer;
+  while ((ex.extractionWaveIndex || 0) < EXPEDITION_RELAY_WAVES.length && EXPEDITION_RELAY_WAVES[ex.extractionWaveIndex].at <= elapsed) {
+    const wave = EXPEDITION_RELAY_WAVES[ex.extractionWaveIndex++];
+    ex.extractionWaveQueue.push(...wave.enemies.map(type => ({ type, direction: wave.direction })));
+    ex.message = `Relay wave ${ex.extractionWaveIndex}/${EXPEDITION_RELAY_WAVES.length}`;
+    ex.messageTime = 2.5;
+  }
+  if (ex.extractionWaveQueue.length && ex.extractionSpawnTimer <= 0) {
+    const next = ex.extractionWaveQueue.shift();
+    spawnExpeditionRelayEnemy(next.type, next.direction);
+    ex.extractionSpawnTimer = .55;
   }
   if (ex.extractionTimer <= 0) finishExpeditionExtraction();
 }
@@ -7759,12 +8558,12 @@ function expeditionEntranceForPressure(room, pressure) {
 function expeditionEncounterDef(room) {
   const defs = {
     entry:       { objective: 'clear', label: 'Clear Entry Breach', roomType: 'runner', enemies: ['grunt', 'grunt', 'runner'] },
-    security:    { objective: 'elite', label: 'Clear Security Wing', enemies: ['grunt', 'shield', 'warden'], elite: 'warden' },
+    security:    { objective: 'clear', label: 'Clear Security Checkpoint', fixedEnemies: ['slinger', 'slinger', 'slinger', 'slinger', 'grunt', 'grunt'] },
     spiral:      { objective: 'clear', label: 'Clear Spiral Keep', roomType: 'runner', enemies: ['grunt', 'runner', 'shield'] },
-    barracks:    { objective: 'clear', label: 'Clear Rift Access', roomType: 'shield', enemies: ['grunt', 'runner', 'sapper', 'shield'] },
-    lab:         { objective: 'terminal', label: 'Restore Containment Power', terminalPrompt: 'Press E to restore power.', enemies: [], pressureEnemies: ['hexcaller', 'hexcaller', 'hexcaller'] },
+    barracks:    { objective: 'clear', label: 'Clear Rift Access', fixedEnemies: ['grunt', 'runner', 'runner', 'sapper', 'runner', 'shield'] },
+    lab:         { objective: 'treasure', label: 'Open the Containment Chest', terminalPrompt: 'Press E to open the chest.', enemies: [], pressureEnemies: ['hexcaller', 'hexcaller', 'hexcaller'] },
     keyLabyrinth:{ objective: 'keyEscape', label: 'Open the locker. Escape.', terminalPrompt: 'Open the locker.', enemies: [], pressureEnemies: [] },
-    chapel:      { objective: 'clear', label: 'Clear Belvedere', roomType: 'healer', enemies: ['grunt', 'shield', 'healer'] },
+    chapel:      { objective: 'chapelWaves', label: 'Survive Chapel Waves', waveCount: 2, waveSize: 15, waveGap: 45 },
     reactor:     { objective: 'elite', label: 'Clear Reactor Complex', enemies: ['runner', 'brute', 'sapper'], elite: 'brute' },
     flesh:       { objective: 'nest', label: 'Clear Flesh Garden', roomType: 'splitter', enemies: ['splitter', 'splitter', 'splitter'], nest: true },
     rift:        { objective: 'elite', label: 'Secure the Rift Chamber', enemies: ['shield', 'warden', 'hexcaller'], elite: 'warden' },
@@ -7778,6 +8577,7 @@ function expeditionEnemyDensity() {
 }
 
 function expeditionEncounterEnemies(def) {
+  if (Array.isArray(def?.fixedEnemies)) return def.fixedEnemies.slice();
   const base = Array.isArray(def?.enemies) ? def.enemies.slice() : [];
   const targetCount = Math.max(base.length, Math.ceil(base.length * expeditionEnemyDensity()));
   const roomType = def?.roomType || def?.elite || base[0] || 'grunt';
@@ -7812,7 +8612,7 @@ function expeditionRoomSpawnCells(room, count) {
   const entranceCells = [];
   for (const entrance of entrances) {
     if (!entrance || !Number.isFinite(entrance.c) || !Number.isFinite(entrance.r)) continue;
-    if (!isRoad(entrance.c, entrance.r) || isExpeditionRoomBlockedCell(entrance.c, entrance.r) || expeditionRoomLavaCell(entrance.c, entrance.r, room)) continue;
+    if (!isRoad(entrance.c, entrance.r) || isBlockedTerrain(entrance.c, entrance.r) || isExpeditionRoomBlockedCell(entrance.c, entrance.r) || expeditionRoomLavaCell(entrance.c, entrance.r, room)) continue;
     entranceCells.push({
       c: entrance.c,
       r: entrance.r,
@@ -7826,7 +8626,7 @@ function expeditionRoomSpawnCells(room, count) {
   const [x1, y1, x2, y2] = room?.rect || [];
   for (let r = y1; r <= y2; r++) {
     for (let c = x1; c <= x2; c++) {
-      if (!isRoad(c, r) || isExpeditionRoomBlockedCell(c, r) || expeditionRoomLavaCell(c, r, room)) continue;
+      if (!isRoad(c, r) || isBlockedTerrain(c, r) || isExpeditionRoomBlockedCell(c, r) || expeditionRoomLavaCell(c, r, room)) continue;
       const x = cx(c), y = cy(r);
       if (!entranceCells.length && dist(x, y, S.hero.x, S.hero.y) < 120) continue;
       cells.push({ c, r, x, y });
@@ -7977,7 +8777,7 @@ function damageExpeditionRift(e, dt) {
   const ex = S.expedition;
   const rift = ex?.rift;
   const cfg = expeditionConfig();
-  if (!isExpeditionRun() || !rift || !e || e.dead || e.expeditionTarget !== 'rift') return false;
+  if (!isExpeditionRun() || !ex?.riftEverCarried || !rift || !e || e.dead || e.expeditionTarget !== 'rift') return false;
   const d = dist(e.x, e.y, rift.x, rift.y);
   if (d >= (e.rad || 12) + 42) return false;
   const shieldActive = expeditionRiftShieldActive();
@@ -8045,13 +8845,16 @@ function startExpeditionRoomEncounter(room) {
   ex.roomTerminalStates[room.id] = ex.roomTerminalStates?.[room.id] || 'offline';
   if (room.id === 'lab') ex.roomKeyStates = ex.roomKeyStates || {};
   if (room.id === 'lab') ex.roomKeyStates[room.id] = 'hidden';
+  if (room.id === 'flesh') ex.fleshNestSpawnAt = performance.now() / 1000 + .75;
+  if (room.id === 'chapel') {
+    ex.chapelCountdown = room.countdownSeconds || 30;
+    ex.chapelWave = 0;
+  }
   primeExpeditionRoomBoundarySides(room);
   spawnExpeditionRoomSkulls(room);
   spawnBoneWarden(room);
   if (room.id !== 'lab') ensureExpeditionRoomKey(room);
   if (def.nest) spawnExpeditionRoomNest(room);
-  if (room.id === 'flesh') spawnFleshGardenSlimeKing(room);
-  if (room.id === 'flesh') ex.fleshNestSpawnAt = performance.now() / 1000 + 1.8;
   const placedThreats = room.id === 'keyLabyrinth' ? [] : spawnExpeditionRoomRouteThreats(room, true);
   if (Array.isArray(def.pressureEnemies) && def.pressureEnemies.length) {
     const spawnCells = expeditionRoomSpawnCells(room, def.pressureEnemies.length);
@@ -8060,7 +8863,7 @@ function startExpeditionRoomEncounter(room) {
       .filter(Boolean);
   }
   if (placedThreats.length) assignExpeditionRoomTargets(placedThreats, room);
-  if (!['terminal', 'keyEscape'].includes(def.objective)) {
+  if (!['terminal', 'treasure', 'keyEscape', 'chapelWaves'].includes(def.objective)) {
     const enemies = expeditionEncounterEnemies(def);
     const spawnCells = expeditionRoomSpawnCells(room, enemies.length);
     let eliteSpawned = false;
@@ -8075,8 +8878,8 @@ function startExpeditionRoomEncounter(room) {
   }
   ex.message = def.label;
   ex.messageTime = 6;
-  maybeShowMissionHint(def.objective === 'terminal' || def.objective === 'keyEscape' ? (def.terminalPrompt || 'Press E to restore power.') : def.label.includes('Relay') ? 'Activate the Relay.' : 'Clear the room.', `expedition-room-${room.id}`, 4);
-  announceWave(`${room.name.toUpperCase()}: ${def.label.toUpperCase()}`, def.objective === 'terminal' || def.objective === 'keyEscape' ? 'resting' : 'danger', 1);
+  maybeShowMissionHint(['terminal', 'treasure', 'keyEscape'].includes(def.objective) ? (def.terminalPrompt || 'Press E to interact.') : def.label.includes('Relay') ? 'Activate the Relay.' : 'Clear the room.', `expedition-room-${room.id}`, 4);
+  announceWave(`${room.name.toUpperCase()}: ${def.label.toUpperCase()}`, ['terminal', 'treasure', 'keyEscape'].includes(def.objective) ? 'resting' : 'danger', 1);
   shockwave(S.hero.x, S.hero.y, '#ffcf6a', 110, .26);
   rebuildPath();
   return true;
@@ -8125,7 +8928,21 @@ function completeKeyLabyrinthEscape(room) {
   return true;
 }
 
-function updateExpeditionRoomEncounter() {
+function spawnExpeditionChapelWave(room, waveNumber) {
+  const ex = S.expedition;
+  if (!isExpeditionRun() || !ex || !room || room.id !== 'chapel') return [];
+  const def = expeditionEncounterDef(room);
+  const count = def.waveSize || 15;
+  const spawnCells = expeditionRoomSpawnCells(room, count);
+  const spawned = Array.from({ length: count }, (_, i) =>
+    spawnExpeditionRoomEnemy('grunt', room, spawnCells[i % spawnCells.length], false)
+  ).filter(Boolean);
+  assignExpeditionRoomTargets(spawned, room);
+  announceWave(`CHAPEL WAVE ${waveNumber}/${def.waveCount || 2}`, 'danger', 1.1);
+  return spawned;
+}
+
+function updateExpeditionRoomEncounter(dt = 0) {
   return profileMeasure('roomObjectives', () => {
     const ex = S.expedition;
     const cfg = expeditionConfig();
@@ -8146,7 +8963,7 @@ function updateExpeditionRoomEncounter() {
         }
         return;
       }
-      if (ex.roomObjective?.type === 'terminal') {
+      if (ex.roomObjective?.type === 'terminal' || ex.roomObjective?.type === 'treasure') {
         if (ex.activeRoomId === 'lab') {
           const room = (cfg.rooms || []).find(r => r.id === ex.activeRoomId);
           const liveRoomEnemies = S.enemies.filter(e => !e.dead && e.expeditionRoomId === ex.activeRoomId);
@@ -8162,23 +8979,44 @@ function updateExpeditionRoomEncounter() {
         }
         return;
       }
+      if (ex.roomObjective?.type === 'chapelWaves') {
+        const room = (cfg.rooms || []).find(r => r.id === ex.activeRoomId);
+        const def = expeditionEncounterDef(room);
+        const live = S.enemies.filter(e => !e.dead && e.expeditionRoomId === ex.activeRoomId);
+        ex.chapelCountdown = Math.max(0, (ex.chapelCountdown ?? room?.countdownSeconds ?? 30) - dt);
+        if (ex.chapelCountdown <= 0 && (ex.chapelWave || 0) < (def.waveCount || 2)) {
+          ex.chapelWave = (ex.chapelWave || 0) + 1;
+          spawnExpeditionChapelWave(room, ex.chapelWave);
+          ex.chapelCountdown = ex.chapelWave < (def.waveCount || 2) ? (def.waveGap || 45) : 0;
+          return;
+        }
+        if ((ex.chapelWave || 0) >= (def.waveCount || 2) && !live.length) completeExpeditionRoomEncounter(room.id);
+        return;
+      }
       const live = S.enemies.filter(e => !e.dead && e.expeditionRoomId === ex.activeRoomId);
       if (ex.roomObjective?.type === 'elite') {
         if (!live.some(e => e.eliteRoomTarget)) completeExpeditionRoomEncounter(ex.activeRoomId);
       } else if (ex.roomObjective?.type === 'nest') {
         if (ex.activeRoomId === 'flesh') {
+          const room = (cfg.rooms || []).find(r => r.id === ex.activeRoomId);
           const liveNest = (ex.roomNests || []).find(n => !n.dead && n.roomId === ex.activeRoomId);
-          if (liveNest && (ex.fleshNestSpawnAt || 0) <= performance.now() / 1000) {
-            const room = (cfg.rooms || []).find(r => r.id === ex.activeRoomId);
+          const liveBasics = live.filter(e => !e.expeditionFleshSlime);
+          const now = performance.now() / 1000;
+          if (liveNest && liveBasics.length < 5 && (ex.fleshNestSpawnAt || 0) <= now) {
             const spawnCells = room ? expeditionRoomSpawnCells(room, 1) : [];
             const spawned = spawnExpeditionRoomEnemy('splitter', room, spawnCells[0], false);
             if (spawned) assignExpeditionRoomTargets([spawned], room);
-            ex.fleshNestSpawnAt = performance.now() / 1000 + 3.2;
+            ex.fleshNestSpawnAt = now + .65;
+          }
+          if (!liveNest && !liveBasics.length && !ex.fleshSlimeKingSpawned && !ex.fleshSlimeKingSpawnAttempted) {
+            ex.fleshSlimeKingSpawnAttempted = true;
+            spawnFleshGardenSlimeKing(room);
           }
         }
         const liveNest = (ex.roomNests || []).some(n => !n.dead && n.roomId === ex.activeRoomId);
         const liveFleshSlime = ex.activeRoomId === 'flesh' && S.enemies.some(e => !e.dead && e.expeditionFleshSlime);
-        if (!liveNest && !liveFleshSlime) completeExpeditionRoomEncounter(ex.activeRoomId);
+        const fleshBossComplete = ex.activeRoomId !== 'flesh' || (ex.fleshSlimeKingSpawned && !liveFleshSlime);
+        if (!liveNest && fleshBossComplete) completeExpeditionRoomEncounter(ex.activeRoomId);
       } else if (!live.length) {
         completeExpeditionRoomEncounter(ex.activeRoomId);
       }
@@ -8257,6 +9095,14 @@ function tryToggleExpeditionRiftCarry() {
   }
   if (dist(S.hero.x, S.hero.y, ex.rift.x, ex.rift.y) > 95) return false;
   ex.riftCarried = true;
+  if (!ex.riftEverCarried && !(ex.riftAwakeningTime > 0)) {
+    ex.riftAwakeningTime = 2;
+    ex.message = 'The Rift wakes.';
+    ex.messageTime = 3;
+    announceWave('THE RIFT WAKES', 'danger', 1);
+    playSfx('bossWarning');
+    shake(7, .35);
+  }
   ex.rift.x = S.hero.x;
   ex.rift.y = S.hero.y;
   ex.message = 'Rift carried. Deploy it to build.';
@@ -8273,19 +9119,23 @@ function tryActivateExpeditionRoomTerminal() {
   const ex = S.expedition;
   const room = activeLockedExpeditionRoom() || expeditionRoomAtHero();
   if (!isExpeditionRun() || !ex || !room || ex.activeRoomId !== room.id) return false;
-  if (!['terminal', 'keyEscape'].includes(ex.roomObjective?.type) || expeditionRoomTerminalPowered(room.id)) return false;
+  if (!['terminal', 'treasure', 'keyEscape'].includes(ex.roomObjective?.type) || expeditionRoomTerminalPowered(room.id)) return false;
   const terminal = expeditionRoomTerminalCell(room);
   if (!terminal) return false;
   const radius = EXPEDITION_PROTOTYPE_TUNING.blackoutContainment.terminalInteractRadius || 86;
   const tx = cx(terminal.c), ty = cy(terminal.r);
   if (dist(S.hero.x, S.hero.y, tx, ty) > radius) return false;
   ex.roomTerminalStates[room.id] = 'powered';
-  ex.message = room.id === 'keyLabyrinth' ? 'Locker ready.' : 'Power restored.';
+  if (ex.roomObjective?.type === 'treasure') {
+    awardGoldCache(500, tx, ty, 'containment chest');
+    for (const type of ['blackhole', 'goose', 'bees']) expeditionGrantStoredSurge(type, 'containment chest');
+  }
+  ex.message = room.id === 'keyLabyrinth' ? 'Locker ready.' : ex.roomObjective?.type === 'treasure' ? 'Containment treasure claimed.' : 'Power restored.';
   ex.messageTime = 5;
   ex.prompt = '';
   ex.promptTime = 0;
-  showMissionHint(room.id === 'keyLabyrinth' ? 'Open the locker.' : 'Containment power restored.', `expedition-terminal-${room.id}`, 3.2);
-  announceWave(`${room.name.toUpperCase()} ONLINE`, 'resting', .9);
+  showMissionHint(room.id === 'keyLabyrinth' ? 'Open the locker.' : ex.roomObjective?.type === 'treasure' ? 'Treasure stored in the Surge bar.' : 'Containment power restored.', `expedition-terminal-${room.id}`, 3.2);
+  announceWave(ex.roomObjective?.type === 'treasure' ? 'CONTAINMENT TREASURE CLAIMED' : `${room.name.toUpperCase()} ONLINE`, 'resting', .9);
   shockwave(tx, ty, '#8edcff', 170, .34);
   burst(tx, ty, '#e8f6ff', 18, 'spark', 180);
   playSfx('secondaryReady');
@@ -8310,7 +9160,7 @@ function spawnExpeditionEnemy(pool) {
   if (!cell) return null;
   const ex = S.expedition || {};
   const cfg = expeditionConfig();
-  const riftTarget = !!(ex.riftActivated && ex.rift && Math.random() < clamp((cfg?.riftHunterRatio ?? .25) + expeditionRiftThreatScale() * .35, 0, .9));
+  const riftTarget = !!(ex.riftActivated && ex.riftEverCarried && ex.rift && Math.random() < clamp((cfg?.riftHunterRatio ?? .25) + expeditionRiftThreatScale() * .35, 0, .9));
   const target = riftTarget ? cellAt(ex.rift.x, ex.rift.y) : cellAt(S.hero.x, S.hero.y);
   let path = routePath(cell, target);
   if (!path.length && ex.riftActivated) path = routePath(cell, GOAL);
@@ -8367,20 +9217,20 @@ function updateExpedition(dt) {
     ex.message = room.name;
     ex.messageTime = Math.max(ex.messageTime || 0, 2.4);
   }
-  updateExpeditionRoomEncounter();
+  updateExpeditionRoomEncounter(dt);
   if (ex.activeRoomId === 'keyLabyrinth') {
     const activeRoom = (cfg.rooms || []).find(candidate => candidate.id === 'keyLabyrinth');
     const spawned = spawnExpeditionRoomRouteThreats(activeRoom, !!ex.finalKeyCollected);
     if (spawned.length) assignExpeditionRoomTargets(spawned, activeRoom);
   }
-  if (ex.activeRoomId && ['terminal', 'keyEscape'].includes(ex.roomObjective?.type)) {
+  if (ex.activeRoomId && ['terminal', 'treasure', 'keyEscape'].includes(ex.roomObjective?.type)) {
     const activeRoom = (cfg.rooms || []).find(candidate => candidate.id === ex.activeRoomId) || null;
       const terminal = expeditionRoomTerminalCell(activeRoom);
       if (terminal && !expeditionRoomTerminalPowered(ex.activeRoomId)) {
         const radius = EXPEDITION_PROTOTYPE_TUNING.blackoutContainment.terminalInteractRadius || 86;
         const tx = cx(terminal.c), ty = cy(terminal.r);
         if (dist(S.hero.x, S.hero.y, tx, ty) <= radius) {
-        ex.prompt = ex.roomObjective?.type === 'keyEscape' ? 'Open the locker.' : 'Press E to restore power.';
+        ex.prompt = ex.roomObjective?.type === 'keyEscape' ? 'Open the locker.' : ex.roomObjective?.type === 'treasure' ? 'Press E to open the chest.' : 'Press E to restore power.';
         ex.promptTime = .25;
       }
     }
@@ -8424,6 +9274,15 @@ function updateExpedition(dt) {
   if (isCarryingExpeditionRift()) {
     rift.x = S.hero.x;
     rift.y = S.hero.y;
+  }
+  if ((ex.riftAwakeningTime || 0) > 0) {
+    ex.riftAwakeningTime = Math.max(0, ex.riftAwakeningTime - dt);
+    if (ex.riftAwakeningTime <= 0) {
+      ex.riftEverCarried = true;
+      ex.message = 'The Rift is alive.';
+      ex.messageTime = 3;
+      shockwave(rift.x, rift.y, '#d8c8ff', 170, .42);
+    }
   }
 
   if (ex.activeRoomId) {
@@ -8837,7 +9696,7 @@ function spawnFleshGardenSlimeKing(room) {
   boss.entry = 'Flesh Garden';
   boss.path = path;
   boss.node = 0;
-  boss.wild = false;
+  boss.wild = true;
   boss.off = 0;
   boss.expeditionFleshSlime = true;
   boss.expeditionRoomId = room.id;
@@ -8845,13 +9704,24 @@ function spawnFleshGardenSlimeKing(room) {
   boss.expeditionTarget = 'hero';
   boss.lockedRoomId = room.id;
   boss.lockedRoomSide = 'inside';
+  boss.spd *= 1.65;
   boss.baseSpd = boss.spd;
   boss.bossPhase = boss.bossPhase || 1;
   boss.minionTimer = 2.2;
-  boss.puddleTimer = .3;
-  boss.leapCd = 2.8;
+  boss.puddleTimer = .15;
+  boss.leapCd = .8;
   boss.leapState = 'idle';
-  boss.leapDuration = 0.45;
+  boss.leapTelegraph = 0;
+  boss.leapAir = 0;
+  boss.leapStartX = boss.x;
+  boss.leapStartY = boss.y;
+  boss.leapTargetX = boss.x;
+  boss.leapTargetY = boss.y;
+  boss.ringTouchCd = 0;
+  boss.slimeDrop = .35;
+  boss.shoot = .15;
+  boss.range = Math.max(boss.range || 0, 520);
+  boss.leapDuration = .3;
   announceWave('KING SLIME STIRS', 'boss', 1.4);
   playSfx('bossWarning');
   shake(12, .55);
@@ -9357,7 +10227,7 @@ function enemyPath(e) {
 function expeditionEnemyTargetCell(e) {
   const ex = S.expedition;
   const target = e?.expeditionTarget || 'hero';
-  if (target === 'rift' && ex?.riftActivated && ex.rift && !ex.riftCarried) return cellAt(ex.rift.x, ex.rift.y);
+  if (target === 'rift' && ex?.riftActivated && ex.riftEverCarried && ex.rift && !ex.riftCarried) return cellAt(ex.rift.x, ex.rift.y);
   return cellAt(S.hero.x, S.hero.y);
 }
 
@@ -9397,6 +10267,10 @@ function updateExpeditionEnemyTarget(e, dt) {
   const t0 = KB_PROFILE.active ? profileNow() : 0;
   const ex = S.expedition;
   if (!isExpeditionRun() || !ex || !e) return false;
+  if (e.expeditionTarget === 'rift' && !ex.riftEverCarried) {
+    e.expeditionTarget = 'hero';
+    e.riftHunter = false;
+  }
   const activeRoomEnemy = !!(e.expeditionRoomId && ex.activeRoomId === e.expeditionRoomId);
   const riftHunter = e.expeditionTarget === 'rift';
   if (!activeRoomEnemy && !riftHunter) return false;
@@ -9407,7 +10281,7 @@ function updateExpeditionEnemyTarget(e, dt) {
   const atPathEnd = !path[(e.node || 0) + 1];
   const due = (e.expeditionNextRetargetAt || 0) <= now;
   const targetInvalid = e.expeditionTarget === 'rift'
-    ? !ex.riftActivated || !ex.rift
+    ? !ex.riftActivated || !ex.riftEverCarried || !ex.rift
     : !cachedTarget;
   if (targetInvalid || atPathEnd || due) {
     retargetExpeditionEnemy(e, atPathEnd ? 'room-path-end' : targetInvalid ? 'room-target-invalid' : 'room-retarget-due');
@@ -9595,12 +10469,12 @@ function getSafePlayerSpawnPoint(index = 0) {
   return candidates[0] || { x: OX + COLS * G / 2, y: OY + ROWS * G / 2 };
 }
 
-function startPlayerSpawnIntro(actor = S.hero, index = 0) {
+function startPlayerSpawnIntro(actor = S.hero, index = 0, cosmeticOnly = false) {
   const p = getSafePlayerSpawnPoint(index);
   actor.x = p.x; actor.y = p.y;
-  actor.spawnState = 'spawning';
-  actor.spawnLock = 1.0;
-  actor.inv = Math.max(actor.inv || 0, 1.0);
+  actor.spawnState = cosmeticOnly ? 'active' : 'spawning';
+  actor.spawnLock = cosmeticOnly ? 0 : 1.0;
+  if (!cosmeticOnly) actor.inv = Math.max(actor.inv || 0, 1.0);
   S.spawningActors.push({ actor, x: p.x, y: p.y, t: 1.0, max: 1.0 });
 }
 
@@ -10536,22 +11410,28 @@ function renderSetupPickers() {
     const slot = LOADOUT_STATE.selectedIds.indexOf(k);
     return `<span class="slotBadge" data-slot-badge aria-hidden="true"${slot < 0 ? ' hidden' : ''}>${slot >= 0 ? slot + 1 : ''}</span>`;
   };
+  const placementLabel = (k) => {
+    if (['tar', 'mace'].includes(k)) return 'Wall';
+    if (['spikes', 'spring', 'barrel', 'barrier'].includes(k)) return 'Floor';
+    if (k === 'cauldron') return 'Ceiling';
+    return 'Core / Rift';
+  };
   const tileMarkup = (k, kind) => {
     if (kind === 'weapon') {
       const w = WEAPONS[k];
       const ability = weaponAbilityNames(k);
-      return `${orderBadge(k)}<span class="icon">${miniWeaponIcon(k)}</span><span class="name">${w.shortName || w.name}</span><span class="fireCopy"><span>${ability.primary}</span><span>${ability.secondary}</span></span>`;
+      return `${orderBadge(k)}<span class="icon">${miniWeaponIcon(k)}</span><span class="name">${w.shortName || w.name}</span><span class="itemTag">Weapon</span><span class="fireCopy"><span>${ability.primary}</span><span>${ability.secondary}</span></span>`;
     }
     if (kind === 'tower') {
       const t = TOWERS[k];
-      return `${orderBadge(k)}<span class="icon">${miniTowerIcon(k)}</span><span class="name">${shortTowerName(k)}</span><span class="meta">${LOADOUT_TILE_ROLE[k] || t.role || 'Defense'}</span><span class="note">${t.c}g</span>`;
+      return `${orderBadge(k)}<span class="icon">${miniTowerIcon(k)}</span><span class="name">${shortTowerName(k)}</span><span class="itemTag defense">Defense</span><span class="fireCopy"><span>${LOADOUT_TILE_ROLE[k] || t.role || 'Defense'}</span><span>${placementLabel(k)} · ${t.c}g</span></span><span class="riftRequirement">Requires Rift</span>`;
     }
     if (kind === 'trap') {
       const t = TOWERS[k];
-      return `${orderBadge(k)}<span class="icon">${miniTowerIcon(k)}</span><span class="name">${shortTowerName(k)}</span><span class="meta">${LOADOUT_TILE_ROLE[k] || t.role || 'Trap'}</span><span class="note">${t.c}g</span>`;
+      return `${orderBadge(k)}<span class="icon">${miniTowerIcon(k)}</span><span class="name">${shortTowerName(k)}</span><span class="itemTag defense">Defense</span><span class="fireCopy"><span>${LOADOUT_TILE_ROLE[k] || t.role || 'Defense'}</span><span>${placementLabel(k)} · ${t.c}g</span></span><span class="riftRequirement">Requires Rift</span>`;
     }
     const t = TRINKETS[k];
-    return `${orderBadge(k)}<span class="icon">${t.icon}</span><span class="name">${t.shortName || t.name}</span><span class="meta">${LOADOUT_TRINKET_COPY[k]?.[0] || 'Trinket'}</span><span class="note">${LOADOUT_TRINKET_COPY[k]?.[1] || ''}</span>`;
+    return `${orderBadge(k)}<span class="icon">${t.icon}</span><span class="name">${t.shortName || t.name}</span><span class="itemTag gear">Gear</span><span class="fireCopy"><span>${LOADOUT_TRINKET_COPY[k]?.[0] || 'Utility'}</span><span>${LOADOUT_TRINKET_COPY[k]?.[1] || ''}</span></span>`;
   };
   const weaponKeys = Object.keys(WEAPONS);
   const towerKeys = Object.entries(TOWERS)
@@ -10615,15 +11495,17 @@ function renderSetupPickers() {
   updateLoadoutPreviewRail();
   syncLoadoutStickyLabel();
   // Update tab counts
-  const tabIcons = { weapon: '🔫', tower: '🏰', trap: '⚙', trinket: '💎' };
-  const tabCounts = { weapon: weaponKeys.length, tower: towerKeys.length, trap: trapKeys.length, trinket: trinketKeys.length };
+  const tabIcons = { all: '▦', weapon: '⌁', defense: '▥', trinket: '✦' };
+  const tabLabels = { all: 'All', weapon: 'Weapons', defense: 'Defenses', trinket: 'Gear' };
+  const tabCounts = { all: weaponKeys.length + towerKeys.length + trapKeys.length + trinketKeys.length, weapon: weaponKeys.length, defense: towerKeys.length + trapKeys.length, trinket: trinketKeys.length };
   document.querySelectorAll('#loadoutTabs [data-loadout-tab]').forEach(tab => {
     const k = tab.dataset.loadoutTab;
-    tab.innerHTML = `<span class="tabIcon">${tabIcons[k] || ''}</span>${(k.charAt(0).toUpperCase()+k.slice(1))}<span class="tabCount">${tabCounts[k] || 0} items</span>`;
+    tab.innerHTML = `<span class="tabIcon">${tabIcons[k] || ''}</span><span>${tabLabels[k] || k}</span><span class="tabCount">${tabCounts[k] || 0}</span>`;
   });
   // Apply active category filter
-  const activeCategory = $('loadoutPicker')?.dataset?.activeCategory || 'weapon';
+  const activeCategory = $('loadoutPicker')?.dataset?.activeCategory || 'all';
   setLoadoutCategory(activeCategory);
+  updateLoadoutSummary();
 }
 
 function refreshStartMenu() {
@@ -10726,39 +11608,37 @@ function updateLoadoutInspector() {
     panel.innerHTML = `<div class="selGrid"><div class="selIcon"><span class="icon">${loadoutFeatureIcon(k)}</span></div><div><div class="selTitle">${label}</div><div class="selRole">No details available</div><div class="selDesc">No details available.</div></div></div>`;
     return;
   }
-  if (WEAPONS[k] && copy.identity) {
-    const abilityNames = copy.abilities || Object.values(weaponAbilityNames(k));
-    const quickStats = (copy.quickStats || [])
-      .map(([label, value]) => `<span class="weaponQuickStat">${label} <b>${value}</b></span>`)
-      .join('');
-    const abilities = abilityNames
-      .map(name => `<span class="weaponAbility"><b>${name}</b></span>`)
-      .join('');
-    const mechanics = (copy.mechanics || [])
-      .map(line => `<div>${line}</div>`)
-      .join('');
-    panel.innerHTML = `<div class="selGrid weaponInspector"><div class="selIcon"><span class="icon">${loadoutFeatureIcon(k)}</span></div><div><div class="selTitle">${copy.name}</div><div class="selRole">${copy.identity}</div>${quickStats ? `<div class="weaponSectionLabel">Quick Stats</div><div class="weaponQuickStats">${quickStats}</div>` : ''}<div class="selFlavor"><b>Origin</b><br>${copy.flavor || copy.desc}</div>${abilities ? `<div class="weaponSectionLabel">Abilities</div><div class="weaponAbilities">${abilities}</div>` : ''}<div class="selMeta"><b>Mechanics</b><br>${mechanics}</div></div></div>`;
-    return;
-  }
-  const stats = (copy.stats || []).map(([label, value]) => `<div class="loadoutStat"><span>${label}</span><b>${value}</b></div>`).join('');
-  const fire = WEAPONS[k] ? weaponFireCopy(k) : null;
-  const ability = WEAPONS[k] ? weaponAbilityNames(k) : null;
-  const fireStats = fire && ability
-    ? `<div class="loadoutStats"><div class="loadoutStat"><span>Primary</span><b>${ability.primary}</b></div><div class="loadoutStat"><span>Secondary</span><b>${ability.secondary}</b></div></div><div class="selMeta"><b>How it works</b><br><b>${ability.primary}:</b> ${fire.primary}<br><b>${ability.secondary}:</b> ${fire.secondary}</div>`
-    : '';
-  panel.innerHTML = `<div class="selGrid"><div class="selIcon"><span class="icon">${loadoutFeatureIcon(k)}</span></div><div><div class="selTitle">${copy.name}</div><div class="selRole">${copy.role}</div><div class="selDesc">${copy.desc}</div>${fireStats}${stats ? `<div class="loadoutStats">${stats}</div>` : ''}</div></div>`;
+  const isWeapon = !!WEAPONS[k];
+  const isDefense = !!TOWERS[k];
+  const role = copy.identity || (isDefense ? 'DEFENSE' : copy.role || 'GEAR');
+  const quickStats = (copy.quickStats || copy.stats || []).slice(0, 3)
+    .map(([label, value]) => `<span class="weaponQuickStat">${label} <b>${value}</b></span>`)
+    .join('');
+  const abilityNames = isWeapon
+    ? (copy.abilities || Object.values(weaponAbilityNames(k))).slice(0, 2)
+    : isDefense
+      ? [LOADOUT_TILE_ROLE[k] || TOWERS[k].role, `Placement: ${['tar', 'mace'].includes(k) ? 'Wall' : ['spikes', 'spring', 'barrel', 'barrier'].includes(k) ? 'Floor' : k === 'cauldron' ? 'Ceiling' : 'Core / Rift'}`]
+      : [TRINKETS[k]?.passiveDescription, TRINKETS[k]?.activeDescription].filter(Boolean);
+  const abilities = abilityNames.map(name => `<span class="weaponAbility"><b>${name}</b></span>`).join('');
+  const mechanicsLines = (copy.mechanics || [copy.desc]).slice(0, 2);
+  const mechanics = mechanicsLines.map(line => `<div>${line}</div>`).join('');
+  const flavor = copy.flavor || (isDefense ? 'Built for the Rift line. Equip now; deploy after the Rift is acquired.' : TRINKETS[k]?.description || copy.desc);
+  panel.innerHTML = `<div class="selGrid weaponInspector"><div><div class="selTitle">${copy.name}</div><div class="selRole">${role}</div></div><div class="selIcon"><span class="icon">${loadoutFeatureIcon(k)}</span></div>${quickStats ? `<div class="weaponQuickStats">${quickStats}</div>` : ''}<div class="selFlavor"><b>Origin</b><br>${flavor}</div>${abilities ? `<div class="weaponSectionLabel">Abilities</div><div class="weaponAbilities">${abilities}</div>` : ''}<div class="selMeta"><b>Mechanics</b>${isDefense ? '<span class="inspectorRiftTag">Requires Rift</span>' : ''}<br>${mechanics}</div></div>`;
 }
 
 function updateLoadoutCards() {
   const loadoutBox = $('loadoutPicker');
   if (!loadoutBox) return;
-  const activeCategory = loadoutBox.dataset.activeCategory || 'weapon';
+  const activeCategory = loadoutBox.dataset.activeCategory || 'all';
   [...loadoutBox.querySelectorAll('[data-k]')].forEach((b) => {
     const k = b.dataset.k;
     const slot = LOADOUT_STATE.selectedIds.indexOf(k);
     b.classList.toggle('sel', slot >= 0);
     // Re-apply visibility
-    b.classList.toggle('cat-visible', b.dataset.kind === activeCategory);
+    const visible = activeCategory === 'all'
+      || b.dataset.kind === activeCategory
+      || (activeCategory === 'defense' && (b.dataset.kind === 'tower' || b.dataset.kind === 'trap'));
+    b.classList.toggle('cat-visible', visible);
     const badge = b.querySelector('[data-slot-badge]');
     if (badge) {
       badge.hidden = slot < 0;
@@ -10780,11 +11660,12 @@ function updateLoadoutSummary() {
     lastBtn.disabled = !enabled;
     lastBtn.classList.toggle('disabled', !enabled);
   }
-  const selectedByKind = { weapon: 0, tower: 0, trap: 0, trinket: 0 };
+  const selectedByKind = { all: LOADOUT_STATE.selectedIds.length, weapon: 0, defense: 0, tower: 0, trap: 0, trinket: 0 };
   LOADOUT_STATE.selectedIds.forEach(k => {
     if (WEAPONS[k]) selectedByKind.weapon++;
     else if (TRINKETS[k]) selectedByKind.trinket++;
     else if (TOWERS[k]) {
+      selectedByKind.defense++;
       if (['spikes','tar','spring','mace','barrier','barrel'].includes(k)) selectedByKind.trap++;
       else selectedByKind.tower++;
     }
@@ -10823,6 +11704,11 @@ function updateLoadoutSummary() {
   });
   const statusBar = $('loadoutStatusBar');
   if (statusBar) statusBar.dataset.ready = readyToDeploy ? 'true' : 'false';
+  const readiness = $('loadoutReadiness');
+  if (readiness) {
+    readiness.textContent = weaponReady ? `${LOADOUT_STATE.selectedIds.length}/${LOADOUT_MAX_SLOTS} ready` : 'Weapon required';
+    readiness.classList.toggle('ready', weaponReady);
+  }
 }
 
 function developerOverlayText() {
@@ -11065,8 +11951,8 @@ function updateLoadoutPreviewRail() {
     slot.dataset.index = String(i);
     slot.draggable = !!k;
     slot.innerHTML = k
-      ? `<span class="railIndex">${i + 1}</span><span class="loadoutRemoveBtn" data-remove-loadout role="button" tabindex="0" aria-label="Remove ${loadoutItemLabel(k)} from loadout">×</span><span class="railIcon">${loadoutItemIcon(k)}</span><span class="railName">${loadoutItemLabel(k)}</span>`
-      : `<span class="railIndex">${i + 1}</span><span class="railIcon">✕</span><span class="railName">Empty</span>`;
+      ? `<span class="railIndex">${i + 1}</span><span class="loadoutRemoveBtn" data-remove-loadout role="button" tabindex="0" aria-label="Remove ${loadoutItemLabel(k)} from loadout">×</span><span class="railIcon">${loadoutItemIcon(k)}</span><span class="railName">${loadoutItemLabel(k)}</span><span class="railStatus">${TOWERS[k] ? `${TOWERS[k].c}g` : WEAPONS[k] ? 'Weapon' : 'Gear'}</span>`
+      : `<span class="railIndex">${i + 1}</span><span class="railIcon">＋</span>`;
     rail.appendChild(slot);
   }
 }
@@ -11109,14 +11995,14 @@ function reorderLoadoutItem(fromIndex, toIndex) {
 function setLoadoutCategory(kind) {
   const loadoutBox = $('loadoutPicker');
   if (!loadoutBox) return;
-  const activeKind = kind || 'weapon';
+  const validKinds = new Set(['all', 'weapon', 'defense', 'trinket']);
+  const activeKind = validKinds.has(kind) ? kind : 'all';
   // Filter tiles: show only matching category
   [...loadoutBox.querySelectorAll('[data-kind]')].forEach(el => {
-    if (el.dataset.kind === activeKind) {
-      el.classList.add('cat-visible');
-    } else {
-      el.classList.remove('cat-visible');
-    }
+    const visible = activeKind === 'all'
+      || el.dataset.kind === activeKind
+      || (activeKind === 'defense' && (el.dataset.kind === 'tower' || el.dataset.kind === 'trap'));
+    el.classList.toggle('cat-visible', visible);
   });
   // Reset scroll
   loadoutBox.scrollTop = 0;
@@ -11128,6 +12014,12 @@ function setLoadoutCategory(kind) {
   // Store active category
   loadoutBox.dataset.activeCategory = activeKind;
   loadoutBox.dataset.debug = `${activeKind} filtered`;
+  const title = $('loadoutCatalogTitle');
+  const count = $('loadoutCatalogCount');
+  const labels = { all: 'All Items', weapon: 'Weapons', defense: 'Defenses', trinket: 'Gear' };
+  const visibleCount = loadoutBox.querySelectorAll('.pickerTile.cat-visible').length;
+  if (title) title.textContent = labels[activeKind];
+  if (count) count.textContent = `${visibleCount} available`;
 }
 
 function syncLoadoutStickyLabel() {
@@ -11226,10 +12118,7 @@ function startGameFromLoadout() {
   S.bossAppearance = 0;
   clearCombatInputState();
   if (expeditionStart) {
-    const spawn = getSafePlayerSpawnPoint(0);
-    S.hero.x = spawn.x;
-    S.hero.y = spawn.y;
-    finishPlayerSpawnIntro(S.hero);
+    startPlayerSpawnIntro(S.hero, 0, true);
   } else {
     startPlayerSpawnIntro(S.hero, 0);
   }
@@ -12382,7 +13271,7 @@ function renderBuildButtons() {
     (S.hero.upgrades || []).join(','),
     (S.trapMutations || []).join(','),
     String(S.hero.upgradeLevel || 0),
-    isExpeditionRun() ? JSON.stringify(S.expedition?.storedSurge || null) : '',
+    isExpeditionRun() ? JSON.stringify(S.expedition?.storedSurges?.length ? S.expedition.storedSurges : S.expedition?.storedSurge || null) : '',
   ].join('|');
   if (rail.dataset.sig !== sig) {
     rail.innerHTML = '';
@@ -12442,7 +13331,8 @@ function renderBuildButtons() {
       if (rail) rail.appendChild(b);
     }
     if (isExpeditionRun()) {
-      const surge = S.expedition?.storedSurge || null;
+      const surge = S.expedition?.storedSurges?.[0] || S.expedition?.storedSurge || null;
+      const surgeCount = S.expedition?.storedSurges?.length || (surge ? 1 : 0);
       const meta = expeditionStoredSurgeMeta(surge);
       const surgeBtn = document.createElement('button');
       surgeBtn.className = 'buildCard surgeSlot';
@@ -12451,8 +13341,8 @@ function renderBuildButtons() {
         <span class="hotkey">9</span>
         <span class="buildIcon">${surge ? meta.icon : '⚡'}</span>
         <span class="buildName">${surge ? meta.name : 'Surge'}</span>
-        <span class="buildPrice">${surge ? 'READY' : 'EMPTY'}</span>
-        <span class="buildHint">${surge ? 'Activate' : 'Store one'}</span>`;
+        <span class="buildPrice">${surge ? `${surgeCount} READY` : 'EMPTY'}</span>
+        <span class="buildHint">${surge ? 'Activate next' : 'Store powerups'}</span>`;
       surgeBtn.disabled = !surge;
       surgeBtn.onclick = () => activateExpeditionStoredSurge();
       rail.appendChild(surgeBtn);
@@ -15658,9 +16548,25 @@ function slimeKingRainBarrage(e, target) {
   boom(e.x, e.y, '#4fa34f33', phase >= 3 ? 12 : 8);
 }
 
+function fleshGardenSlimeLeapTarget(e) {
+  const room = (expeditionConfig()?.rooms || []).find(candidate => candidate.id === 'flesh');
+  const [x1, y1, x2, y2] = room?.rect || [];
+  if (![x1, y1, x2, y2].every(Number.isFinite)) return null;
+  for (let i = 0; i < 16; i++) {
+    const c = Math.floor(x1 + Math.random() * (x2 - x1 + 1));
+    const r = Math.floor(y1 + Math.random() * (y2 - y1 + 1));
+    if (!canEnemyEnterCell(c, r)) continue;
+    const x = cx(c), y = cy(r);
+    if (dist(e.x, e.y, x, y) < 220) continue;
+    return { x, y };
+  }
+  return null;
+}
+
 function slimeKingStep(e, dt) {
   const hpPct = e.hp / e.max;
   const appearance = e.appearance || 1;
+  const fleshWild = !!e.expeditionFleshSlime;
   const n = v => Number.isFinite(v) ? v : 0;
   const safeLeapCoord = (v, min, max, fallback) => {
     const x = n(v);
@@ -15680,7 +16586,7 @@ function slimeKingStep(e, dt) {
   e.puddleTimer -= dt;
   e.leapDebug = Math.max(0, (e.leapDebug || 0) - dt);
   const leapCadence = 5;
-  const puddleGap = appearance >= 3 ? 0.84 : appearance >= 2 ? 0.98 : 1.18;
+  const puddleGap = fleshWild ? .52 : appearance >= 3 ? 0.84 : appearance >= 2 ? 0.98 : 1.18;
   const puddleR = appearance >= 3 ? 58 : appearance >= 2 ? 52 : 46;
   const puddleDps = appearance >= 3 ? 4.4 : appearance >= 2 ? 3.9 : 3.4;
   e.trailBurstCd = Math.max(0, (e.trailBurstCd || 0) - dt);
@@ -15709,7 +16615,7 @@ function slimeKingStep(e, dt) {
     if (e.leapTelegraph <= 0) {
       e.leapState = 'airborne';
       e.leapAir = 0;
-      e.leapDuration = 0.45;
+      e.leapDuration = fleshWild ? .3 : 0.45;
       e.ringTouchCd = 0;
       e.x = e.leapStartX;
       e.y = e.leapStartY;
@@ -15737,7 +16643,7 @@ function slimeKingStep(e, dt) {
       e.leapTarget = null;
       e.leapAir = 0;
       e.leapTelegraph = 0;
-      e.leapCd = 5;
+      e.leapCd = fleshWild ? 1.05 : 5;
       return;
     }
     e.x = clamp(sx + (tx - sx) * t, OX + 16, OX + COLS * G - 16);
@@ -15757,7 +16663,7 @@ function slimeKingStep(e, dt) {
       e.leapTarget = null;
       e.leapAir = 0;
       e.leapTelegraph = 0;
-      e.leapCd = 5;
+      e.leapCd = fleshWild ? 1.05 : 5;
       return;
     }
     e.x = clamp(e.leapTargetX, OX + 16, OX + COLS * G - 16);
@@ -15783,14 +16689,17 @@ function slimeKingStep(e, dt) {
     e.leapImpactDone = false;
     e.leapHold = false;
     e.puddleTimer = Math.min(e.puddleTimer, .4);
-    e.leapCd = 5;
+    e.leapCd = fleshWild ? 1.05 : 5;
     return;
   }
 
   if (hpPct > .08 && e.leapState === 'idle' && e.leapCd <= 0) {
-    const heroD = dist(e.x, e.y, S.hero.x, S.hero.y);
-    const dx = S.hero.x - e.x;
-    const dy = S.hero.y - e.y;
+    const wildTarget = fleshWild ? fleshGardenSlimeLeapTarget(e) : null;
+    const targetX = wildTarget?.x ?? S.hero.x;
+    const targetY = wildTarget?.y ?? S.hero.y;
+    const heroD = dist(e.x, e.y, targetX, targetY);
+    const dx = targetX - e.x;
+    const dy = targetY - e.y;
     const l = Math.hypot(dx, dy) || 1;
     const travel = Math.max(180, heroD);
     e.leapStartX = e.x;
@@ -15800,12 +16709,12 @@ function slimeKingStep(e, dt) {
     if (!Number.isFinite(e.leapStartX) || !Number.isFinite(e.leapStartY) || !Number.isFinite(e.leapTargetX) || !Number.isFinite(e.leapTargetY)) {
       e.leapState = 'idle';
       e.leapTarget = null;
-      e.leapCd = 5;
+      e.leapCd = fleshWild ? 1.05 : 5;
       return;
     }
     e.leapState = 'telegraph';
-    e.leapTelegraph = 1.0;
-    e.leapDebug = 1.0;
+    e.leapTelegraph = fleshWild ? .4 : 1.0;
+    e.leapDebug = e.leapTelegraph;
     e.ringTouchCd = 0;
     e.leapCd = 999;
     e.stun = Math.max(e.stun || 0, .12);
@@ -15830,7 +16739,7 @@ function slimeKingStep(e, dt) {
     e.shoot = Math.min(e.shoot, .35);
   }
 
-  followPath(e, dt, .78);
+  followPath(e, dt, fleshWild ? 1.18 : .78);
 }
 
 function slimeBulletStorm(e, target = S.hero) {
@@ -17906,12 +18815,17 @@ function enemyStep(e, dt) {
   if (e.type === 'healer')    healerPulse(e, dt);
   if (e.type === 'hexcaller') { hexCallerPulse(e, dt); }
   if (KB_PROFILE.active) profileAdd('enemySupport', profileNow() - supportT0);
+  if (e.type === 'slimeking') {
+    const specialT0 = KB_PROFILE.active ? profileNow() : 0;
+    slimeKingStep(e, dt);
+    if (KB_PROFILE.active) profileAdd('enemyBehaviors', profileNow() - specialT0);
+    return;
+  }
   if (!expeditionTargetedChase) {
     const specialT0 = KB_PROFILE.active ? profileNow() : 0;
     if (e.type === 'sapper')    { sapperStep(e, dt); if (KB_PROFILE.active) profileAdd('enemyBehaviors', profileNow() - specialT0); return; }
     if (e.type === 'phase')     { phaseSkulkStep(e, dt); if (KB_PROFILE.active) profileAdd('enemyBehaviors', profileNow() - specialT0); return; }
     if (e.type === 'warden')    { aegisWardenStep(e, dt); if (KB_PROFILE.active) profileAdd('enemyBehaviors', profileNow() - specialT0); return; }
-    if (e.type === 'slimeking') { slimeKingStep(e, dt); if (KB_PROFILE.active) profileAdd('enemyBehaviors', profileNow() - specialT0); return; }
     if (e.dead) return;
     if (e.type === 'siege')     { siegeStep(e, dt);   if (KB_PROFILE.active) profileAdd('enemyBehaviors', profileNow() - specialT0); return; }
     if (e.type === 'bomber')    { bomberStep(e, dt);   if (KB_PROFILE.active) profileAdd('enemyBehaviors', profileNow() - specialT0); return; }
@@ -20126,7 +21040,10 @@ function draw(t) {
   profileMeasure('render expedition objects', () => {
     drawExpeditionBuildRadius(t);
     drawExpeditionRoomBlockers(t);
+    drawExpeditionLockedRiftDoor(t);
     drawExpeditionObjects(t);
+    drawExpeditionRiftAwakening(t);
+    drawCarriedRiftHeroHealth();
     drawDeveloperDebugWorld(t);
   });
   if (Array.isArray(S.cornerGhosts)) {
@@ -20454,7 +21371,8 @@ function drawExpeditionDressing(t) {
 }
 
 function drawExpeditionRiftCore(x, y, t, activated = false, carried = false) {
-  const visual = activated ? expeditionRiftVisualState(t) : {
+  const dormant = activated && !S.expedition?.riftEverCarried && !(S.expedition?.riftAwakeningTime > 0);
+  const visual = activated && !dormant ? expeditionRiftVisualState(t) : {
     count: 0,
     threat: 0,
     scale: .92,
@@ -20472,6 +21390,40 @@ function drawExpeditionRiftCore(x, y, t, activated = false, carried = false) {
   ctx.save();
   ctx.translate(x, y);
   ctx.scale(visual.scale, visual.scale);
+  if (dormant) {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = .96;
+    ctx.fillStyle = '#3c3d3f';
+    ctx.strokeStyle = '#1b1c1e';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 48, 64, -.12, 0, 7);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#27282a';
+    ctx.beginPath();
+    ctx.ellipse(0, 2, 30, 22, 0, 0, 7);
+    ctx.fill();
+    ctx.strokeStyle = '#626468';
+    ctx.lineWidth = 3;
+    for (let i = 0; i < 6; i++) {
+      const a = i * Math.PI / 3;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * 18, Math.sin(a) * 16);
+      ctx.lineTo(Math.cos(a) * 39, Math.sin(a) * 48);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#151617';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 9, 17, 0, 0, 7);
+    ctx.fill();
+    ctx.fillStyle = '#9a9b9d';
+    ctx.font = 'bold 10px Georgia';
+    ctx.textAlign = 'center';
+    ctx.fillText('DORMANT', 0, -78);
+    ctx.restore();
+    return;
+  }
   if (carried) {
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = .94;
@@ -20710,6 +21662,40 @@ function drawExpeditionRiftCore(x, y, t, activated = false, carried = false) {
   ctx.restore();
 }
 
+function drawExpeditionRiftAwakening(t) {
+  const ex = S.expedition;
+  if (!isExpeditionRun() || !(ex?.riftAwakeningTime > 0) || !ex.rift) return;
+  const progress = 1 - ex.riftAwakeningTime / 2;
+  const fade = Math.sin(clamp(progress, 0, 1) * Math.PI);
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  for (let i = 0; i < 8; i++) {
+    const angle = i * Math.PI / 4 + Math.sin(i * 2.7) * .22;
+    const radius = 34 + progress * (105 + (i % 3) * 18);
+    const x = ex.rift.x + Math.cos(angle) * radius;
+    const y = ex.rift.y + Math.sin(angle) * radius * .72 - progress * 20;
+    const size = 13 + (i % 3) * 4 + progress * 8;
+    ctx.globalAlpha = fade * (.32 + (i % 2) * .12);
+    ctx.fillStyle = i % 2 ? '#d8c8ff' : '#a8b8c8';
+    ctx.beginPath();
+    ctx.ellipse(x, y, size * .7, size, angle + .4, 0, 7);
+    ctx.fill();
+    ctx.globalAlpha *= .7;
+    ctx.fillStyle = '#26172f';
+    ctx.beginPath();
+    ctx.arc(x - size * .18, y - size * .12, 2.2, 0, 7);
+    ctx.arc(x + size * .18, y - size * .12, 2.2, 0, 7);
+    ctx.fill();
+  }
+  ctx.globalAlpha = fade * .75;
+  ctx.strokeStyle = '#e6d8ff';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.arc(ex.rift.x, ex.rift.y, 48 + progress * 80, 0, 7);
+  ctx.stroke();
+  ctx.restore();
+}
+
 function drawExpeditionRiftSocket(x, y, subdued = false) {
   ctx.save();
   ctx.translate(x, y);
@@ -20792,6 +21778,54 @@ function drawExpeditionRoomBlockers(t) {
     ctx.fillRect(b.x - 3, b.y - 13, 6, 26);
   }
   ctx.restore();
+}
+
+function drawExpeditionLockedRiftDoor(t) {
+  if (!isExpeditionRun()) return;
+  const room = (expeditionConfig()?.rooms || []).find(candidate => candidate.id === 'rift');
+  const door = room?.entrances?.find(entrance => entrance.side === 'west');
+  if (!door || expeditionRoomState('rift') === 'active') return;
+  const x = cx(door.c);
+  const y = cy(door.r);
+  ctx.save();
+  ctx.fillStyle = '#16070b';
+  ctx.strokeStyle = '#ffcf6a';
+  ctx.lineWidth = 5;
+  ctx.fillRect(x - 18, y - 48, 36, 96);
+  ctx.strokeRect(x - 18, y - 48, 36, 96);
+  ctx.strokeStyle = '#ff6b4a';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(x - 12, y - 32);
+  ctx.lineTo(x + 12, y + 32);
+  ctx.moveTo(x + 12, y - 32);
+  ctx.lineTo(x - 12, y + 32);
+  ctx.stroke();
+  ctx.fillStyle = '#fff1c0';
+  ctx.font = '900 11px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('LOCKED', x, y - 58 + Math.sin(t * 4) * 2);
+  ctx.textAlign = 'left';
+  ctx.restore();
+}
+
+function drawCarriedRiftHeroHealth() {
+  if (!isCarryingExpeditionRift()) return;
+  const h = S.hero;
+  const pct = clamp(h.hp / Math.max(1, h.max), 0, 1);
+  const x = h.x - 28;
+  const y = h.y - 34;
+  ctx.fillStyle = '#120805';
+  ctx.fillRect(x - 2, y - 2, 60, 10);
+  ctx.fillStyle = '#4b2412';
+  ctx.fillRect(x, y, 56, 6);
+  ctx.fillStyle = pct > .5 ? '#4f8d3b' : pct > .25 ? '#a88d28' : '#c03020';
+  ctx.fillRect(x, y, 56 * pct, 6);
+  ctx.fillStyle = '#fff4dc';
+  ctx.font = 'bold 10px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${Math.max(0, Math.ceil(h.hp))} HP`, h.x, y - 5);
+  ctx.textAlign = 'left';
 }
 
 function drawExpeditionKeyContainer(container, t) {
@@ -20937,6 +21971,32 @@ function drawExpeditionObjects(t) {
     const tx = cx(terminal.c), ty = cy(terminal.r);
     ctx.save();
     ctx.translate(tx, ty);
+    if (terminalRoom.treasureChest) {
+      ctx.fillStyle = '#4b2410';
+      ctx.fillRect(-30, -12, 60, 30);
+      ctx.fillStyle = '#7a3d18';
+      ctx.beginPath();
+      ctx.arc(0, -10, 30, Math.PI, 0);
+      ctx.fill();
+      ctx.strokeStyle = '#ffd45a';
+      ctx.lineWidth = 5;
+      ctx.strokeRect(-30, -12, 60, 30);
+      ctx.fillStyle = '#ffd45a';
+      ctx.fillRect(-5, -4, 10, 14);
+      if (!powered) {
+        for (let i = 0; i < 9; i++) {
+          ctx.beginPath();
+          ctx.arc(-24 + (i % 5) * 12, 18 + Math.floor(i / 5) * 7, 5, 0, 7);
+          ctx.fill();
+        }
+      }
+      ctx.globalAlpha = powered ? .18 : .35 + Math.sin(t * 6) * .08;
+      ctx.beginPath();
+      ctx.arc(0, 0, powered ? 36 : 52, 0, 7);
+      ctx.fill();
+      ctx.restore();
+      continue;
+    }
     ctx.fillStyle = '#1a1410';
     ctx.fillRect(-24, -18, 48, 36);
     ctx.strokeStyle = powered ? '#9fffc8' : '#8edcff';
@@ -21087,12 +22147,20 @@ function drawExpeditionHud(t) {
   ctx.fillText(expeditionExtractionKeyProgressText(), x + 10, y + h - 10);
   ctx.restore();
 
-  const title = ex.extractionActive
-    ? 'HOLD RELAY'
-    : expeditionExtractionUnlocked()
-      ? 'ESCAPE'
-      : 'COLLECT KEYS';
-  const body = ex.roomObjective?.label
+  const chapelCountdownActive = ex.activeRoomId === 'chapel'
+    && ex.roomObjective?.type === 'chapelWaves'
+    && (ex.chapelWave || 0) < 2
+    && (ex.chapelCountdown || 0) > 0;
+  const title = chapelCountdownActive
+    ? 'CHAPEL LOCKED'
+    : ex.extractionActive
+      ? `HOLD RELAY: ${Math.ceil(ex.extractionTimer || 0)}`
+      : expeditionExtractionUnlocked()
+        ? 'ESCAPE'
+        : 'COLLECT KEYS';
+  const body = chapelCountdownActive
+    ? `WAVE ${(ex.chapelWave || 0) + 1} OF 2`
+    : ex.roomObjective?.label
     ? `PRESSURE ZONE: ${ex.roomObjective.label}`
     : ex.extractionActive
       ? `Hold out for ${Math.ceil(ex.extractionTimer || 0)}s.`
@@ -21111,6 +22179,16 @@ function drawExpeditionHud(t) {
   ctx.fillStyle = '#fff6d6';
   ctx.strokeText(body, W / 2, 116);
   ctx.fillText(body, W / 2, 116);
+  if (chapelCountdownActive) {
+    ctx.font = '900 24px Arial';
+    ctx.fillStyle = '#fff6d6';
+    ctx.strokeText('WAVE STARTS IN', W / 2, H / 2 - 20);
+    ctx.fillText('WAVE STARTS IN', W / 2, H / 2 - 20);
+    ctx.font = '900 72px Arial';
+    ctx.fillStyle = '#ffe09c';
+    ctx.strokeText(`${Math.ceil(ex.chapelCountdown || 0)}`, W / 2, H / 2 + 56);
+    ctx.fillText(`${Math.ceil(ex.chapelCountdown || 0)}`, W / 2, H / 2 + 56);
+  }
   if ((ex.messageTime || 0) > 0 && ex.message) {
     ctx.font = '900 18px Arial';
     ctx.fillStyle = '#f0c96b';
@@ -21863,7 +22941,7 @@ function drawMap(t) {
       const x = OX + c * G, y = OY + r * G;
       const n = Math.sin(c * 12.989 + r * 78.233) * 43758.5453;
       const v = n - Math.floor(n);
-      if (isRoad(c, r)) {
+      if (isRoad(c, r) && !(isExpeditionRun() && isBlockedTerrain(c, r))) {
         // Warm bridge / worn stone path
         ctx.fillStyle = v > .66 ? '#e1d6be' : v > .33 ? '#d2c4a8' : '#c0b08f';
         ctx.fillRect(x, y, G, G);
