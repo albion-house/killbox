@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Killbox 7.25.0 GouacheRoom</title>
+<title>Killbox 7.26.0 GouacheWorld</title>
 <style>
 /* ── Design tokens ─────────────────────────────────────────────── */
 :root {
@@ -5453,7 +5453,7 @@ body.expeditionGameplay #combatHud {
             <button id="devRiftGuardToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Rift Guard</span><span class="devBadge" id="devRiftGuardState">OFF</span></button>
             <button id="devRiftNoHpLossToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Rift No HP Loss</span><span class="devBadge" id="devRiftNoHpLossState">OFF</span></button>
             <button id="devPlayerTowerCollisionToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Player Collision With Towers</span><span class="devBadge" id="devPlayerTowerCollisionState">ON</span></button>
-            <button id="devAbstractGouacheToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Abstract Gouache Room</span><span class="devBadge" id="devAbstractGouacheState">OFF</span></button>
+            <button id="devAbstractGouacheToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Abstract Gouache Level</span><span class="devBadge" id="devAbstractGouacheState">OFF</span></button>
             <button id="devRoomBoundsToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Room Bounds</span><span class="devBadge" id="devRoomBoundsState">OFF</span></button>
             <button id="devPathToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Pathing</span><span class="devBadge" id="devPathState">OFF</span></button>
           </div>
@@ -5587,8 +5587,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.25.0</b>
-      <span id="warRoomBuildName">GouacheRoom</span>
+      <b id="warRoomVersion">v7.26.0</b>
+      <span id="warRoomBuildName">GouacheWorld</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -5675,7 +5675,7 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.25.0 GouacheRoom</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.26.0 GouacheWorld</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -7170,11 +7170,12 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.25.0';
+const GAME_VERSION = '7.26.0';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'GouacheRoom';
+const BUILD_NAME = 'GouacheWorld';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Added an optional abstract gouache visual treatment for the Expedition Rift Access test room.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Extended the abstract gouache treatment across Expedition 01 rooms, Rift animations, towers, skulls, minibosses, and Slime King.' },
+  { version: '7.25.0', name: 'GouacheRoom', changes: 'Added an optional abstract gouache visual treatment for the Expedition Rift Access test room.' },
   { version: '7.24.4', name: 'WestOpen', changes: 'Removed the Rift Chamber west wall while preserving the four-key locked doorway.' },
   { version: '7.24.3', name: 'RelayTimer', changes: 'Added a 20-second Relay wave countdown followed by a two-minute holdout.' },
   { version: '7.24.2', name: 'OpenRelay', changes: 'Opened the Rift Chamber doorway after collecting four keys so the Relay room can be entered.' },
@@ -21865,6 +21866,23 @@ function draw(t) {
   if (Array.isArray(S.cornerGhosts)) {
     for (const ghost of S.cornerGhosts) {
       if (ghost.dead && (ghost.fade || 0) <= 0) continue;
+      if (abstractGouacheEnabled()) {
+        ctx.save();
+        ctx.translate(ghost.x, ghost.y);
+        const ghostScale = ghost.boneWardenFinal ? Math.max(1.8, (ghost.rad || 18) / 18) : 1;
+        ctx.scale(ghostScale, ghostScale);
+        drawAbstractGouacheGhost(ghost, t);
+        if (ghost.boneWardenFinal && ghost.maxHp) {
+          const pct = Math.max(0, (ghost.hp || 0) / ghost.maxHp);
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = ABSTRACT_GOUACHE_PALETTE.black;
+          ctx.fillRect(-18, 30, 36, 5);
+          ctx.fillStyle = ABSTRACT_GOUACHE_PALETTE.red;
+          ctx.fillRect(-18, 30, 36 * pct, 5);
+        }
+        ctx.restore();
+        continue;
+      }
       if (ghost.boneWardenFinal && ghost.attackState === 'split' && Array.isArray(ghost.splitGhosts)) {
         for (const shard of ghost.splitGhosts) {
           ctx.save();
@@ -22072,21 +22090,38 @@ function draw(t) {
   if (KB_PROFILE.active) profileAdd('rendering', profileNow() - renderT0);
 }
 
-const ABSTRACT_GOUACHE_ROOM_ID = 'barracks';
 const ABSTRACT_GOUACHE_PALETTE = {
   sky: '#69B9E8', powder: '#A9CDEA', mint: '#8DD0A5', sage: '#B7C69B',
   coral: '#F27E55', red: '#E63946', lavender: '#8B63B6', blush: '#F5B7C7',
   beige: '#DFC8B7', yellow: '#F3E34A', black: '#111111',
 };
+const ABSTRACT_GOUACHE_ROOM_PROFILES = {
+  entry:        { colors:['powder','coral','beige'], motif:'swipes', angle:-.18 },
+  security:     { colors:['sage','red','powder'], motif:'bars', angle:.12 },
+  keyLabyrinth: { colors:['lavender','black','blush'], motif:'rings', angle:-.28 },
+  barracks:     { colors:['powder','coral','sage'], motif:'swipes', angle:.2 },
+  lab:          { colors:['mint','lavender','coral'], motif:'cells', angle:-.1 },
+  chapel:       { colors:['blush','lavender','yellow'], motif:'arches', angle:.26 },
+  reactor:      { colors:['yellow','coral','black'], motif:'bursts', angle:-.22 },
+  flesh:        { colors:['blush','red','mint'], motif:'blooms', angle:.18 },
+  rift:         { colors:['lavender','powder','black'], motif:'orbit', angle:-.14 },
+  maintenance:  { colors:['beige','sage','black'], motif:'dashes', angle:.34 },
+  extraction:   { colors:['mint','sky','yellow'], motif:'relay', angle:-.08 },
+};
 
-function abstractGouacheRoom() {
-  if (!S.devAbstractGouache || !isExpeditionRun()) return null;
-  return (expeditionConfig()?.rooms || []).find(room => room.id === ABSTRACT_GOUACHE_ROOM_ID) || null;
+function abstractGouacheEnabled() {
+  return !!(S.devAbstractGouache && isExpeditionRun());
+}
+
+function abstractGouacheRoomAtPoint(x, y) {
+  if (!abstractGouacheEnabled()) return null;
+  return (expeditionConfig()?.rooms || []).find(room => expeditionRoomContainsPoint(room, x, y)) || null;
 }
 
 function pointInAbstractGouacheRoom(x, y) {
-  const room = abstractGouacheRoom();
-  return !!(room && expeditionRoomContainsPoint(room, x, y));
+  return abstractGouacheEnabled()
+    && Number.isFinite(x) && Number.isFinite(y)
+    && x >= OX && y >= OY && x <= OX + COLS * G && y <= OY + ROWS * G;
 }
 
 function drawGouacheArc(x, y, rx, ry, rotation, start, end, color, width, alpha = .86) {
@@ -22144,6 +22179,9 @@ function drawAbstractGouacheRoom(room, t) {
   const w = (x2 - x1 + 1) * G;
   const h = (y2 - y1 + 1) * G;
   const p = ABSTRACT_GOUACHE_PALETTE;
+  const profile = ABSTRACT_GOUACHE_ROOM_PROFILES[room.id] || ABSTRACT_GOUACHE_ROOM_PROFILES.entry;
+  const [primary, secondary, accent] = profile.colors.map(key => p[key]);
+  const seed = room.id.split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
   ctx.save();
   ctx.beginPath();
   ctx.rect(x, y, w, h);
@@ -22151,14 +22189,29 @@ function drawAbstractGouacheRoom(room, t) {
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(x, y, w, h);
 
-  drawGouacheSwipe(x + w * .12, y + h * .18, w * .22, h * .1, -.18, p.powder, .66);
-  drawGouacheArc(x + w * .37, y + h * .24, w * .13, h * .09, .3, .15, Math.PI * 1.55, p.coral, 25, .7);
-  drawGouacheSwipe(x + w * .72, y + h * .18, w * .25, h * .12, .12, p.sage, .62);
-  drawGouacheArc(x + w * .88, y + h * .43, w * .1, h * .16, -.35, .55, Math.PI * 1.72, p.lavender, 31, .62);
-  drawGouacheSwipe(x + w * .17, y + h * .68, w * .24, h * .13, .36, p.blush, .62);
-  drawGouacheArc(x + w * .49, y + h * .78, w * .12, h * .08, -.12, Math.PI * .2, Math.PI * 1.8, p.mint, 22, .64);
-  drawGouacheSwipe(x + w * .78, y + h * .74, w * .2, h * .09, -.42, p.beige, .7);
-  drawGouacheArc(x + w * .6, y + h * .45, w * .08, h * .055, t * .015, .4, Math.PI * 1.52, p.yellow, 14, .52);
+  drawGouacheSwipe(x + w * .14, y + h * .2, w * .24, h * .1, profile.angle, primary, .7);
+  drawGouacheArc(x + w * .38, y + h * .28, w * .14, h * .1, profile.angle + .34, .15, Math.PI * 1.55, secondary, 24, .7);
+  drawGouacheSwipe(x + w * .73, y + h * .2, w * .27, h * .12, -profile.angle, accent, .64);
+  drawGouacheArc(x + w * .84, y + h * .52, w * .11, h * .17, profile.angle - .22, .55, Math.PI * 1.72, primary, 29, .62);
+  drawGouacheSwipe(x + w * .18, y + h * .72, w * .26, h * .13, profile.angle + .28, secondary, .62);
+  drawGouacheArc(x + w * .51, y + h * .78, w * .13, h * .08, -profile.angle, Math.PI * .2, Math.PI * 1.8, accent, 21, .66);
+  drawGouacheSwipe(x + w * .79, y + h * .76, w * .2, h * .09, profile.angle - .4, primary, .55);
+
+  if (profile.motif === 'rings' || profile.motif === 'orbit' || profile.motif === 'relay') {
+    drawGouacheArc(x + w * .52, y + h * .49, w * .18, h * .22, t * .01, .35, Math.PI * 1.75, secondary, 18, .58);
+    drawGouacheArc(x + w * .52, y + h * .49, w * .1, h * .13, -t * .012, .8, Math.PI * 1.88, accent, 11, .66);
+  } else if (profile.motif === 'bursts' || profile.motif === 'blooms') {
+    for (let i = 0; i < 6; i++) {
+      const a = i * Math.PI / 3 + profile.angle;
+      drawGouacheSwipe(x + w * .52 + Math.cos(a) * w * .11, y + h * .5 + Math.sin(a) * h * .13, w * .13, h * .045, a, i % 2 ? primary : secondary, .55);
+    }
+  } else if (profile.motif === 'bars' || profile.motif === 'dashes' || profile.motif === 'cells') {
+    for (let i = 0; i < 5; i++) {
+      const nx = .3 + ((i * 37 + seed) % 48) / 100;
+      const ny = .35 + ((i * 23 + seed) % 35) / 100;
+      drawGouacheSwipe(x + w * nx, y + h * ny, w * (.08 + (i % 3) * .035), h * .035, profile.angle + i * .18, i % 2 ? secondary : p.black, .62);
+    }
+  }
 
   ctx.globalAlpha = .92;
   ctx.strokeStyle = p.black;
@@ -22175,19 +22228,43 @@ function drawAbstractGouacheRoom(room, t) {
     drawGouacheSwipe(cx(bed.c), cy(bed.r), G * 1.08, G * .62, ((bed.c + bed.r) % 3 - 1) * .13, p.beige, .9);
     drawGouacheArc(cx(bed.c), cy(bed.r), G * .3, G * .18, .2, .25, Math.PI * 1.55, p.black, 5, .82);
   }
+  for (const rect of room.blockedRects || []) {
+    const [bx1, by1, bx2, by2] = rect;
+    const bx = OX + bx1 * G;
+    const by = OY + by1 * G;
+    const bw = (bx2 - bx1 + 1) * G;
+    const bh = (by2 - by1 + 1) * G;
+    drawGouacheSwipe(bx + bw * .5, by + bh * .5, bw * .92, Math.max(22, bh * .72), profile.angle, accent, .88);
+    ctx.globalAlpha = .64;
+    ctx.strokeStyle = p.black;
+    ctx.lineWidth = 3;
+    ctx.setLineDash([16, 8, 5, 9]);
+    ctx.strokeRect(bx + 5, by + 5, bw - 10, bh - 10);
+    ctx.setLineDash([]);
+  }
+  for (const rect of expeditionRoomLavaRects(room)) {
+    const [lx1, ly1, lx2, ly2] = rect;
+    const lx = OX + lx1 * G;
+    const ly = OY + ly1 * G;
+    const lw = (lx2 - lx1 + 1) * G;
+    const lh = (ly2 - ly1 + 1) * G;
+    drawGouacheSwipe(lx + lw * .5, ly + lh * .5, lw * .94, Math.max(20, lh * .74), -.12, p.coral, .94);
+    drawGouacheArc(lx + lw * .5, ly + lh * .5, Math.max(12, lw * .34), Math.max(8, lh * .28), .2, .35, Math.PI * 1.6, p.yellow, 7, .8);
+  }
   ctx.restore();
 
   ctx.save();
-  ctx.strokeStyle = p.black;
-  ctx.globalAlpha = .7;
-  ctx.lineWidth = 4;
+  const state = S.expedition?.roomStates?.[room.id] || 'inactive';
+  ctx.strokeStyle = state === 'active' ? p.red : state === 'cleared' ? p.mint : p.black;
+  ctx.globalAlpha = state === 'active' ? .92 : .7;
+  ctx.lineWidth = state === 'active' ? 7 : 4;
   ctx.setLineDash([42, 13, 18, 9]);
   ctx.strokeRect(x + 5, y + 5, w - 10, h - 10);
   ctx.setLineDash([]);
-  drawGouacheSwipe(x + w * .5, y + 9, w * .46, 25, .02, p.sage, .78);
-  drawGouacheSwipe(x + w * .5, y + h - 9, w * .38, 24, -.03, p.blush, .72);
-  drawGouacheSwipe(x + 10, y + h * .5, 26, h * .44, Math.PI / 2 + .04, p.beige, .76);
-  drawGouacheSwipe(x + w - 10, y + h * .5, 28, h * .36, Math.PI / 2 - .05, p.powder, .76);
+  drawGouacheSwipe(x + w * .5, y + 9, w * .46, 25, .02, primary, .76);
+  drawGouacheSwipe(x + w * .5, y + h - 9, w * .38, 24, -.03, secondary, .7);
+  drawGouacheSwipe(x + 10, y + h * .5, 26, h * .44, Math.PI / 2 + .04, accent, .72);
+  drawGouacheSwipe(x + w - 10, y + h * .5, 28, h * .36, Math.PI / 2 - .05, primary, .68);
   ctx.fillStyle = p.black;
   ctx.globalAlpha = .82;
   ctx.font = 'bold 13px Georgia';
@@ -22195,17 +22272,38 @@ function drawAbstractGouacheRoom(room, t) {
   ctx.restore();
 }
 
-function drawAbstractGouacheRiftCore(x, y, t, carried = false) {
+function drawAbstractGouacheRiftCore(x, y, t, activated = false, carried = false) {
   const p = ABSTRACT_GOUACHE_PALETTE;
+  const visual = activated ? expeditionRiftVisualState(t) : { count:0, threat:0, hasShield:false, shieldActive:false, hasPulse:false, hasField:false, danger:false };
   ctx.save();
   ctx.translate(x, y);
   if (carried) ctx.scale(.72, .72);
+  if (visual.hasField) {
+    for (let i = 0; i < 3; i++) {
+      drawGouacheArc(0, 0, 72 + i * 25, 54 + i * 18, t * (.12 + i * .03), .3 + i * .4, Math.PI * (1.35 + i * .12), i === 1 ? p.black : p.lavender, 9 - i, .3);
+    }
+  }
+  if (visual.hasPulse) {
+    for (let i = 0; i < 7; i++) {
+      const a = i * Math.PI * 2 / 7 + t * .35;
+      drawGouacheSwipe(Math.cos(a) * 70, Math.sin(a) * 54, 27, 8, a, i % 2 ? p.yellow : p.coral, .72);
+    }
+  }
+  if (visual.hasShield || visual.shieldActive) {
+    for (let i = 0; i < 12; i++) {
+      const a = i * Math.PI * 2 / 12 - t * .55;
+      drawGouacheSwipe(Math.cos(a) * 83, Math.sin(a) * 65, 26, 10, a + Math.PI / 2, i % 2 ? p.beige : p.powder, .78);
+    }
+  }
   drawGouacheArc(0, 0, 46, 31, t * .34, .25, Math.PI * 1.65, p.lavender, 13, .86);
   drawGouacheArc(0, 0, 34, 48, -t * .27, .7, Math.PI * 1.85, p.blush, 11, .84);
   drawGouacheArc(0, 0, 25, 38, t * .22 + .8, .15, Math.PI * 1.45, p.mint, 9, .86);
   drawGouacheArc(0, 0, 55, 43, -t * .18, 1.1, Math.PI * 1.82, p.powder, 7, .72);
+  if (visual.danger) {
+    drawGouacheArc(0, 0, 64, 55, t * .7, .2, Math.PI * 1.45, p.red, 9, .7);
+  }
   ctx.fillStyle = p.black;
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 7 + Math.min(5, visual.count || 0); i++) {
     const a = i * 2.1 + t * .18;
     ctx.beginPath();
     ctx.arc(Math.cos(a) * (18 + i * 4), Math.sin(a) * (14 + i * 3), 2 + i % 2, 0, Math.PI * 2);
@@ -22229,6 +22327,113 @@ function drawAbstractGouacheEnemy(e, blink = false) {
   ctx.beginPath();
   ctx.arc(e.rad * .28, -e.rad * .3, 3.2, 0, Math.PI * 2);
   ctx.fill();
+  if (e.eliteRoomTarget || e.boss) {
+    drawGouacheArc(0, 0, e.rad * 1.18, e.rad * .92, -.2, .2, Math.PI * 1.7, p.yellow, 7, .88);
+    ctx.fillStyle = p.black;
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.moveTo(-11 + i * 11, -e.rad * 1.1);
+      ctx.lineTo(-6 + i * 11, -e.rad * 1.55);
+      ctx.lineTo(-1 + i * 11, -e.rad * 1.1);
+      ctx.fill();
+    }
+  }
+}
+
+function drawAbstractGouacheSlimeKing(e, t) {
+  const p = ABSTRACT_GOUACHE_PALETTE;
+  const scale = e.sizeScale || 1;
+  const phase = e.bossPhase || 1;
+  ctx.save();
+  ctx.scale(scale, scale);
+  drawGouacheSwipe(0, 8, e.rad * 2.7, e.rad * 1.7, Math.sin(t * 2) * .08, phase >= 3 ? p.lavender : p.mint, .94);
+  drawGouacheSwipe(-e.rad * .42, 0, e.rad * 1.1, e.rad * .72, -.35, p.sage, .74);
+  drawGouacheSwipe(e.rad * .48, 5, e.rad * 1.15, e.rad * .68, .3, phase >= 2 ? p.coral : p.yellow, .7);
+  drawGouacheArc(0, 3, e.rad * 1.15, e.rad * .78, -.08, .18, Math.PI * 1.76, p.black, 8, .9);
+  ctx.fillStyle = p.black;
+  ctx.beginPath();
+  ctx.arc(-e.rad * .34, -e.rad * .2, 5, 0, Math.PI * 2);
+  ctx.arc(e.rad * .34, -e.rad * .2, 5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = p.red;
+  ctx.lineWidth = 6;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.arc(0, e.rad * .18, e.rad * .38, .2, Math.PI - .2);
+  ctx.stroke();
+  for (let i = 0; i < 5; i++) {
+    const x = (i - 2) * e.rad * .32;
+    drawGouacheSwipe(x, -e.rad * .95 - Math.abs(i - 2) * 2, e.rad * .34, e.rad * .62, (i - 2) * .12, i % 2 ? p.yellow : p.coral, .88);
+  }
+  if (e.leapState === 'telegraph') {
+    drawGouacheArc(0, 0, e.rad * 1.6, e.rad * 1.2, t * .3, .2, Math.PI * 1.7, p.red, 11, .72);
+  }
+  ctx.restore();
+}
+
+function drawAbstractGouacheTower(tw, t) {
+  const p = ABSTRACT_GOUACHE_PALETTE;
+  const colors = {
+    archer:[p.sage,p.coral], ballista:[p.beige,p.red], frost:[p.powder,p.sky],
+    cauldron:[p.coral,p.yellow], cannon:[p.black,p.beige], barracks:[p.red,p.beige],
+    spire:[p.lavender,p.yellow], alchemist:[p.mint,p.lavender], spikes:[p.beige,p.black],
+    tar:[p.black,p.yellow], spring:[p.sage,p.coral], mace:[p.black,p.red],
+  }[tw.type] || [p.powder,p.black];
+  drawGouacheSwipe(0, 4, 47, 31, -.08, colors[0], .94);
+  drawGouacheArc(0, 0, 21, 17, .18, .2, Math.PI * 1.6, p.black, 5, .82);
+  if (tw.type === 'spire' || tw.type === 'frost') {
+    drawGouacheSwipe(0, -19, 17, 41, -.06, colors[1], .9);
+  } else if (tw.type === 'cauldron' || tw.type === 'alchemist') {
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = i % 2 ? colors[1] : p.black;
+      ctx.beginPath(); ctx.arc((i - 1) * 10, -14 - (i % 2) * 6, 5 + i, 0, Math.PI * 2); ctx.fill();
+    }
+  } else if (tw.type === 'spikes') {
+    ctx.fillStyle = colors[1];
+    for (let i = -2; i <= 2; i++) {
+      ctx.beginPath();
+      ctx.moveTo(i * 9 - 5, 10);
+      ctx.lineTo(i * 9, -17 - Math.max(0, (tw.anim || 0) * 20));
+      ctx.lineTo(i * 9 + 5, 10);
+      ctx.fill();
+    }
+  } else {
+    drawGouacheSwipe(10, -8, 29, 8, -.15, colors[1], .9);
+  }
+  ctx.fillStyle = p.black;
+  ctx.beginPath(); ctx.arc(4, -4, 3, 0, Math.PI * 2); ctx.fill();
+  if ((tw.anim || 0) > 0) {
+    drawGouacheArc(0, 0, 31, 24, t * .2, .2, Math.PI * 1.45, colors[1], 6, .65);
+  }
+}
+
+function drawAbstractGouacheSkull(skull, t) {
+  const p = ABSTRACT_GOUACHE_PALETTE;
+  const flying = skull.state === 'flying';
+  drawGouacheSwipe(0, 1, 37, 31, -.08, flying ? p.coral : p.beige, .96);
+  drawGouacheArc(0, 1, 18, 15, .12, .2, Math.PI * 1.72, p.black, 5, .9);
+  ctx.fillStyle = p.black;
+  ctx.beginPath(); ctx.arc(-6, -3, 3.5, 0, Math.PI * 2); ctx.arc(6, -3, 3.5, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = flying ? p.red : p.lavender;
+  ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(-9, 9); ctx.lineTo(9, 9); ctx.stroke();
+  if (flying) drawGouacheArc(0, 0, 25, 21, t * .6, .3, Math.PI * 1.62, p.red, 7, .62);
+}
+
+function drawAbstractGouacheGhost(ghost, t) {
+  const p = ABSTRACT_GOUACHE_PALETTE;
+  const alpha = ghost.mode === 'fade' ? Math.max(0, ghost.fade || 0) : ghost.attackState === 'split' ? .3 : .9;
+  ctx.globalAlpha = alpha;
+  drawGouacheSwipe(0, 4, 35, 48, Math.sin(t * 3) * .12, ghost.boneWardenFinal ? p.lavender : p.powder, .88);
+  drawGouacheArc(0, 1, 22, 29, -.12, .3, Math.PI * 1.6, ghost.boneWardenFinal ? p.red : p.black, 6, .82);
+  ctx.fillStyle = p.black;
+  ctx.beginPath(); ctx.arc(-6, -5, 3, 0, Math.PI * 2); ctx.arc(6, -5, 3, 0, Math.PI * 2); ctx.fill();
+  if (ghost.boneWardenFinal) {
+    for (let i = 0; i < 4; i++) {
+      const a = i * Math.PI / 2 + t * .3;
+      drawGouacheSwipe(Math.cos(a) * 29, Math.sin(a) * 24, 17, 6, a, i % 2 ? p.blush : p.yellow, .7);
+    }
+  }
 }
 
 function drawExpeditionDressing(t) {
@@ -22236,11 +22441,12 @@ function drawExpeditionDressing(t) {
   const ex = S.expedition;
   if (!cfg) return;
   ctx.save();
+  if (abstractGouacheEnabled()) {
+    for (const room of cfg.rooms || []) drawAbstractGouacheRoom(room, t);
+    ctx.restore();
+    return;
+  }
   for (const room of cfg.rooms || []) {
-    if (room.id === ABSTRACT_GOUACHE_ROOM_ID && abstractGouacheRoom()) {
-      drawAbstractGouacheRoom(room, t);
-      continue;
-    }
     const [x1, y1, x2, y2] = room.rect;
     const x = OX + x1 * G;
     const y = OY + y1 * G;
@@ -22309,16 +22515,14 @@ function drawExpeditionDressing(t) {
   }
 
   // Room identity props. These are simple canvas dressing, not gameplay systems.
-  if (!abstractGouacheRoom()) {
-    const bunkYs = [17, 20, 23];
-    ctx.globalAlpha = .9;
-    for (const r of bunkYs) {
-      for (let c = 22; c <= 30; c += 3) {
-        ctx.fillStyle = '#2b1b12';
-        ctx.fillRect(OX + c * G + 5, OY + r * G + 7, 48, 16);
-        ctx.fillStyle = '#76533d';
-        ctx.fillRect(OX + c * G + 8, OY + r * G + 9, 42, 12);
-      }
+  const bunkYs = [17, 20, 23];
+  ctx.globalAlpha = .9;
+  for (const r of bunkYs) {
+    for (let c = 22; c <= 30; c += 3) {
+      ctx.fillStyle = '#2b1b12';
+      ctx.fillRect(OX + c * G + 5, OY + r * G + 7, 48, 16);
+      ctx.fillStyle = '#76533d';
+      ctx.fillRect(OX + c * G + 8, OY + r * G + 9, 42, 12);
     }
   }
   for (let c = 40; c <= 56; c += 4) {
@@ -22353,7 +22557,7 @@ function drawExpeditionDressing(t) {
 
 function drawExpeditionRiftCore(x, y, t, activated = false, carried = false) {
   if (pointInAbstractGouacheRoom(x, y)) {
-    drawAbstractGouacheRiftCore(x, y, t, carried);
+    drawAbstractGouacheRiftCore(x, y, t, activated, carried);
     return;
   }
   const dormant = activated && !S.expedition?.riftEverCarried && !(S.expedition?.riftAwakeningTime > 0);
@@ -22652,6 +22856,24 @@ function drawExpeditionRiftAwakening(t) {
   if (!isExpeditionRun() || !(ex?.riftAwakeningTime > 0) || !ex.rift) return;
   const progress = 1 - ex.riftAwakeningTime / 2;
   const fade = Math.sin(clamp(progress, 0, 1) * Math.PI);
+  if (abstractGouacheEnabled()) {
+    const p = ABSTRACT_GOUACHE_PALETTE;
+    for (let i = 0; i < 10; i++) {
+      const angle = i * Math.PI * 2 / 10 + t * .18;
+      const radius = 28 + progress * (90 + (i % 3) * 20);
+      drawGouacheSwipe(
+        ex.rift.x + Math.cos(angle) * radius,
+        ex.rift.y + Math.sin(angle) * radius * .7,
+        24 + (i % 3) * 8,
+        8 + (i % 2) * 4,
+        angle,
+        [p.lavender, p.blush, p.mint, p.powder][i % 4],
+        fade * .78
+      );
+    }
+    drawGouacheArc(ex.rift.x, ex.rift.y, 48 + progress * 80, 37 + progress * 55, t * .12, .2, Math.PI * 1.72, p.yellow, 10, fade * .76);
+    return;
+  }
   ctx.save();
   ctx.globalCompositeOperation = 'screen';
   for (let i = 0; i < 8; i++) {
@@ -22682,6 +22904,18 @@ function drawExpeditionRiftAwakening(t) {
 }
 
 function drawExpeditionRiftSocket(x, y, subdued = false) {
+  if (abstractGouacheEnabled()) {
+    const p = ABSTRACT_GOUACHE_PALETTE;
+    ctx.save();
+    ctx.globalAlpha = subdued ? .25 : .82;
+    drawGouacheSwipe(x, y, 86, 68, -.18, p.beige, .72);
+    drawGouacheArc(x, y, 39, 51, -.18, .35, Math.PI * 1.72, p.lavender, 9, .82);
+    drawGouacheArc(x, y, 25, 18, .12, .2, Math.PI * 1.55, p.black, 7, .9);
+    ctx.fillStyle = p.mint;
+    ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    return;
+  }
   ctx.save();
   ctx.translate(x, y);
   ctx.globalAlpha = subdued ? .16 : .42;
@@ -22884,15 +23118,20 @@ function drawExpeditionObjects(t) {
     const pct = Math.max(0, ex.rift.hp / ex.rift.max);
     const warnState = ex.riftWarnState || 0;
     if ((ex.rift.flash || 0) > 0) {
-      ctx.globalCompositeOperation = 'screen';
-      ctx.globalAlpha = Math.min(.65, ex.rift.flash);
-      ctx.strokeStyle = '#ff9b8a';
-      ctx.lineWidth = 5;
-      ctx.beginPath();
-      ctx.arc(ex.rift.x, ex.rift.y, 78 + Math.sin(t * 18) * 4, 0, 7);
-      ctx.stroke();
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.globalAlpha = 1;
+      if (abstractGouacheEnabled()) {
+        drawGouacheArc(ex.rift.x, ex.rift.y, 78 + Math.sin(t * 18) * 4, 58, t * .4, .25, Math.PI * 1.68, ABSTRACT_GOUACHE_PALETTE.red, 12, Math.min(.8, ex.rift.flash));
+        drawGouacheSwipe(ex.rift.x + 42, ex.rift.y - 28, 35, 9, -.35, ABSTRACT_GOUACHE_PALETTE.yellow, Math.min(.75, ex.rift.flash));
+      } else {
+        ctx.globalCompositeOperation = 'screen';
+        ctx.globalAlpha = Math.min(.65, ex.rift.flash);
+        ctx.strokeStyle = '#ff9b8a';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.arc(ex.rift.x, ex.rift.y, 78 + Math.sin(t * 18) * 4, 0, 7);
+        ctx.stroke();
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 1;
+      }
       ex.rift.flash = Math.max(0, (ex.rift.flash || 0) - .08);
     }
     ctx.fillStyle = '#1a070f';
@@ -23035,6 +23274,7 @@ function drawExpeditionDarkLight(maskCtx, x, y, radius, softEdge) {
 }
 
 function drawExpeditionDarkRooms(t) {
+  if (abstractGouacheEnabled()) return;
   const ex = S.expedition;
   const cfg = expeditionConfig();
   if (!isExpeditionRun() || !ex || !cfg) return;
@@ -23774,6 +24014,18 @@ function drawExpeditionRiftWarningOverlay(t) {
   const a = state === 3 ? 1 : state === 2 ? .94 : .62;
   const edge = state === 3 ? 1 : state === 2 ? .9 : .48;
   const wobble = 1 + Math.sin(t * (state === 3 ? 34 : state === 2 ? 22 : 12)) * (state === 3 ? .22 : state === 2 ? .14 : .06);
+  if (abstractGouacheEnabled()) {
+    const p = ABSTRACT_GOUACHE_PALETTE;
+    ctx.save();
+    const width = state === 3 ? 110 : state === 2 ? 76 : 48;
+    const alpha = Math.min(.88, .38 + pulse * .35 + flash * .45);
+    drawGouacheSwipe(W * .5, 12, W * .72, width, .01, p.red, alpha);
+    drawGouacheSwipe(W * .5, H - 12, W * .64, width, -.02, state === 3 ? p.red : p.coral, alpha);
+    drawGouacheSwipe(12, H * .5, H * .58, width, Math.PI / 2, p.red, alpha * .8);
+    drawGouacheSwipe(W - 12, H * .5, H * .58, width, Math.PI / 2, p.coral, alpha * .8);
+    ctx.restore();
+    return;
+  }
   ctx.save();
   ctx.globalCompositeOperation = 'screen';
   ctx.globalAlpha = a;
@@ -23804,7 +24056,22 @@ function drawExpeditionRiftWarningOverlay(t) {
 
 
 function drawAtmosphere(t) {
-  if (pointInAbstractGouacheRoom(S.hero.x, S.hero.y)) return;
+  if (pointInAbstractGouacheRoom(S.hero.x, S.hero.y)) {
+    if (S.bossIntro > 0) {
+      const p = ABSTRACT_GOUACHE_PALETTE;
+      const a = Math.min(.82, S.bossIntro / 1.35 * .72);
+      ctx.save();
+      drawGouacheSwipe(W * .5, H * .28, 470, 125, -.03, p.mint, a);
+      drawGouacheArc(W * .5, H * .28, 210, 78, t * .04, .25, Math.PI * 1.65, p.coral, 16, a);
+      ctx.fillStyle = p.black;
+      ctx.font = 'bold 46px Georgia';
+      ctx.textAlign = 'center';
+      ctx.fillText('THE SLIME KING STIRS', W / 2, H * .28 + 12);
+      ctx.textAlign = 'left';
+      ctx.restore();
+    }
+    return;
+  }
   // Portal glow
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
@@ -23886,24 +24153,27 @@ function drawAtmosphere(t) {
 }
 
 function drawMap(t) {
+  const gouache = abstractGouacheEnabled();
   // Fortress board background
-  ctx.fillStyle = '#0f1820';
+  ctx.fillStyle = gouache ? '#FFFFFF' : '#0f1820';
   ctx.fillRect(OX - 18, OY - 18, COLS * G + 36, ROWS * G + 36);
 
   const frameX = OX - 18, frameY = OY - 18;
   const frameW = COLS * G + 36, frameH = ROWS * G + 36;
-  ctx.fillStyle = '#1c2630';
+  ctx.fillStyle = gouache ? '#FFFFFF' : '#1c2630';
   ctx.fillRect(frameX, frameY, frameW, frameH);
-  ctx.strokeStyle = '#9d7643'; ctx.lineWidth = 4;
+  ctx.strokeStyle = gouache ? ABSTRACT_GOUACHE_PALETTE.black : '#9d7643'; ctx.lineWidth = 4;
   ctx.strokeRect(frameX + 1, frameY + 1, frameW - 2, frameH - 2);
-  ctx.strokeStyle = '#2b3844'; ctx.lineWidth = 2;
+  ctx.strokeStyle = gouache ? ABSTRACT_GOUACHE_PALETTE.beige : '#2b3844'; ctx.lineWidth = 2;
   ctx.strokeRect(frameX + 8, frameY + 8, frameW - 16, frameH - 16);
 
   // Stone floor outside the grid
-  const dirt = ctx.createLinearGradient(0, OY, 0, OY + ROWS * G);
-  dirt.addColorStop(0, '#586571');
-  dirt.addColorStop(1, '#3a444d');
-  ctx.fillStyle = dirt;
+  const dirt = gouache ? null : ctx.createLinearGradient(0, OY, 0, OY + ROWS * G);
+  if (dirt) {
+    dirt.addColorStop(0, '#586571');
+    dirt.addColorStop(1, '#3a444d');
+  }
+  ctx.fillStyle = gouache ? '#FFFFFF' : dirt;
   ctx.fillRect(OX - 12, OY - 12, COLS * G + 24, ROWS * G + 24);
 
   for (let c = 0; c < COLS; c++) {
@@ -23911,6 +24181,33 @@ function drawMap(t) {
       const x = OX + c * G, y = OY + r * G;
       const n = Math.sin(c * 12.989 + r * 78.233) * 43758.5453;
       const v = n - Math.floor(n);
+      if (gouache) {
+        if (isRoad(c, r) && !isBlockedTerrain(c, r)) {
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(x, y, G, G);
+          if ((c * 7 + r * 11) % 17 === 3) {
+            ctx.globalAlpha = .18;
+            ctx.fillStyle = v > .5 ? ABSTRACT_GOUACHE_PALETTE.powder : ABSTRACT_GOUACHE_PALETTE.beige;
+            ctx.beginPath();
+            ctx.ellipse(x + G * .52, y + G * .5, 17, 7, (v - .5) * .8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+          }
+        } else if (isBlockedTerrain(c, r)) {
+          ctx.fillStyle = v > .5 ? '#E7D8CA' : ABSTRACT_GOUACHE_PALETTE.beige;
+          ctx.fillRect(x, y, G, G);
+          ctx.globalAlpha = .48;
+          ctx.fillStyle = v > .6 ? ABSTRACT_GOUACHE_PALETTE.sage : ABSTRACT_GOUACHE_PALETTE.blush;
+          ctx.beginPath();
+          ctx.ellipse(x + G * .5, y + G * .5, 18 + v * 4, 13 + (1 - v) * 5, v * .6, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        } else {
+          ctx.fillStyle = '#FAFAF8';
+          ctx.fillRect(x, y, G, G);
+        }
+        continue;
+      }
       if (isRoad(c, r) && !(isExpeditionRun() && isBlockedTerrain(c, r))) {
         // Warm bridge / worn stone path
         ctx.fillStyle = v > .66 ? '#e1d6be' : v > .33 ? '#d2c4a8' : '#c0b08f';
@@ -24104,6 +24401,19 @@ function drawCornerSkull(skull, t) {
   ctx.scale(scale, scale);
   const flying = skull.state === 'flying';
   const flash = flying ? (.45 + Math.abs(Math.sin(t * 18)) * .45) : 0;
+  if (abstractGouacheEnabled()) {
+    drawAbstractGouacheSkull(skull, t);
+    if (flying) {
+      const pct = Math.max(0, (skull.hp || 0) / (skull.maxHp || 10));
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = ABSTRACT_GOUACHE_PALETTE.black;
+      ctx.fillRect(-18, 23, 36, 5);
+      ctx.fillStyle = ABSTRACT_GOUACHE_PALETTE.red;
+      ctx.fillRect(-18, 23, 36 * pct, 5);
+    }
+    ctx.restore();
+    return;
+  }
   ctx.globalAlpha = 0.98;
   ctx.fillStyle = flying && flash > .65 ? '#ff5a4a' : '#f5f2ea';
   ctx.strokeStyle = flying ? '#ff1f1f' : '#2b120b';
@@ -24245,6 +24555,32 @@ function drawTower(tw, t) {
   const bob = machineUprising ? Math.sin(t * 8 + tw.x * .03) * 3 : 0;
   ctx.save(); ctx.translate(tw.x, tw.y + bob);
   if (d.directional) ctx.rotate(DIR_ANGLES[tw.dir || 1]);
+  if (abstractGouacheEnabled()) {
+    drawAbstractGouacheTower(tw, t);
+    const disableLeft = towerIsDisabled(tw) ? Math.max(0, towerDisabledUntil(tw) - performance.now() / 1000) : 0;
+    if (disableLeft > 0) {
+      drawGouacheArc(0, -3, 28, 22, t * .35, .25, Math.PI * 1.6, ABSTRACT_GOUACHE_PALETTE.powder, 7, .82);
+      ctx.fillStyle = ABSTRACT_GOUACHE_PALETTE.black;
+      ctx.font = 'bold 10px Georgia';
+      ctx.fillText('OFFLINE', -20, -32);
+    }
+    ctx.restore();
+    if (towerHasDurability(tw)) {
+      ctx.fillStyle = ABSTRACT_GOUACHE_PALETTE.black;
+      ctx.fillRect(tw.x - 22, tw.y - 33, 44, 5);
+      ctx.fillStyle = tw.hp / tw.max > .5 ? ABSTRACT_GOUACHE_PALETTE.mint : ABSTRACT_GOUACHE_PALETTE.red;
+      ctx.fillRect(tw.x - 22, tw.y - 33, 44 * Math.max(0, tw.hp / tw.max), 5);
+    }
+    if (S.sel === tw) {
+      ctx.strokeStyle = ABSTRACT_GOUACHE_PALETTE.sky;
+      ctx.lineWidth = 4;
+      ctx.setLineDash([13, 7]);
+      ctx.beginPath(); ctx.arc(tw.x, tw.y, d.r || 28, 0, Math.PI * 2); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    tw.anim = Math.max(0, (tw.anim || 0) - .03);
+    return;
+  }
 
   ctx.fillStyle = '#0005';
   ctx.beginPath(); ctx.ellipse(3, 5, 27, 18, 0, 0, 7); ctx.fill();
@@ -24985,7 +25321,11 @@ function drawEnemy(e) {
 
   ctx.strokeStyle = '#1e1008'; ctx.lineWidth = 2;
 
-  if (pointInAbstractGouacheRoom(e.x, e.y)) {
+  if (pointInAbstractGouacheRoom(e.x, e.y) && e.type === 'slimeking') {
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+    drawAbstractGouacheSlimeKing(e, tNow);
+  } else if (pointInAbstractGouacheRoom(e.x, e.y)) {
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';
     drawAbstractGouacheEnemy(e, blink);
@@ -26241,7 +26581,7 @@ $('devPlayerTowerCollisionToggle').onclick = () => { S.devPlayerTowerCollision =
 $('devAbstractGouacheToggle').onclick = () => {
   S.devAbstractGouache = !S.devAbstractGouache;
   ui();
-  toast(`Abstract Gouache Rift Access ${S.devAbstractGouache ? 'ON' : 'OFF'}`);
+  toast(`Abstract Gouache Expedition ${S.devAbstractGouache ? 'ON' : 'OFF'}`);
 };
 $('devRoomBoundsToggle').onclick = () => { S.devShowRoomBounds = !S.devShowRoomBounds; ui(); toast(`Room Bounds ${S.devShowRoomBounds ? 'ON' : 'OFF'}`); };
 $('devPathToggle').onclick = () => { S.devShowPathing = !S.devShowPathing; ui(); toast(`Pathing ${S.devShowPathing ? 'ON' : 'OFF'}`); };
