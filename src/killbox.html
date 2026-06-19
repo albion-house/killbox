@@ -5588,8 +5588,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.29.1</b>
-      <span id="warRoomBuildName">FastBloodbath</span>
+      <b id="warRoomVersion">v7.29.2</b>
+      <span id="warRoomBuildName">RelayLock</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -5676,7 +5676,7 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.29.1 FastBloodbath</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.29.2 RelayLock</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -7174,11 +7174,12 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.29.1';
+const GAME_VERSION = '7.29.2';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'FastBloodbath';
+const BUILD_NAME = 'RelayLock';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Made the Core escape swarm start immediately and use cheap screen-crossing movement for a smoother bloodbath.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Started the Relay holdout immediately, locked the room, and paused the timer when the Core is picked up.' },
+  { version: '7.29.1', name: 'FastBloodbath', changes: 'Made the Core escape swarm start immediately and use cheap screen-crossing movement for a smoother bloodbath.' },
   { version: '7.29.0', name: 'CoreEscape', changes: 'Turned Relay completion into a collapsing-dungeon escape with an ejected, overloaded Rift and a final return to the Entrance.' },
   { version: '7.28.1', name: 'CornerCircuit', changes: 'Moved Dark Chapel light pads into the corners and limited each pad to illuminating its own quadrant.' },
   { version: '7.28.0', name: 'ChapelCircuit', changes: 'Made Dark Chapel lighting depend on placing the Rift on one of four illuminated power pads.' },
@@ -8920,15 +8921,24 @@ function startExpeditionExtractionEvent() {
   }
   ex.extractionActive = true;
   ex.extractionTimer = cfg?.extractionHoldSeconds || 120;
-  ex.extractionCountdown = 20;
-  ex.extractionStarted = false;
-  ex.extractionHoldMessageTime = 0;
+  ex.extractionCountdown = 0;
+  ex.extractionStarted = true;
+  ex.extractionHoldMessageTime = 3;
   ex.extractionWaveIndex = 0;
   ex.extractionWaveQueue = [];
   ex.extractionSpawnTimer = 0;
-  ex.message = 'Wave starts in 20 seconds.';
-  ex.messageTime = 20;
-  announceWave('WAVE STARTS IN 20 SECONDS', 'danger', 1.2);
+  const relayRoom = expeditionExtractionRoom();
+  if (relayRoom) {
+    ex.roomStates[relayRoom.id] = 'active';
+    ex.activeRoomId = relayRoom.id;
+    ex.roomObjective = { roomId: relayRoom.id, type: 'relayHold', label: 'Relay Hold' };
+    delete ex.roomDoorsUnlocked?.[relayRoom.id];
+    ex.roomBlockers = expeditionRoomDoorBlockers(relayRoom);
+    primeExpeditionRoomBoundarySides(relayRoom);
+  }
+  ex.message = 'Hold on for 2 minutes.';
+  ex.messageTime = 3;
+  announceWave('RELAY HOLDOUT STARTED', 'danger', 1.2);
   playSfx('bossWarning');
   shake(10, .45);
   const relay = expeditionRelayPadCenter();
@@ -8952,7 +8962,13 @@ const EXPEDITION_RELAY_WAVES = [
 ];
 
 function spawnExpeditionRelayEnemy(type, directionIndex) {
-  const spawn = (levelDef(S.levelId)?.spawns || [])[directionIndex];
+  const relay = expeditionRelayPadCenter();
+  const spawns = levelDef(S.levelId)?.spawns || [];
+  const safeSpawns = relay
+    ? spawns.filter(spawn => dist(cx(spawn.c), cy(spawn.r), relay.x, relay.y) >= Math.max(220, Math.max(W, H) * .35))
+    : spawns.slice();
+  const spawnPool = safeSpawns.length ? safeSpawns : spawns;
+  const spawn = spawnPool.length ? spawnPool[directionIndex % spawnPool.length] : null;
   if (!spawn) return null;
   const ex = S.expedition;
   const target = cellAt(ex.rift.x, ex.rift.y);
@@ -8980,6 +8996,23 @@ function spawnExpeditionRelayEnemy(type, directionIndex) {
 function startExpeditionEscapeSequence() {
   const ex = S.expedition;
   if (!ex || ex.completed) return;
+  const relayRoom = expeditionExtractionRoom();
+  if (relayRoom && ex.activeRoomId === relayRoom.id) {
+    ex.roomStates[relayRoom.id] = 'cleared';
+    ex.roomDoorsUnlocked ||= {};
+    ex.roomDoorsUnlocked[relayRoom.id] = true;
+    ex.roomBlockers = [];
+    ex.activeRoomId = null;
+    ex.roomObjective = null;
+    for (const e of S.enemies) {
+      if (e.lockedRoomId === relayRoom.id) {
+        delete e.lockedRoomId;
+        delete e.lockedRoomSide;
+        delete e.lockedDoorWaitUntil;
+        delete e.lockedDoorRetargetAt;
+      }
+    }
+  }
   ex.extractionActive = false;
   ex.escapeActive = true;
   ex.escapeElapsed = 0;
@@ -9136,26 +9169,7 @@ function updateExpeditionExtractionEvent(dt) {
   const ex = S.expedition;
   if (!isExpeditionRun() || !ex?.extractionActive || ex.completed) return;
   const holdSeconds = expeditionConfig()?.extractionHoldSeconds || 120;
-  let justStarted = false;
-  if (!ex.extractionStarted) {
-    ex.extractionCountdown = Math.max(0, (ex.extractionCountdown || 0) - dt);
-    const countdownSeconds = Math.ceil(ex.extractionCountdown || 0);
-    ex.message = `Wave starts in ${countdownSeconds} second${countdownSeconds === 1 ? '' : 's'}.`;
-    ex.messageTime = Math.max(ex.messageTime || 0, .25);
-    if (ex.extractionCountdown <= 0) {
-      ex.extractionStarted = true;
-      ex.extractionHoldMessageTime = 3;
-      ex.message = 'Hold on for 2 minutes.';
-      ex.messageTime = 3;
-      announceWave('HOLD ON FOR 2 MINUTES', 'danger', 1.2);
-      playSfx('bossWarning');
-      shake(10, .45);
-      justStarted = true;
-    } else {
-      return;
-    }
-  }
-  if (!justStarted) ex.extractionTimer = Math.max(0, (ex.extractionTimer || 0) - dt);
+  ex.extractionTimer = Math.max(0, (ex.extractionTimer || 0) - (ex.riftCarried ? 0 : dt));
   ex.extractionHoldMessageTime = Math.max(0, (ex.extractionHoldMessageTime || 0) - dt);
   ex.extractionSpawnTimer = Math.max(0, (ex.extractionSpawnTimer || 0) - dt);
   const elapsed = holdSeconds - ex.extractionTimer;
@@ -9725,6 +9739,9 @@ function updateExpeditionRoomEncounter(dt = 0) {
         }
         return;
       }
+      if (ex.roomObjective?.type === 'relayHold') {
+        return;
+      }
       if (ex.roomObjective?.type === 'chapelWaves') {
         const room = (cfg.rooms || []).find(r => r.id === ex.activeRoomId);
         const def = expeditionEncounterDef(room);
@@ -9857,6 +9874,10 @@ function tryToggleExpeditionRiftCarry() {
     announceWave('CORE OVERLOAD ACTIVE', 'boss', 1.4);
     showMissionHint('Return the Core to the Entrance.', 'expedition-core-return', 5);
     shake(14, .55);
+  } else if (ex.extractionActive) {
+    ex.message = 'Core removed. Relay timer paused.';
+    ex.messageTime = 4;
+    showMissionHint('Core removed. Relay timer paused.', 'expedition-relay-paused', 4);
   } else {
     showMissionHint('Deploy the Rift before building.', 'expedition-core-deploy', 4);
   }
@@ -10055,9 +10076,8 @@ function updateExpedition(dt) {
   }
 
   if (ex.extractionActive) {
-    const countdownSeconds = Math.ceil(ex.extractionCountdown || 0);
-    ex.message = !ex.extractionStarted
-      ? `Wave starts in ${countdownSeconds} second${countdownSeconds === 1 ? '' : 's'}.`
+    ex.message = ex.riftCarried
+      ? 'Core removed. Relay timer paused.'
       : ex.extractionHoldMessageTime > 0
         ? 'Hold on for 2 minutes.'
         : `Relay holdout: ${Math.ceil(ex.extractionTimer || 0)}s.`;
@@ -12763,8 +12783,8 @@ function missionObjectiveText() {
     const ex = S.expedition;
     if (!ex) return 'Explore the facility';
     if (ex.escapeActive) return ex.riftCarried ? 'Return Core To Entrance' : 'Pick Up The Core';
-    if (ex.extractionActive) return !ex.extractionStarted
-      ? `Wave Starts In ${Math.ceil(ex.extractionCountdown || 0)} Second${Math.ceil(ex.extractionCountdown || 0) === 1 ? '' : 's'}`
+    if (ex.extractionActive) return ex.riftCarried
+      ? 'Relay Hold Paused'
       : ex.extractionHoldMessageTime > 0
         ? 'Hold On For 2 Minutes'
         : `Hold Relay ${Math.ceil(ex.extractionTimer || 0)}s`;
@@ -12802,9 +12822,8 @@ function missionObjectiveHudState() {
         : { title: 'REALITY COLLAPSE', sub: 'PICK UP THE CORE' };
     }
     if (ex.extractionActive) {
-      if (!ex.extractionStarted) {
-        const seconds = Math.ceil(ex.extractionCountdown || 0);
-        return { title: 'WAVE STARTS IN', sub: `${seconds} SECOND${seconds === 1 ? '' : 'S'}` };
+      if (ex.riftCarried) {
+        return { title: 'HOLD PAUSED', sub: 'CORE REMOVED' };
       }
       if (ex.extractionHoldMessageTime > 0) {
         return { title: 'HOLD ON', sub: 'FOR 2 MINUTES' };
