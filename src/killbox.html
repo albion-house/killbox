@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Killbox 7.17.2-relay</title>
+<title>Killbox 7.25.0 GouacheRoom</title>
 <style>
 /* ── Design tokens ─────────────────────────────────────────────── */
 :root {
@@ -5453,6 +5453,7 @@ body.expeditionGameplay #combatHud {
             <button id="devRiftGuardToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Rift Guard</span><span class="devBadge" id="devRiftGuardState">OFF</span></button>
             <button id="devRiftNoHpLossToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Rift No HP Loss</span><span class="devBadge" id="devRiftNoHpLossState">OFF</span></button>
             <button id="devPlayerTowerCollisionToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Player Collision With Towers</span><span class="devBadge" id="devPlayerTowerCollisionState">ON</span></button>
+            <button id="devAbstractGouacheToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Abstract Gouache Room</span><span class="devBadge" id="devAbstractGouacheState">OFF</span></button>
             <button id="devRoomBoundsToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Room Bounds</span><span class="devBadge" id="devRoomBoundsState">OFF</span></button>
             <button id="devPathToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Pathing</span><span class="devBadge" id="devPathState">OFF</span></button>
           </div>
@@ -5586,8 +5587,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.22.1</b>
-      <span id="warRoomBuildName">ArmoryShift</span>
+      <b id="warRoomVersion">v7.25.0</b>
+      <span id="warRoomBuildName">GouacheRoom</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -5674,7 +5675,7 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.22.1 SealedRooms</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.25.0 GouacheRoom</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -5774,7 +5775,6 @@ body.expeditionGameplay #combatHud {
 const G = 44, OX = 28, OY = 88;
 let COLS = 30, ROWS = 15;
 const CAMERA = { x: 0, y: 0 };
-const EXPEDITION_ROOM_LOCK_CAMERA_ENABLED = false;
 const cx = c => OX + c * G + G / 2;
 const cy = r => OY + r * G + G / 2;
 const key = (c, r) => c + ',' + r;
@@ -6180,7 +6180,7 @@ const LEVELS = {
       riftHunterDamage: 22,
       extraction: { c: 55, r: 16 },
       requiredKeyCount: 4,
-      extractionHoldSeconds: 90,
+      extractionHoldSeconds: 120,
       requiredRoomIds: [],
       shortcuts: [
         [9, 27, 17, 29],
@@ -6413,12 +6413,11 @@ const LEVELS = {
           rect: [45, 2, 62, 14],
           color: '#483d77',
           entrances: [
-            { c: 45, r: 8, side: 'west', kind: 'lockedDoor', label: 'RIFT CHAMBER LOCKED' },
+            { c: 45, r: 8, width: 2, height: 1, side: 'west', kind: 'lockedDoor', label: 'RIFT CHAMBER LOCKED' },
           ],
           blockedRects: [
             [48, 3, 59, 4],
             [48, 12, 59, 13],
-            [45, 5, 46, 12],
             [61, 5, 62, 12],
             [51, 6, 56, 10],
           ],
@@ -6656,6 +6655,53 @@ const WEAPONS = {
       shake(3, .1);
     },
   },
+  riftblade: {
+    name: 'Riftblade', shortName: 'Riftblade', icon: '⚔', desc: 'A close-range Rift-forged blade with a returning stun throw.',
+    primaryCooldown: 0.42, secondaryCooldown: 1.3,
+    primaryFire(h, aim) {
+      const range = 92;
+      const halfArc = .72;
+      const dmg = (42 + h.level * 4) * (h.riftbladeDamageMult || 1);
+      let hitCount = 0;
+      S.parts.push({ kind:'riftSlash', x:h.x, y:h.y, a:aim, range, halfArc, life:.16, maxLife:.16, c:'#d8b7ff' });
+      for (const e of S.enemies) {
+        if (e.dead) continue;
+        const d = dist(h.x, h.y, e.x, e.y);
+        if (d > range + (e.rad || 0)) continue;
+        const a = Math.atan2(e.y - h.y, e.x - h.x);
+        const diff = Math.abs(Math.atan2(Math.sin(a - aim), Math.cos(a - aim)));
+        if (diff > halfArc) continue;
+        hit(e, dmg, null, true);
+        hitCount++;
+        if (e.hp <= 0) kill(e, null, true);
+      }
+      for (const nest of S.expedition?.roomNests || []) {
+        if (nest.dead) continue;
+        const d = dist(h.x, h.y, nest.x, nest.y);
+        if (d > range + (nest.rad || 0)) continue;
+        const a = Math.atan2(nest.y - h.y, nest.x - h.x);
+        const diff = Math.abs(Math.atan2(Math.sin(a - aim), Math.cos(a - aim)));
+        if (diff <= halfArc) damageExpeditionNest(nest, dmg);
+      }
+      if (hitCount) {
+        shake(Math.min(4, 1.5 + hitCount * .6), .08);
+      }
+      h.weaponRecoil = .12;
+      h.weaponCd = this.primaryCooldown;
+    },
+    secondaryFire(h, aim) {
+      if (h.secondaryCd > 0 || S.heroShots.some(s => s.riftBoomerang && !s.dead)) return;
+      const speed = 520;
+      S.heroShots.push({
+        x:h.x, y:h.y, vx:Math.cos(aim)*speed, vy:Math.sin(aim)*speed,
+        dmg:(14 + h.level * 2) * (h.riftbladeDamageMult || 1), life:1.65, range:360, travel:0,
+        type:'riftBoomerang', weapon:'riftblade', riftBoomerang:true,
+        returning:false, speed, maxDistance:360, spin:0, hitEnemies:new Set(),
+      });
+      h.secondaryCd = this.secondaryCooldown;
+      S.parts.push({ kind:'shockwave', x:h.x, y:h.y, r:6, maxR:34, life:.14, maxLife:.14, c:'#b98cff' });
+    },
+  },
   storm: {
     name: 'Arc Emitter', shortName: 'Arc Emitter', icon: '⚡', desc: 'Arcane-tech lightning machinery that chains through crowds.',
     primaryCooldown: 0.38, secondaryCooldown: 8.0,
@@ -6814,8 +6860,9 @@ const HERO_UPGRADES = {
   staticLock: { id:'staticLock', name:'Static Lock', desc:'+32% Arc Emitter stun time', targetItem:'storm', targetIcon:'storm', weapons:['storm'], apply: h => h.stormStunMult *= 1.32 },
   deepFreeze: { id:'deepFreeze', name:'Deep Freeze', desc:'+40% Freeze Gun freeze duration', targetItem:'freeze', targetIcon:'freeze', weapons:['freeze'], apply: h => h.freezeDurationMult *= 1.4 },
   cryoSynergy: { id:'cryoSynergy', name:'Cryo Synergy', desc:'Frozen enemies take +25% trap damage', targetItem:'freeze', targetIcon:'freeze', weapons:['freeze'], apply: h => h.freezeTrapVuln += 0.25 },
-  titanKick: { id:'titanKick', name:'Titan Kick', desc:'Stronger shove and knockback', targetItem:'ranger', targetIcon:'ranger', weapons:['ranger','crossbow','blunderbuss','storm','freeze'], apply: h => h.shoveForceMult *= 1.25 },
-  scavenger: { id:'scavenger', name:'Scavenger', desc:'+10% gold from kills', weapons:['ranger','crossbow','blunderbuss','storm','freeze'], apply: h => h.goldMult *= 1.1 },
+  riftHoned: { id:'riftHoned', name:'Rift Honed', desc:'+20% Riftblade slash and boomerang damage', targetItem:'riftblade', targetIcon:'riftblade', weapons:['riftblade'], apply: h => h.riftbladeDamageMult *= 1.2 },
+  titanKick: { id:'titanKick', name:'Titan Kick', desc:'Stronger shove and knockback', targetItem:'ranger', targetIcon:'ranger', weapons:['ranger','crossbow','blunderbuss','riftblade','storm','freeze'], apply: h => h.shoveForceMult *= 1.25 },
+  scavenger: { id:'scavenger', name:'Scavenger', desc:'+10% gold from kills', weapons:['ranger','crossbow','blunderbuss','riftblade','storm','freeze'], apply: h => h.goldMult *= 1.1 },
 };
 const TRAP_UPGRADES = {
   overclockedPistons: { id:'overclockedPistons', name:'Overclocked Pistons', desc:'Push Wall cooldown -22%', targetItem:'tar', targetIcon:'tar', apply: () => S.mods.trapTarRate = (S.mods.trapTarRate || 1) * 0.78 },
@@ -6844,7 +6891,7 @@ const BUILD_SHORT_NAMES = {
   spring: 'Spring', mace: 'Mace', barrier: 'Barrier', barrel: 'Barrel',
 };
 const WEAPON_SLOT_NAMES = {
-  ranger: 'Repeater', crossbow: 'Boltcaster', blunderbuss: 'Blunderbuss', storm: 'Arc Emitter', freeze: 'Freeze Gun',
+  ranger: 'Repeater', crossbow: 'Boltcaster', blunderbuss: 'Blunderbuss', riftblade: 'Riftblade', storm: 'Arc Emitter', freeze: 'Freeze Gun',
 };
 const RECOMMENDED_LOADOUT = ['archer','freeze','ballista','cauldron','spikes','tar','barrier','cannon','alchemist'];
 const DIR_LABELS = ['Up', 'Right', 'Down', 'Left'];
@@ -6869,6 +6916,7 @@ const LOADOUT_WEAPON_COPY = {
   ranger: 'Rapid micro bolts',
   crossbow: 'Piercing heavy bolts',
   blunderbuss: 'Wide close blast',
+  riftblade: 'Melee slash and return throw',
   storm: 'Chain lightning',
   freeze: 'Freezing spreadshot',
 };
@@ -6876,6 +6924,7 @@ const WEAPON_ABILITY_NAMES = {
   ranger: { primary: 'Micro Rounds', secondary: 'Charge Burst' },
   crossbow: { primary: 'Heavy Bolts', secondary: 'Hammerfall' },
   blunderbuss: { primary: 'Scatter Shot', secondary: 'Iron Guard' },
+  riftblade: { primary: 'Rift Slash', secondary: 'Return Cast' },
   storm: { primary: 'Chain Lightning', secondary: 'Pulse Nova' },
   freeze: { primary: 'Cryo Spray', secondary: 'Ice Halo' },
 };
@@ -6883,6 +6932,7 @@ const WEAPON_FIRE_COPY = {
   ranger: { primary: 'Rapid armor-piercing micro bolts.', secondary: 'Hold to charge, release a piercing burst.' },
   crossbow: { primary: 'Heavy siege bolt that pierces enemies.', secondary: 'Stun bolt that shocks and knocks back a cone.' },
   blunderbuss: { primary: 'Wide close-range scatter shot.', secondary: 'Temporary shield for dangerous close fights.' },
+  riftblade: { primary: 'Fast short-range arc that can cut through a group.', secondary: 'Throw a returning blade that damages and stuns normal enemies.' },
   storm: { primary: 'Lightning arc that chains through nearby enemies.', secondary: 'Point-blank arc pulse that stuns and damages.' },
   freeze: { primary: 'Freezing spreadshot that chills enemies.', secondary: 'Freeze pulse around the hero.' },
 };
@@ -6953,6 +7003,19 @@ const LOADOUT_INSPECTOR_COPY = {
       'Best for fighting close, surviving pressure, and clearing enemies that get too near.',
     ],
     stats: [['Damage', 'High up close'], ['Fire Rate', 'Fast'], ['Range', 'Short'], ['Knockback', 'Medium'], ['Special', 'Temporary shield'], ['Weak Against', 'Long lanes']],
+  },
+  riftblade: {
+    name: 'RIFTBLADE',
+    role: 'Weapon',
+    identity: 'CLOSE AND COMMITTED',
+    desc: 'Cuts a short arc through nearby enemies and throws a returning stun blade.',
+    quickStats: [['Damage', '8/10'], ['Fire Rate', '6/10'], ['Range', '2/10']],
+    flavor: 'Hammered from metal found fused to the Rift frame. It keeps trying to return to the hand that drew it.',
+    abilities: ['Rift Slash', 'Return Cast'],
+    mechanics: [
+      'Rift Slash hits every enemy in a short arc in front of the hero.',
+      'Return Cast damages multiple enemies and stuns non-boss targets before flying back.',
+    ],
   },
   storm: {
     name: 'ARC EMITTER',
@@ -7107,8 +7170,17 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const BUILD_VERSION = '7.22.1';
-const BUILD_NAME = 'SealedRooms';
+const GAME_VERSION = '7.25.0';
+const BUILD_VERSION = GAME_VERSION;
+const BUILD_NAME = 'GouacheRoom';
+const CHANGELOG = [
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Added an optional abstract gouache visual treatment for the Expedition Rift Access test room.' },
+  { version: '7.24.4', name: 'WestOpen', changes: 'Removed the Rift Chamber west wall while preserving the four-key locked doorway.' },
+  { version: '7.24.3', name: 'RelayTimer', changes: 'Added a 20-second Relay wave countdown followed by a two-minute holdout.' },
+  { version: '7.24.2', name: 'OpenRelay', changes: 'Opened the Rift Chamber doorway after collecting four keys so the Relay room can be entered.' },
+  { version: '7.24.1', name: 'BoneReturn', changes: 'Restored Dark Chapel and Containment skull enemies, with Bone Warden transforming into the Ghost encounter on defeat.' },
+  { version: '7.24.0', name: 'GhostSiege', changes: 'Dark Chapel Ghost siege, three-stage Relay finale, Chapel countdown placement, and Expedition completion flow.' },
+];
 function upgradeIcon(id, kind = 'generic') {
   const up = HERO_UPGRADES[id] || TRAP_UPGRADES[id] || BOSS_UPGRADES[id] || {};
   const explicit = up.targetIcon || up.targetItem || up.targetIconAlt || up.targetItemAlt;
@@ -7166,6 +7238,7 @@ function fallbackIcon(kind, k) {
       crossbow: iconSvgData('<path d="M16 16h18l14 14-14 14H16z"/><path d="M28 16l8 28"/><path d="M18 18l28 28"/>', '#c89b5a'),
       ranger: iconSvgData('<path d="M12 34h30l8 5-8 5H12z"/><path d="M18 26h26l6 4-6 4H18z"/><path d="M18 44h24"/><path d="M28 22v26"/><path d="M46 28l8-4"/><path d="M46 34l10 0"/><path d="M46 40l8 4"/>', '#8fc14f'),
       blunderbuss: iconSvgData('<path d="M14 30h24l6 6-6 6H14z"/><circle cx="42" cy="36" r="7"/><path d="M14 30 8 24"/><path d="M14 42 8 48"/>', '#d6b26b'),
+      riftblade: iconSvgData('<path d="M18 50 42 14"/><path d="m38 14 10 2-4 9"/><path d="m14 42 10 8"/><path d="m12 52 8-8"/><path d="M38 30c8 0 12 5 12 12-7 0-12-4-12-12z"/>', '#b98cff'),
       storm: iconSvgData('<path d="M34 12 18 36h10l-2 16 20-24H36z"/><path d="M14 18c10 0 16 6 16 16"/><path d="M50 18c-10 0-16 6-16 16"/>', '#7ac6e8'),
       freeze: iconSvgData('<path d="M32 10v44"/><path d="M16 22l32 20"/><path d="M16 42 48 22"/><path d="M22 14 42 50"/>', '#9fe8ff'),
     },
@@ -7277,7 +7350,7 @@ const S = {
   synergyLog: [],
   runStats: { heroKills: 0, towerKills: 0, otherKills: 0, leaked: 0, powerups: 0, goldEarned: 0, bonusGold: 0, interestGold: 0, wavesCleared: 0 },
   selected: null, sel: null, menuOpen: false, aiEngineerOwned: false, placeDir: 1,
-  devToolsOpen: false, devHotkeyHelp: false, devUnlimitedGold: false, devInvincible: false, devNoclip: false, devShowInfo: false, devRiftGuard: false, devRiftNoHpLoss: false, devPlayerTowerCollision: true, devShowRoomBounds: false, devShowPathing: false,
+  devToolsOpen: false, devHotkeyHelp: false, devUnlimitedGold: false, devInvincible: false, devNoclip: false, devShowInfo: false, devRiftGuard: false, devRiftNoHpLoss: false, devPlayerTowerCollision: true, devAbstractGouache: false, devShowRoomBounds: false, devShowPathing: false,
   balanceReportLogged: false,
   powerupDebugMode: false, powerupDebugLog: [],
   devArenaChoice: 'field',
@@ -7306,7 +7379,7 @@ const S = {
   buildPhaseDuration: 0,
   gameState: 'betweenWaves', // Special modal / flow state; separate from paused.
   mutationWaveType: 'hero', heroMutations: [], trapMutations: [], pendingMutationChoices: [], pendingWaveMutagen: null, activeWaveMutagen: null, activeMutagenState: {}, lastWaveMutagen: null, waveBanner: '', waveBannerKind: '', waveBannerTime: 0, waveBannerKey: '', spawningActors: [], lastDeathCause: '', lastDamageTaken: 0, lastDeathSource: null, deathSnapshot: '', lowHealthPulse: 0, lowHealthFlash: 0, lowHealthBeep: 0, lowHealthState: 0,
-  hero: { x: cx(2), y: cy(13), hp: 100, max: 100, level: 1, cool: 0, inv: 0, shoveCd: 0, weapon: 'blunderbuss', weaponCd: 0, secondaryCd: 0, charge: 0, charging: false, weaponRecoil: 0, spawnState: 'active', spawnLock: 0, ghostGrabbed: false, ghostId: null, flaskCharges: 0, shieldHits: 0, blunderShieldUntil: 0, blunderShieldMult: 1, slimeDebuffUntil: 0, upgrades: [], upgradeChoices: [], upgradeLevel: 0, fireRateMult: 1, damageMult: 1, shoveForceMult: 1, critChance: 0, pierceCount: 0, freezeDurationMult: 1, freezeTrapVuln: 0, chainBonus: 0, stormChainBonus: 0, stormStunMult: 1, crossbowStunMult: 1, crossbowKnockbackMult: 1, blunderDamageMult: 1, goldMult: 1, trapCooldownMult: 1, trinketAttackSlow: 0, trinketFireRateMult: 1, trinketMoveMult: 1, trinketFireRateActiveMult: 1, trinketMoveActiveMult: 1, trinketGoldActiveMult: 1, overclockAura: false, lastStandBeacon: false, lastStandBeaconActive: false, heroScale: 1 },
+  hero: { x: cx(2), y: cy(13), hp: 100, max: 100, level: 1, cool: 0, inv: 0, shoveCd: 0, weapon: 'blunderbuss', weaponCd: 0, secondaryCd: 0, charge: 0, charging: false, weaponRecoil: 0, spawnState: 'active', spawnLock: 0, ghostGrabbed: false, ghostId: null, flaskCharges: 0, shieldHits: 0, blunderShieldUntil: 0, blunderShieldMult: 1, riftbladeDamageMult: 1, slimeDebuffUntil: 0, upgrades: [], upgradeChoices: [], upgradeLevel: 0, fireRateMult: 1, damageMult: 1, shoveForceMult: 1, critChance: 0, pierceCount: 0, freezeDurationMult: 1, freezeTrapVuln: 0, chainBonus: 0, stormChainBonus: 0, stormStunMult: 1, crossbowStunMult: 1, crossbowKnockbackMult: 1, blunderDamageMult: 1, goldMult: 1, trapCooldownMult: 1, trinketAttackSlow: 0, trinketFireRateMult: 1, trinketMoveMult: 1, trinketFireRateActiveMult: 1, trinketMoveActiveMult: 1, trinketGoldActiveMult: 1, overclockAura: false, lastStandBeacon: false, lastStandBeaconActive: false, heroScale: 1 },
   hoverInspectId: null,
   engineer: { active: false, x: cx(3), y: cy(13), hp: 90, max: 90, cool: 0, inv: 0, dash: 0, dashCd: 0, aimX: cx(8), aimY: cy(8), volleyCd: 0, oilCd: 0, shoveCd: 0 },
   net: { mode: 'solo', pc: null, dc: null, connected: false, remoteInput: { up:false, down:false, left:false, right:false, shoot:false, volley:false, oil:false, aimX:0, aimY:0 }, remotePrev: { volley:false, oil:false }, lastSend: 0, lastSnapshot: 0 },
@@ -7885,6 +7958,7 @@ function heroSolidDefenseCollisionAt(x, y, fromX = S.hero?.x, fromY = S.hero?.y)
 function canHeroEnterCell(c, r) {
   if (S.devNoclip) return true;
   if (c < 0 || r < 0 || c >= COLS || r >= ROWS || isBlockedTerrain(c, r)) return false;
+  if (expeditionLockedRiftDoorCell(c, r)) return false;
   if (expeditionBarracksBedCell(c, r)) return false;
   if (expeditionRoomBlockedCell(c, r)) return false;
   if (expeditionPlayerExitBlocked(c, r)) return false;
@@ -7956,7 +8030,8 @@ function updateExpeditionRoomCamera(room, immediate = false, now = performance.n
   return true;
 }
 function updateCamera(immediate = false, now = performance.now() / 1000) {
-  const expeditionRoom = EXPEDITION_ROOM_LOCK_CAMERA_ENABLED ? getExpeditionActiveRoom() : null;
+  const heroRoom = isExpeditionRun() ? expeditionRoomAtHero() : null;
+  const expeditionRoom = heroRoom?.id === 'keyLabyrinth' ? heroRoom : null;
   if (expeditionRoom && updateExpeditionRoomCamera(expeditionRoom, immediate, now)) return;
   CAMERA.expeditionRoomId = null;
   const bounds = getWorldBounds();
@@ -7977,11 +8052,35 @@ function getSnappedBuildTile(x, y) {
   const { c, r } = cellAt(x, y);
   return { c, r, x: cx(c), y: cy(r) };
 }
+function enemyPathBlockedCells() {
+  const cells = new Set();
+  for (const b of S.barriers) if (!b.dead) cells.add(key(b.c, b.r));
+  for (const t of S.towers) {
+    if (!t.dead && t.onRoad && !TOWERS[t.type].trap) cells.add(key(t.c, t.r));
+  }
+  if (!isExpeditionLevel()) return cells;
+  const rooms = expeditionConfig()?.rooms || [];
+  const barracks = rooms.find(room => room.id === 'barracks');
+  if (barracks && expeditionRoomState(barracks.id) !== 'cleared') {
+    for (const bed of barracks.bedBlocks || []) cells.add(key(bed.c, bed.r));
+  }
+  for (const room of rooms) {
+    for (const rect of expeditionRoomLavaRects(room)) {
+      const [x1, y1, x2, y2] = rect;
+      for (let r = y1; r <= y2; r++) {
+        for (let c = x1; c <= x2; c++) cells.add(key(c, r));
+      }
+    }
+  }
+  for (const skull of activeExpeditionBlockingSkulls()) cells.add(key(skull.cell.c, skull.cell.r));
+  return cells;
+}
 function routePath(start, goal) {
   if (!start || !goal) return [];
+  const dynamicBlocked = enemyPathBlockedCells();
   const q = [{ c: start.c, r: start.r }], prev = {}, seen = new Set([key(start.c, start.r)]), dirs = [[1,0],[-1,0],[0,1],[0,-1]];
-  while (q.length) {
-    const n = q.shift();
+  for (let qi = 0; qi < q.length; qi++) {
+    const n = q[qi];
     if (n.c === goal.c && n.r === goal.r) {
       const arr = []; let k = key(n.c, n.r);
       while (k) { const [c, r] = k.split(',').map(Number); arr.push({ c, r, x: cx(c), y: cy(r) }); k = prev[k]; }
@@ -7989,7 +8088,11 @@ function routePath(start, goal) {
     }
     for (const [dc, dr] of dirs) {
       const c = n.c + dc, r = n.r + dr, k = key(c, r);
-      if (!seen.has(k) && valid(c, r)) { seen.add(k); prev[k] = key(n.c, n.r); q.push({ c, r }); }
+      const canEnter = c >= 0 && r >= 0 && c < COLS && r < ROWS
+        && isRoad(c, r)
+        && !isBlockedTerrain(c, r)
+        && !dynamicBlocked.has(k);
+      if (!seen.has(k) && canEnter) { seen.add(k); prev[k] = key(n.c, n.r); q.push({ c, r }); }
     }
   }
   return [];
@@ -8269,6 +8372,9 @@ function createExpeditionState(levelId = S.levelId) {
     extractionUnlocked: false,
     extractionActive: false,
     extractionTimer: 0,
+    extractionCountdown: 0,
+    extractionStarted: false,
+    extractionHoldMessageTime: 0,
     extractionSpawnTimer: 0,
     shortcutsOpen: false,
     completed: false,
@@ -8289,7 +8395,14 @@ function createExpeditionState(levelId = S.levelId) {
     roomStates: {},
     activeRoomId: null,
     roomBlockers: [],
+    roomDoorsUnlocked: {},
     roomObjective: null,
+    ghostEncounterActive: false,
+    ghostEncounterElapsed: 0,
+    ghostReinforceTimer: 0,
+    ghostLightFlicker: 0,
+    ghostBlackoutTimer: 0,
+    ghostBlackoutCooldown: 0,
     roomNests: [],
     roomPressure: {},
     roomThreatsSpawned: {},
@@ -8442,6 +8555,7 @@ function expeditionRoomLavaCell(c, r, room = null) {
 }
 
 function expeditionRoomBlockedCell(c, r, room = null) {
+  if (expeditionUnlockedRiftDoorCell(c, r)) return null;
   const rooms = room ? [room] : (expeditionConfig()?.rooms || []);
   for (const candidate of rooms) {
     for (const rect of candidate?.blockedRects || []) {
@@ -8605,6 +8719,25 @@ function expeditionExtractionUnlocked() {
   return !!(ex && (ex.extractionUnlocked || expeditionKeyCount() >= expeditionKeyGoal()));
 }
 
+function expeditionRiftDoorCell(c, r) {
+  if (!isExpeditionRun()) return false;
+  const room = (expeditionConfig()?.rooms || []).find(candidate => candidate.id === 'rift');
+  const door = room?.entrances?.find(entrance => entrance.kind === 'lockedDoor');
+  if (!door) return false;
+  const scale = expeditionRoomScale();
+  const width = Math.max(1, (door.width || 2) * scale);
+  const height = Math.max(1, (door.height || 1) * scale);
+  return c >= door.c && c < door.c + width && r >= door.r && r < door.r + height;
+}
+
+function expeditionLockedRiftDoorCell(c, r) {
+  return !expeditionExtractionUnlocked() && expeditionRiftDoorCell(c, r);
+}
+
+function expeditionUnlockedRiftDoorCell(c, r) {
+  return expeditionExtractionUnlocked() && expeditionRiftDoorCell(c, r);
+}
+
 function expeditionExtractionRoom() {
   return (expeditionConfig()?.rooms || []).find(room => room.id === 'extraction') || null;
 }
@@ -8761,13 +8894,16 @@ function startExpeditionExtractionEvent() {
     return false;
   }
   ex.extractionActive = true;
-  ex.extractionTimer = cfg?.extractionHoldSeconds || 90;
+  ex.extractionTimer = cfg?.extractionHoldSeconds || 120;
+  ex.extractionCountdown = 20;
+  ex.extractionStarted = false;
+  ex.extractionHoldMessageTime = 0;
   ex.extractionWaveIndex = 0;
   ex.extractionWaveQueue = [];
   ex.extractionSpawnTimer = 0;
-  ex.message = 'Relay started. Hold out.';
-  ex.messageTime = 6;
-  announceWave('RELAY HOLDOUT', 'danger', 1.2);
+  ex.message = 'Wave starts in 20 seconds.';
+  ex.messageTime = 20;
+  announceWave('WAVE STARTS IN 20 SECONDS', 'danger', 1.2);
   playSfx('bossWarning');
   shake(10, .45);
   const relay = expeditionRelayPadCenter();
@@ -8776,18 +8912,18 @@ function startExpeditionExtractionEvent() {
 }
 
 const EXPEDITION_RELAY_WAVES = [
-  { at: 1, direction: 0, enemies: ['grunt', 'grunt', 'runner'] },
-  { at: 10, direction: 0, enemies: ['grunt', 'runner', 'grunt', 'runner'] },
-  { at: 20, direction: 0, enemies: ['grunt', 'shield', 'runner'] },
-  { at: 27, direction: 2, enemies: ['grunt', 'runner', 'sapper'] },
-  { at: 35, direction: 0, enemies: ['shield', 'grunt', 'runner', 'runner'] },
-  { at: 43, direction: 2, enemies: ['sapper', 'grunt', 'shield', 'runner'] },
-  { at: 50, direction: 1, enemies: ['slinger', 'slinger', 'runner', 'grunt'] },
-  { at: 58, direction: 3, enemies: ['runner', 'slinger', 'sapper', 'runner'] },
-  { at: 66, direction: 1, enemies: ['slinger', 'shield', 'runner', 'runner', 'grunt'] },
-  { at: 72, direction: 0, enemies: ['brute', 'grunt', 'runner', 'slinger'] },
-  { at: 78, direction: 2, enemies: ['shield', 'sapper', 'runner', 'slinger', 'grunt'] },
-  { at: 84, direction: 3, enemies: ['brute', 'shield', 'slinger', 'runner', 'runner', 'sapper'] },
+  { at: 0, groups: [
+    { direction: 0, enemies: ['grunt', 'runner', 'shield'] },
+    { direction: 2, enemies: ['grunt', 'sapper', 'runner'] },
+  ] },
+  { at: 31, groups: [
+    { direction: 0, enemies: ['slinger', 'slinger', 'runner', 'shield'] },
+    { direction: 2, enemies: ['sapper', 'slinger', 'grunt', 'runner'] },
+  ] },
+  { at: 61, groups: [
+    { direction: 1, enemies: ['hexcaller', 'hexcaller', 'shield', 'hexcaller', 'runner'] },
+    { direction: 3, enemies: ['hexcaller', 'hexcaller', 'slinger', 'hexcaller', 'hexcaller'] },
+  ] },
 ];
 
 function spawnExpeditionRelayEnemy(type, directionIndex) {
@@ -8809,6 +8945,10 @@ function spawnExpeditionRelayEnemy(type, directionIndex) {
   enemy.expeditionSpawn = true;
   enemy.expeditionTarget = 'rift';
   enemy.riftHunter = true;
+  enemy.expeditionTargetKey = key(target.c, target.r);
+  enemy.expeditionLastTarget = enemy.expeditionTargetKey;
+  enemy.expeditionTargetCell = { c: target.c, r: target.r };
+  enemy.expeditionNextRetargetAt = performance.now() / 1000 + 2.6 + Math.random() * 1.4;
   return enemy;
 }
 
@@ -8824,11 +8964,13 @@ function finishExpeditionExtraction() {
   S.queue = [];
   S.enemies = [];
   document.querySelector('#clear .card').classList.add('clearCard');
-  $('clearTitle').textContent = 'Relay Complete';
-  $('clearText').textContent = 'Keys recovered. Relay survived. The route out is open.';
-  if ($('clearStats')) $('clearStats').innerHTML = `<div><small>Keys</small><b>${expeditionKeyCount()} / ${expeditionKeyGoal()}</b></div><div><small>Mapped cells</small><b>${ex.discoveredCount || 0}</b></div>`;
+  $('clearTitle').textContent = 'EXPEDITION COMPLETE';
+  $('clearText').innerHTML = '<strong>YOU DID IT</strong><br><br>“Courage is found in unlikely places.”';
+  if ($('clearStats')) $('clearStats').innerHTML = '<div><small>More Expeditions</small><b>COMING SOON</b></div>';
   if ($('clearCountdownValue')) $('clearCountdownValue').textContent = '0';
-  $('clearBtn').textContent = 'Run Complete';
+  const countdownBox = $('clearCountdownValue')?.closest('.clearCountdownBox');
+  if (countdownBox) countdownBox.classList.add('hidden');
+  $('clearBtn').textContent = 'Return To Loadout';
   $('clear').classList.remove('hidden');
   shake(12, .55);
   console.log('[expedition] extraction complete', {
@@ -8841,15 +8983,40 @@ function finishExpeditionExtraction() {
 function updateExpeditionExtractionEvent(dt) {
   const ex = S.expedition;
   if (!isExpeditionRun() || !ex?.extractionActive || ex.completed) return;
-  const holdSeconds = expeditionConfig()?.extractionHoldSeconds || 90;
-  ex.extractionTimer = Math.max(0, (ex.extractionTimer || 0) - dt);
+  const holdSeconds = expeditionConfig()?.extractionHoldSeconds || 120;
+  let justStarted = false;
+  if (!ex.extractionStarted) {
+    ex.extractionCountdown = Math.max(0, (ex.extractionCountdown || 0) - dt);
+    const countdownSeconds = Math.ceil(ex.extractionCountdown || 0);
+    ex.message = `Wave starts in ${countdownSeconds} second${countdownSeconds === 1 ? '' : 's'}.`;
+    ex.messageTime = Math.max(ex.messageTime || 0, .25);
+    if (ex.extractionCountdown <= 0) {
+      ex.extractionStarted = true;
+      ex.extractionHoldMessageTime = 3;
+      ex.message = 'Hold on for 2 minutes.';
+      ex.messageTime = 3;
+      announceWave('HOLD ON FOR 2 MINUTES', 'danger', 1.2);
+      playSfx('bossWarning');
+      shake(10, .45);
+      justStarted = true;
+    } else {
+      return;
+    }
+  }
+  if (!justStarted) ex.extractionTimer = Math.max(0, (ex.extractionTimer || 0) - dt);
+  ex.extractionHoldMessageTime = Math.max(0, (ex.extractionHoldMessageTime || 0) - dt);
   ex.extractionSpawnTimer = Math.max(0, (ex.extractionSpawnTimer || 0) - dt);
   const elapsed = holdSeconds - ex.extractionTimer;
   while ((ex.extractionWaveIndex || 0) < EXPEDITION_RELAY_WAVES.length && EXPEDITION_RELAY_WAVES[ex.extractionWaveIndex].at <= elapsed) {
     const wave = EXPEDITION_RELAY_WAVES[ex.extractionWaveIndex++];
-    ex.extractionWaveQueue.push(...wave.enemies.map(type => ({ type, direction: wave.direction })));
-    ex.message = `Relay wave ${ex.extractionWaveIndex}/${EXPEDITION_RELAY_WAVES.length}`;
-    ex.messageTime = 2.5;
+    for (const group of wave.groups || []) {
+      ex.extractionWaveQueue.push(...group.enemies.map(type => ({ type, direction: group.direction })));
+    }
+    if (ex.extractionHoldMessageTime <= 0) {
+      ex.message = `Relay wave ${ex.extractionWaveIndex}/${EXPEDITION_RELAY_WAVES.length}`;
+      ex.messageTime = 2.5;
+    }
+    announceWave(`RELAY WAVE ${ex.extractionWaveIndex}`, 'danger', 1);
   }
   if (ex.extractionWaveQueue.length && ex.extractionSpawnTimer <= 0) {
     const next = ex.extractionWaveQueue.shift();
@@ -9049,6 +9216,9 @@ function spawnExpeditionRoomEnemy(type, room, spawnCell, elite = false) {
   e.expeditionEncounter = true;
   e.expeditionTarget = 'hero';
   e.expeditionRetargetTimer = 0;
+  e.expeditionTargetKey = key(target.c, target.r);
+  e.expeditionLastTarget = e.expeditionTargetKey;
+  e.expeditionTargetCell = { c: target.c, r: target.r };
   e.expeditionNextRetargetAt = performance.now() / 1000 + 2.6 + Math.random() * 1.4;
   e.entry = spawnCell?.label || spawnCell?.kind || room.name || room.id;
   if (elite) {
@@ -9225,6 +9395,7 @@ function startExpeditionRoomEncounter(room) {
   ex.roomStates[room.id] = 'active';
   ex.activeRoomId = room.id;
   ex.roomObjective = { roomId: room.id, type: def.objective, label: def.label };
+  delete ex.roomDoorsUnlocked?.[room.id];
   ex.roomBlockers = expeditionRoomDoorBlockers(room);
   ex.roomTerminalStates[room.id] = ex.roomTerminalStates?.[room.id] || 'offline';
   if (room.id === 'lab') ex.roomKeyStates = ex.roomKeyStates || {};
@@ -9236,7 +9407,7 @@ function startExpeditionRoomEncounter(room) {
   }
   primeExpeditionRoomBoundarySides(room);
   spawnExpeditionRoomSkulls(room);
-  spawnBoneWarden(room);
+  if (room.id === 'keyLabyrinth') spawnBoneWarden(room);
   if (room.id !== 'lab') ensureExpeditionRoomKey(room);
   if (def.nest) spawnExpeditionRoomNest(room);
   const placedThreats = room.id === 'keyLabyrinth' ? [] : spawnExpeditionRoomRouteThreats(room, true);
@@ -9265,7 +9436,6 @@ function startExpeditionRoomEncounter(room) {
   maybeShowMissionHint(['terminal', 'treasure', 'keyEscape'].includes(def.objective) ? (def.terminalPrompt || 'Press E to interact.') : def.label.includes('Relay') ? 'Activate the Relay.' : 'Clear the room.', `expedition-room-${room.id}`, 4);
   announceWave(`${room.name.toUpperCase()}: ${def.label.toUpperCase()}`, ['terminal', 'treasure', 'keyEscape'].includes(def.objective) ? 'resting' : 'danger', 1);
   shockwave(S.hero.x, S.hero.y, '#ffcf6a', 110, .26);
-  rebuildPath();
   return true;
 }
 
@@ -9277,6 +9447,8 @@ function completeExpeditionRoomEncounter(roomId) {
   ex.roomStates[roomId] = 'cleared';
   ex.activeRoomId = null;
   ex.roomObjective = null;
+  ex.roomDoorsUnlocked ||= {};
+  ex.roomDoorsUnlocked[roomId] = true;
   ex.roomBlockers = [];
   clearExpeditionRoomCombatLeftovers(roomId);
   for (const e of S.enemies) {
@@ -9298,7 +9470,6 @@ function completeExpeditionRoomEncounter(roomId) {
     ensureExpeditionRoomKey(room);
   }
   if (room.id !== 'keyLabyrinth') dropExpeditionRoomClearReward(room);
-  rebuildPath();
   return true;
 }
 
@@ -9334,15 +9505,15 @@ function updateExpeditionRoomEncounter(dt = 0) {
     const heroRoom = expeditionRoomAtHero();
     if (ex.activeRoomId) {
       const activeRoom = (cfg.rooms || []).find(room => room.id === ex.activeRoomId) || null;
-      if (activeRoom && expeditionRoomState(activeRoom.id) === 'active' && !ex.roomBlockers?.length) {
+      if (activeRoom && expeditionRoomState(activeRoom.id) === 'active' && !ex.roomDoorsUnlocked?.[activeRoom.id] && !ex.roomBlockers?.length) {
         const restoredBlockers = expeditionRoomDoorBlockers(activeRoom);
         if (restoredBlockers.length) {
           ex.roomBlockers = restoredBlockers;
           primeExpeditionRoomBoundarySides(activeRoom);
-          rebuildPath();
         }
       }
       if (ex.roomObjective?.type === 'keyEscape') {
+        updateExpeditionGhostEncounter(activeRoom, dt);
         if (activeRoom && ex.finalKeyCollected && !expeditionRoomContainsPoint(activeRoom, S.hero.x, S.hero.y)) {
           completeKeyLabyrinthEscape(activeRoom);
         }
@@ -9560,6 +9731,10 @@ function spawnExpeditionEnemy(pool) {
     e.expeditionSpawn = true;
     e.expeditionTarget = riftTarget ? 'rift' : 'hero';
     e.riftHunter = riftTarget;
+    e.expeditionTargetKey = key(target.c, target.r);
+    e.expeditionLastTarget = e.expeditionTargetKey;
+    e.expeditionTargetCell = { c: target.c, r: target.r };
+    e.expeditionNextRetargetAt = performance.now() / 1000 + 2.6 + Math.random() * 1.4;
   }
   return e;
 }
@@ -9682,7 +9857,12 @@ function updateExpedition(dt) {
   }
 
   if (ex.extractionActive) {
-    ex.message = `Relay holdout: ${Math.ceil(ex.extractionTimer || 0)}s.`;
+    const countdownSeconds = Math.ceil(ex.extractionCountdown || 0);
+    ex.message = !ex.extractionStarted
+      ? `Wave starts in ${countdownSeconds} second${countdownSeconds === 1 ? '' : 's'}.`
+      : ex.extractionHoldMessageTime > 0
+        ? 'Hold on for 2 minutes.'
+        : `Relay holdout: ${Math.ceil(ex.extractionTimer || 0)}s.`;
     ex.messageTime = Math.max(ex.messageTime || 0, .25);
   }
 }
@@ -9801,6 +9981,10 @@ function createCornerSkull(id, x, y, phaseT = 0) {
 function resetCornerSkulls() {
   if (!S) return;
   S.cornerGhosts = [];
+  if (isExpeditionLevel()) {
+    S.cornerSkulls = [];
+    return;
+  }
   S.cornerSkulls = cornerSkullPositions().map((p, i) => createCornerSkull(`cornerSkull${i}`, p.x, p.y, i * 1.7));
 }
 
@@ -9880,6 +10064,13 @@ function completeBoneWardenEncounter(ghost) {
   const ex = S.expedition;
   if (!isExpeditionRun() || !ex || ex.boneWardenDefeated) return false;
   ex.boneWardenDefeated = true;
+  ex.ghostEncounterActive = false;
+  ex.ghostReinforceTimer = 0;
+  ex.ghostBlackoutTimer = 0;
+  ex.ghostLightFlicker = 0;
+  ex.roomDoorsUnlocked ||= {};
+  ex.roomDoorsUnlocked.keyLabyrinth = true;
+  ex.roomBlockers = [];
   if (ghost) {
     ghost.mode = 'fade';
     ghost.fade = 1;
@@ -9892,26 +10083,31 @@ function completeBoneWardenEncounter(ghost) {
   }
   shockwave(x, y, '#f0b8ff', 180, .35);
   burst(x, y, '#ffd8ff', 18, 'spark', 150);
+  ex.message = 'Ghost destroyed. Chapel gate unlocked.';
+  ex.messageTime = 5;
+  announceWave('CHAPEL GATE UNLOCKED', 'resting', 1);
   return true;
 }
 
 function spawnBoneWardenGhost(skull) {
-  if (!skull || skull.dead) return null;
+  if (skull?.dead) return null;
   const room = (expeditionConfig()?.rooms || []).find(r => r.id === 'keyLabyrinth');
-  const center = room ? expeditionRoomCenter(room) : { x: skull.x, y: skull.y };
+  const center = room ? expeditionRoomCenter(room) : { x: skull?.x ?? S.hero.x, y: skull?.y ?? S.hero.y };
   if (!Array.isArray(S.cornerGhosts)) S.cornerGhosts = [];
+  const existing = S.cornerGhosts.find(g => g && !g.dead && g.boneWardenFinal);
+  if (existing) return existing;
   const ghost = {
     id: 'boneWardenGhost',
     x: center.x, y: center.y,
     vx: 0, vy: 0,
-    life: 28,
+    life: 9999,
     mode: 'chase',
     flash: 1,
     grabClicks: 10,
     grabTimer: 0,
     fade: 0,
     dead: false,
-    targetSkullId: skull.id,
+    targetSkullId: skull?.id || null,
     boneWardenFinal: true,
     hp: 420,
     maxHp: 420,
@@ -9941,9 +10137,64 @@ function spawnBoneWardenGhost(skull) {
   return ghost;
 }
 
+function startExpeditionGhostEncounter(room, skull = null) {
+  const ex = S.expedition;
+  if (!isExpeditionRun() || !ex || room?.id !== 'keyLabyrinth' || ex.boneWardenDefeated) return null;
+  const ghost = spawnBoneWardenGhost(skull);
+  if (!ghost) return null;
+  ex.boneWardenSpawned = true;
+  ex.ghostEncounterActive = true;
+  ex.ghostEncounterElapsed = 0;
+  ex.ghostReinforceTimer = 7;
+  ex.ghostLightFlicker = .35;
+  ex.ghostBlackoutTimer = 0;
+  ex.ghostBlackoutCooldown = 8 + Math.random() * 4;
+  return ghost;
+}
+
+function updateExpeditionGhostEncounter(room, dt) {
+  const ex = S.expedition;
+  if (!isExpeditionRun() || !ex?.ghostEncounterActive || room?.id !== 'keyLabyrinth') return;
+  const ghostAlive = (S.cornerGhosts || []).some(g => g && !g.dead && g.boneWardenFinal && g.mode !== 'fade');
+  if (!ghostAlive) {
+    completeBoneWardenEncounter(null);
+    return;
+  }
+  ex.ghostEncounterElapsed = (ex.ghostEncounterElapsed || 0) + dt;
+  ex.ghostReinforceTimer = Math.max(0, (ex.ghostReinforceTimer || 0) - dt);
+  ex.ghostLightFlicker = Math.max(0, (ex.ghostLightFlicker || 0) - dt);
+  ex.ghostBlackoutTimer = Math.max(0, (ex.ghostBlackoutTimer || 0) - dt);
+  ex.ghostBlackoutCooldown = Math.max(0, (ex.ghostBlackoutCooldown || 0) - dt);
+  if (ex.ghostBlackoutTimer <= 0 && ex.ghostBlackoutCooldown <= 0) {
+    ex.ghostBlackoutTimer = 1 + Math.random();
+    ex.ghostBlackoutCooldown = 8 + Math.random() * 5;
+  } else if (ex.ghostBlackoutTimer <= 0 && ex.ghostLightFlicker <= 0) {
+    ex.ghostLightFlicker = .12 + Math.random() * .24;
+  }
+  const liveReinforcements = S.enemies.filter(e => !e.dead && e.expeditionGhostReinforcement).length;
+  if (ex.ghostReinforceTimer > 0 || liveReinforcements >= 8) return;
+  const pressure = Math.min(2, Math.floor((ex.ghostEncounterElapsed || 0) / 22));
+  const groups = [
+    ['grunt', 'runner'],
+    ['grunt', 'runner', 'slinger'],
+    ['shield', 'slinger', 'hexcaller', 'runner'],
+  ];
+  const types = groups[pressure];
+  const cells = expeditionRoomSpawnCells(room, types.length);
+  const spawned = types.map((type, i) => {
+    const enemy = spawnExpeditionRoomEnemy(type, room, cells[i % cells.length], false);
+    if (enemy) enemy.expeditionGhostReinforcement = true;
+    return enemy;
+  }).filter(Boolean);
+  assignExpeditionRoomTargets(spawned, room);
+  ex.ghostReinforceTimer = Math.max(7, 12 - pressure * 2);
+  announceWave('GHOST REINFORCEMENTS', 'danger', .8);
+}
+
 function destroyBoneWardenSkull(skull) {
   if (!skull || skull.dead) return;
-  spawnBoneWardenGhost(skull);
+  const room = (expeditionConfig()?.rooms || []).find(r => r.id === 'keyLabyrinth');
+  startExpeditionGhostEncounter(room, skull);
   skull.dead = true;
   boom(skull.x, skull.y, '#ff4a3a', 12);
   shockwave(skull.x, skull.y, '#ff4a3a', 160, .36);
@@ -10665,11 +10916,15 @@ function updateExpeditionEnemyTarget(e, dt) {
   const path = enemyPath(e);
   const atPathEnd = !path[(e.node || 0) + 1];
   const due = (e.expeditionNextRetargetAt || 0) <= now;
+  const currentTarget = expeditionEnemyTargetCell(e);
+  const targetChanged = !cachedTarget || cachedTarget.c !== currentTarget.c || cachedTarget.r !== currentTarget.r;
   const targetInvalid = e.expeditionTarget === 'rift'
     ? !ex.riftActivated || !ex.riftEverCarried || !ex.rift
     : !cachedTarget;
-  if (targetInvalid || atPathEnd || due) {
-    retargetExpeditionEnemy(e, atPathEnd ? 'room-path-end' : targetInvalid ? 'room-target-invalid' : 'room-retarget-due');
+  if (targetInvalid || atPathEnd || (due && targetChanged)) {
+    retargetExpeditionEnemy(e, atPathEnd ? 'room-path-end' : targetInvalid ? 'room-target-invalid' : 'room-target-moved');
+  } else if (due) {
+    e.expeditionNextRetargetAt = now + 1.2 + ((e.id || 0) % 13) * .018;
   }
   if (KB_PROFILE.active) profileAdd('enemyTarget', profileNow() - t0);
   return true;
@@ -11176,6 +11431,7 @@ function resetRunForLevelSwitch(levelId) {
   S.hero.shoveCd = 0;
   S.hero.blunderShieldUntil = 0;
   S.hero.blunderShieldMult = 1;
+  S.hero.riftbladeDamageMult = 1;
   S.hero.upgrades = [];
   S.hero.upgradeChoices = [];
   S.hero.upgradeLevel = 0;
@@ -11713,6 +11969,7 @@ function ui(force = false) {
   if ($('devRiftGuardState')) $('devRiftGuardState').textContent = S.devRiftGuard ? 'ON' : 'OFF';
   if ($('devRiftNoHpLossState')) $('devRiftNoHpLossState').textContent = S.devRiftNoHpLoss ? 'ON' : 'OFF';
   if ($('devPlayerTowerCollisionState')) $('devPlayerTowerCollisionState').textContent = S.devPlayerTowerCollision ? 'ON' : 'OFF';
+  if ($('devAbstractGouacheState')) $('devAbstractGouacheState').textContent = S.devAbstractGouache ? 'ON' : 'OFF';
   if ($('devRoomBoundsState')) $('devRoomBoundsState').textContent = S.devShowRoomBounds ? 'ON' : 'OFF';
   if ($('devPathState')) $('devPathState').textContent = S.devShowPathing ? 'ON' : 'OFF';
   if ($('devAudioState')) $('devAudioState').textContent = AUDIO.muted ? 'OFF' : 'ON';
@@ -11736,6 +11993,7 @@ function ui(force = false) {
   if ($('devRiftGuardToggle')) $('devRiftGuardToggle').classList.toggle('toggleOn', S.devRiftGuard);
   if ($('devRiftNoHpLossToggle')) $('devRiftNoHpLossToggle').classList.toggle('toggleOn', S.devRiftNoHpLoss);
   if ($('devPlayerTowerCollisionToggle')) $('devPlayerTowerCollisionToggle').classList.toggle('toggleOn', S.devPlayerTowerCollision);
+  if ($('devAbstractGouacheToggle')) $('devAbstractGouacheToggle').classList.toggle('toggleOn', S.devAbstractGouache);
   if ($('devRoomBoundsToggle')) $('devRoomBoundsToggle').classList.toggle('toggleOn', S.devShowRoomBounds);
   if ($('devPathToggle')) $('devPathToggle').classList.toggle('toggleOn', S.devShowPathing);
   if (doFullUi) updateDevHotkeyHelp();
@@ -12290,7 +12548,11 @@ function missionObjectiveText() {
   if (isExpeditionRun()) {
     const ex = S.expedition;
     if (!ex) return 'Explore the facility';
-    if (ex.extractionActive) return `Hold Relay ${Math.ceil(ex.extractionTimer || 0)}s`;
+    if (ex.extractionActive) return !ex.extractionStarted
+      ? `Wave Starts In ${Math.ceil(ex.extractionCountdown || 0)} Second${Math.ceil(ex.extractionCountdown || 0) === 1 ? '' : 's'}`
+      : ex.extractionHoldMessageTime > 0
+        ? 'Hold On For 2 Minutes'
+        : `Hold Relay ${Math.ceil(ex.extractionTimer || 0)}s`;
     if (ex.activeRoomId && ex.roomObjective?.label) return ex.roomObjective.label;
     if (expeditionExtractionUnlocked()) return 'Return to Relay';
     return `Find Keys ${expeditionExtractionKeyProgressText()}`;
@@ -12320,6 +12582,13 @@ function missionObjectiveHudState() {
     const ex = S.expedition;
     if (!ex) return { title: 'EXPLORE', sub: 'FIND THE RIFT' };
     if (ex.extractionActive) {
+      if (!ex.extractionStarted) {
+        const seconds = Math.ceil(ex.extractionCountdown || 0);
+        return { title: 'WAVE STARTS IN', sub: `${seconds} SECOND${seconds === 1 ? '' : 'S'}` };
+      }
+      if (ex.extractionHoldMessageTime > 0) {
+        return { title: 'HOLD ON', sub: 'FOR 2 MINUTES' };
+      }
       return { title: 'HOLD RELAY', sub: `${Math.ceil(ex.extractionTimer || 0)} SECONDS` };
     }
     if (expeditionExtractionUnlocked()) {
@@ -12561,6 +12830,7 @@ function startGameFromLoadout() {
   const expeditionStart = isExpeditionLevel(S.levelId);
   document.querySelector('#start .card').classList.remove('deathCard');
   document.querySelector('#start .card').classList.remove('clearCard');
+  $('clearCountdownValue')?.closest('.clearCountdownBox')?.classList.remove('hidden');
   $('start').classList.add('hidden');
   S.started = true;
   S.phase = 'build';
@@ -14227,11 +14497,12 @@ function getWeaponStatLine(k) {
     ranger: 16 + (S.hero.level || 1) * 3,
     crossbow: 46 + (S.hero.level || 1) * 5,
     blunderbuss: Math.round((26 + (S.hero.level || 1) * 4) * 1),
+    riftblade: 42 + (S.hero.level || 1) * 4,
     storm: 18 + (S.hero.level || 1) * 2,
     freeze: 7 + (S.hero.level || 1),
   }[k] ?? null;
   const damageMult = (S.hero.damageMult || 1) *
-    (k === 'blunderbuss' ? (S.hero.blunderDamageMult || 1) : 1);
+    (k === 'blunderbuss' ? (S.hero.blunderDamageMult || 1) : k === 'riftblade' ? (S.hero.riftbladeDamageMult || 1) : 1);
   const chainCount = k === 'storm' ? 4 + (S.hero.stormChainBonus || 0) + (S.hero.chainBonus || 0) : 0;
   return {
     damage: typeof baseDamage === 'number' ? Math.round(baseDamage * damageMult) : null,
@@ -14254,6 +14525,8 @@ function getHotbarWeaponModifiers(k) {
   } else if (k === 'blunderbuss') {
     if (S.hero.blunderDamageMult !== 1) mods.push(`Damage x${S.hero.blunderDamageMult.toFixed(2)}`);
     if (S.hero.blunderShieldMult !== 1) mods.push(`Shield duration x${S.hero.blunderShieldMult.toFixed(2)}`);
+  } else if (k === 'riftblade') {
+    if (S.hero.riftbladeDamageMult !== 1) mods.push(`Slash/throw damage x${S.hero.riftbladeDamageMult.toFixed(2)}`);
   } else if (k === 'storm') {
     if ((S.hero.stormChainBonus || 0) || (S.hero.chainBonus || 0)) mods.push(`Chains +${(S.hero.stormChainBonus || 0) + (S.hero.chainBonus || 0)}`);
     if (S.hero.stormStunMult !== 1) mods.push(`Stun x${S.hero.stormStunMult.toFixed(2)}`);
@@ -14729,7 +15002,7 @@ function restoreWaveSnapshot() {
   S.healthOrbs = (o.healthOrbs || []).map(x => ({ ...x }));
   S.cornerSkulls = (o.cornerSkulls || []).map(x => ({ ...x }));
   S.cornerGhosts = (o.cornerGhosts || []).map(x => ({ ...x }));
-  if (!S.cornerSkulls.length) resetCornerSkulls();
+  if (!isExpeditionLevel(S.levelId) && !S.cornerSkulls.length) resetCornerSkulls();
   S.waveStats = o.waveStats ? Object.assign({}, o.waveStats) : null;
   S.runStats = o.runStats ? Object.assign({}, o.runStats) : S.runStats;
   S.synergyStats = { ...blankSynergyStats(), ...(o.synergyStats || {}) };
@@ -16185,6 +16458,8 @@ function kill(e, tower, byHero = false) {
       const ex = S.expedition;
       const room = (expeditionConfig()?.rooms || []).find(r => r.id === 'keyLabyrinth');
       if (ex && room) {
+        ex.roomDoorsUnlocked ||= {};
+        ex.roomDoorsUnlocked[room.id] = true;
         ex.roomBlockers = [];
         if (ex.activeRoomId === room.id) {
           ex.message = 'Labyrinth doors unlocked.';
@@ -16701,7 +16976,10 @@ function towerTick(t, dt) {
 
   if (t.cool > 0) return;
   const e = targetForTower(t);
-  if (!e) return;
+  if (!e) {
+    t.cool = .1;
+    return;
+  }
 
   t.cool = d.rate / (1 + .18 * (t.level - 1)) / towerSpeed;
   t.anim = Math.max(t.anim || 0, t.type === 'cannon' ? .32 : t.type === 'archer' ? .2 : t.type === 'cauldron' ? .28 : .16);
@@ -19165,6 +19443,15 @@ function simpleExpeditionEnemyStep(e, dt) {
   if ((e.burn || 0) > 0) { e.burn -= dt; hit(e, e.burnD * dt, null); }
   if ((e.poison || 0) > 0) { e.poison -= dt; hit(e, e.poisonD * dt, null); }
   if (e.dead || damageExpeditionRift(e, dt)) return;
+  if (e.stun > 0) {
+    const prevX = e.x, prevY = e.y;
+    e.x += (e.kx || 0) * dt;
+    e.y += (e.ky || 0) * dt;
+    e.kx = (e.kx || 0) * Math.max(0, 1 - dt * 4);
+    e.ky = (e.ky || 0) * Math.max(0, 1 - dt * 4);
+    enforceExpeditionRoomBoundary(e, prevX, prevY);
+    return;
+  }
 
   const target = expeditionEnemyTargetCell(e);
   const tx = cx(target.c), ty = cy(target.r);
@@ -20127,6 +20414,39 @@ function projectiles(dt) {
   // Hero shots
   for (const s of S.heroShots) {
     const oldX = s.x, oldY = s.y;
+    if (s.riftBoomerang) {
+      s.life -= dt;
+      s.spin = (s.spin || 0) + dt * 16;
+      if (!s.returning) {
+        s.x += s.vx * dt;
+        s.y += s.vy * dt;
+        s.travel += dist(oldX, oldY, s.x, s.y);
+        if (s.travel >= s.maxDistance) s.returning = true;
+      } else {
+        const dx = S.hero.x - s.x;
+        const dy = S.hero.y - s.y;
+        const d = Math.hypot(dx, dy) || 1;
+        s.vx = dx / d * s.speed;
+        s.vy = dy / d * s.speed;
+        s.x += s.vx * dt;
+        s.y += s.vy * dt;
+        if (d < 24) s.dead = true;
+      }
+      if (!s.dead) {
+        for (const e of S.enemies) {
+          if (e.dead || s.hitEnemies.has(e) || segDist(e.x, e.y, oldX, oldY, s.x, s.y) >= e.rad + 10) continue;
+          s.hitEnemies.add(e);
+          const stunBefore = e.stun || 0;
+          const bossLike = e.type === 'slimeking' || !!e.boss || !!e.eliteRoomTarget;
+          hit(e, s.dmg, null, true);
+          e.stun = bossLike ? stunBefore : Math.max(e.stun || 0, 1.2);
+          shockwave(e.x, e.y, bossLike ? '#8c7b96' : '#b98cff', 28, .12);
+          if (e.hp <= 0) kill(e, null, true);
+        }
+      }
+      if (s.life <= 0) s.dead = true;
+      continue;
+    }
     s.life -= dt;
     s.x += s.vx * dt;
     s.y += s.vy * dt;
@@ -21484,6 +21804,28 @@ function draw(t) {
   profileMeasure('render projectiles', () => {
     S.shots.forEach(s => drawTowerShot(s, s.d.fill));
     S.heroShots.forEach(s => {
+      if (s.riftBoomerang) {
+        if (pointInAbstractGouacheRoom(s.x, s.y)) {
+          drawGouacheArc(s.x, s.y, 15, 10, s.spin || 0, .25, Math.PI * 1.55, ABSTRACT_GOUACHE_PALETTE.lavender, 7, .92);
+          return;
+        }
+        ctx.save();
+        ctx.translate(s.x, s.y);
+        ctx.rotate(s.spin || 0);
+        ctx.strokeStyle = '#efe2ff';
+        ctx.fillStyle = '#7f4ca8';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(-13, -8);
+        ctx.quadraticCurveTo(0, 0, 13, -8);
+        ctx.lineTo(8, 8);
+        ctx.quadraticCurveTo(0, 3, -8, 8);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+        return;
+      }
       const frenzyActive = S.mods.frenzyUntil > t;
       const c = s.p2 ? '#8edcff'
         : frenzyActive ? '#ffe56b'
@@ -21730,12 +22072,175 @@ function draw(t) {
   if (KB_PROFILE.active) profileAdd('rendering', profileNow() - renderT0);
 }
 
+const ABSTRACT_GOUACHE_ROOM_ID = 'barracks';
+const ABSTRACT_GOUACHE_PALETTE = {
+  sky: '#69B9E8', powder: '#A9CDEA', mint: '#8DD0A5', sage: '#B7C69B',
+  coral: '#F27E55', red: '#E63946', lavender: '#8B63B6', blush: '#F5B7C7',
+  beige: '#DFC8B7', yellow: '#F3E34A', black: '#111111',
+};
+
+function abstractGouacheRoom() {
+  if (!S.devAbstractGouache || !isExpeditionRun()) return null;
+  return (expeditionConfig()?.rooms || []).find(room => room.id === ABSTRACT_GOUACHE_ROOM_ID) || null;
+}
+
+function pointInAbstractGouacheRoom(x, y) {
+  const room = abstractGouacheRoom();
+  return !!(room && expeditionRoomContainsPoint(room, x, y));
+}
+
+function drawGouacheArc(x, y, rx, ry, rotation, start, end, color, width, alpha = .86) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rotation);
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.ellipse(0, 0, rx, ry, 0, start, end);
+  ctx.stroke();
+  ctx.globalAlpha = alpha * .3;
+  ctx.lineWidth = Math.max(2, width * .12);
+  for (let i = 0; i < 9; i++) {
+    const a = start + (end - start) * ((i + .35) / 9);
+    const jitter = ((i * 17) % 7 - 3) * .8;
+    ctx.beginPath();
+    ctx.arc(Math.cos(a) * (rx + jitter), Math.sin(a) * (ry + jitter), 1 + (i % 3) * .7, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawGouacheSwipe(x, y, w, h, rotation, color, alpha = .78) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rotation);
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(-w * .52, -h * .22);
+  ctx.quadraticCurveTo(-w * .2, -h * .62, w * .48, -h * .28);
+  ctx.quadraticCurveTo(w * .6, 0, w * .42, h * .35);
+  ctx.quadraticCurveTo(-w * .12, h * .58, -w * .55, h * .18);
+  ctx.quadraticCurveTo(-w * .66, 0, -w * .52, -h * .22);
+  ctx.fill();
+  ctx.globalAlpha = alpha * .28;
+  for (let i = 0; i < 12; i++) {
+    const px = -w * .48 + (i / 11) * w;
+    const py = ((i * 23) % 9 - 4) * h * .055;
+    ctx.beginPath();
+    ctx.arc(px, py, 1.2 + (i % 4) * .55, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawAbstractGouacheRoom(room, t) {
+  const [x1, y1, x2, y2] = room.rect;
+  const x = OX + x1 * G;
+  const y = OY + y1 * G;
+  const w = (x2 - x1 + 1) * G;
+  const h = (y2 - y1 + 1) * G;
+  const p = ABSTRACT_GOUACHE_PALETTE;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(x, y, w, h);
+
+  drawGouacheSwipe(x + w * .12, y + h * .18, w * .22, h * .1, -.18, p.powder, .66);
+  drawGouacheArc(x + w * .37, y + h * .24, w * .13, h * .09, .3, .15, Math.PI * 1.55, p.coral, 25, .7);
+  drawGouacheSwipe(x + w * .72, y + h * .18, w * .25, h * .12, .12, p.sage, .62);
+  drawGouacheArc(x + w * .88, y + h * .43, w * .1, h * .16, -.35, .55, Math.PI * 1.72, p.lavender, 31, .62);
+  drawGouacheSwipe(x + w * .17, y + h * .68, w * .24, h * .13, .36, p.blush, .62);
+  drawGouacheArc(x + w * .49, y + h * .78, w * .12, h * .08, -.12, Math.PI * .2, Math.PI * 1.8, p.mint, 22, .64);
+  drawGouacheSwipe(x + w * .78, y + h * .74, w * .2, h * .09, -.42, p.beige, .7);
+  drawGouacheArc(x + w * .6, y + h * .45, w * .08, h * .055, t * .015, .4, Math.PI * 1.52, p.yellow, 14, .52);
+
+  ctx.globalAlpha = .92;
+  ctx.strokeStyle = p.black;
+  ctx.lineCap = 'round';
+  for (const [nx, ny, len, a] of [[.3,.58,34,-.2],[.67,.62,28,.6],[.43,.12,20,.1],[.9,.82,25,-.5]]) {
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(x + w * nx, y + h * ny);
+    ctx.lineTo(x + w * nx + Math.cos(a) * len, y + h * ny + Math.sin(a) * len);
+    ctx.stroke();
+  }
+
+  for (const bed of room.bedBlocks || []) {
+    drawGouacheSwipe(cx(bed.c), cy(bed.r), G * 1.08, G * .62, ((bed.c + bed.r) % 3 - 1) * .13, p.beige, .9);
+    drawGouacheArc(cx(bed.c), cy(bed.r), G * .3, G * .18, .2, .25, Math.PI * 1.55, p.black, 5, .82);
+  }
+  ctx.restore();
+
+  ctx.save();
+  ctx.strokeStyle = p.black;
+  ctx.globalAlpha = .7;
+  ctx.lineWidth = 4;
+  ctx.setLineDash([42, 13, 18, 9]);
+  ctx.strokeRect(x + 5, y + 5, w - 10, h - 10);
+  ctx.setLineDash([]);
+  drawGouacheSwipe(x + w * .5, y + 9, w * .46, 25, .02, p.sage, .78);
+  drawGouacheSwipe(x + w * .5, y + h - 9, w * .38, 24, -.03, p.blush, .72);
+  drawGouacheSwipe(x + 10, y + h * .5, 26, h * .44, Math.PI / 2 + .04, p.beige, .76);
+  drawGouacheSwipe(x + w - 10, y + h * .5, 28, h * .36, Math.PI / 2 - .05, p.powder, .76);
+  ctx.fillStyle = p.black;
+  ctx.globalAlpha = .82;
+  ctx.font = 'bold 13px Georgia';
+  ctx.fillText(room.name.toUpperCase(), x + 18, y + 29);
+  ctx.restore();
+}
+
+function drawAbstractGouacheRiftCore(x, y, t, carried = false) {
+  const p = ABSTRACT_GOUACHE_PALETTE;
+  ctx.save();
+  ctx.translate(x, y);
+  if (carried) ctx.scale(.72, .72);
+  drawGouacheArc(0, 0, 46, 31, t * .34, .25, Math.PI * 1.65, p.lavender, 13, .86);
+  drawGouacheArc(0, 0, 34, 48, -t * .27, .7, Math.PI * 1.85, p.blush, 11, .84);
+  drawGouacheArc(0, 0, 25, 38, t * .22 + .8, .15, Math.PI * 1.45, p.mint, 9, .86);
+  drawGouacheArc(0, 0, 55, 43, -t * .18, 1.1, Math.PI * 1.82, p.powder, 7, .72);
+  ctx.fillStyle = p.black;
+  for (let i = 0; i < 7; i++) {
+    const a = i * 2.1 + t * .18;
+    ctx.beginPath();
+    ctx.arc(Math.cos(a) * (18 + i * 4), Math.sin(a) * (14 + i * 3), 2 + i % 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawAbstractGouacheEnemy(e, blink = false) {
+  const p = ABSTRACT_GOUACHE_PALETTE;
+  const heavy = ['brute', 'ogre', 'siege', 'shield'].includes(e.type);
+  const fast = e.type === 'runner' || e.type === 'sapper';
+  const ranged = e.type === 'slinger' || e.type === 'hexcaller';
+  const body = blink ? p.yellow : heavy ? p.sage : fast ? p.coral : ranged ? p.lavender : p.black;
+  drawGouacheSwipe(0, 2, e.rad * 1.65, e.rad * (heavy ? 1.55 : .9), fast ? -.48 : .08, body, .96);
+  if (heavy) drawGouacheSwipe(0, 3, e.rad * 1.25, e.rad * .32, -.1, p.coral, .92);
+  else if (fast) drawGouacheArc(1, 1, e.rad * .7, e.rad * .5, .2, .2, Math.PI * 1.35, p.blush, 5, .88);
+  else if (ranged) drawGouacheArc(0, 0, e.rad * .82, e.rad * .68, -.2, .4, Math.PI * 1.65, p.powder, 6, .9);
+  else drawGouacheArc(0, 1, e.rad * .75, e.rad * .58, .1, .3, Math.PI * 1.55, p.red, 5, .92);
+  ctx.fillStyle = heavy ? p.black : p.red;
+  ctx.beginPath();
+  ctx.arc(e.rad * .28, -e.rad * .3, 3.2, 0, Math.PI * 2);
+  ctx.fill();
+}
+
 function drawExpeditionDressing(t) {
   const cfg = expeditionConfig();
   const ex = S.expedition;
   if (!cfg) return;
   ctx.save();
   for (const room of cfg.rooms || []) {
+    if (room.id === ABSTRACT_GOUACHE_ROOM_ID && abstractGouacheRoom()) {
+      drawAbstractGouacheRoom(room, t);
+      continue;
+    }
     const [x1, y1, x2, y2] = room.rect;
     const x = OX + x1 * G;
     const y = OY + y1 * G;
@@ -21804,14 +22309,16 @@ function drawExpeditionDressing(t) {
   }
 
   // Room identity props. These are simple canvas dressing, not gameplay systems.
-  const bunkYs = [17, 20, 23];
-  ctx.globalAlpha = .9;
-  for (const r of bunkYs) {
-    for (let c = 22; c <= 30; c += 3) {
-      ctx.fillStyle = '#2b1b12';
-      ctx.fillRect(OX + c * G + 5, OY + r * G + 7, 48, 16);
-      ctx.fillStyle = '#76533d';
-      ctx.fillRect(OX + c * G + 8, OY + r * G + 9, 42, 12);
+  if (!abstractGouacheRoom()) {
+    const bunkYs = [17, 20, 23];
+    ctx.globalAlpha = .9;
+    for (const r of bunkYs) {
+      for (let c = 22; c <= 30; c += 3) {
+        ctx.fillStyle = '#2b1b12';
+        ctx.fillRect(OX + c * G + 5, OY + r * G + 7, 48, 16);
+        ctx.fillStyle = '#76533d';
+        ctx.fillRect(OX + c * G + 8, OY + r * G + 9, 42, 12);
+      }
     }
   }
   for (let c = 40; c <= 56; c += 4) {
@@ -21845,6 +22352,10 @@ function drawExpeditionDressing(t) {
 }
 
 function drawExpeditionRiftCore(x, y, t, activated = false, carried = false) {
+  if (pointInAbstractGouacheRoom(x, y)) {
+    drawAbstractGouacheRiftCore(x, y, t, carried);
+    return;
+  }
   const dormant = activated && !S.expedition?.riftEverCarried && !(S.expedition?.riftAwakeningTime > 0);
   const visual = activated && !dormant ? expeditionRiftVisualState(t) : {
     count: 0,
@@ -22205,26 +22716,29 @@ function drawExpeditionBuildRadius(t) {
   const x = ex.rift.x;
   const y = ex.rift.y;
   const pulse = Math.sin(t * 2.4) * .04;
+  const gouache = pointInAbstractGouacheRoom(x, y);
   ctx.save();
-  ctx.globalAlpha = .08;
-  ctx.fillStyle = '#70d9ed';
+  ctx.globalAlpha = gouache ? .055 : .08;
+  ctx.fillStyle = gouache ? ABSTRACT_GOUACHE_PALETTE.powder : '#70d9ed';
   ctx.beginPath();
   ctx.arc(x, y, radius, 0, 7);
   ctx.fill();
-  ctx.globalAlpha = .68;
-  ctx.strokeStyle = '#70d9ed';
-  ctx.lineWidth = 3;
-  ctx.setLineDash([12, 10]);
+  ctx.globalAlpha = gouache ? .72 : .68;
+  ctx.strokeStyle = gouache ? ABSTRACT_GOUACHE_PALETTE.lavender : '#70d9ed';
+  ctx.lineWidth = gouache ? 7 : 3;
+  ctx.setLineDash(gouache ? [32, 13, 9, 15] : [12, 10]);
   ctx.beginPath();
   ctx.arc(x, y, radius * (1 + pulse), 0, 7);
   ctx.stroke();
   ctx.setLineDash([]);
-  ctx.globalAlpha = .38;
-  ctx.strokeStyle = '#f0c96b';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.arc(x, y, radius - 8, 0, 7);
-  ctx.stroke();
+  if (!gouache) {
+    ctx.globalAlpha = .38;
+    ctx.strokeStyle = '#f0c96b';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(x, y, radius - 8, 0, 7);
+    ctx.stroke();
+  }
   ctx.restore();
 }
 
@@ -22252,7 +22766,7 @@ function drawExpeditionRoomBlockers(t) {
 }
 
 function drawExpeditionLockedRiftDoor(t) {
-  if (!isExpeditionRun()) return;
+  if (!isExpeditionRun() || expeditionExtractionUnlocked()) return;
   const room = (expeditionConfig()?.rooms || []).find(candidate => candidate.id === 'rift');
   const door = room?.entrances?.find(entrance => entrance.side === 'west');
   if (!door || expeditionRoomState('rift') === 'active') return;
@@ -22503,6 +23017,8 @@ function expeditionDarkRoomTuning(room) {
 
 function expeditionRoomDarkActive(room) {
   if (!room?.darkRoom) return false;
+  if (room.id === 'keyLabyrinth' && S.expedition?.ghostEncounterActive) return true;
+  if (room.id === 'keyLabyrinth' && S.expedition?.boneWardenDefeated) return false;
   if (room.lightsAfterKey) return !S.expedition?.finalKeyCollected;
   return !expeditionRoomTerminalPowered(room.id) && expeditionRoomState(room.id) !== 'cleared';
 }
@@ -22543,21 +23059,28 @@ function drawExpeditionDarkRooms(t) {
     }
     maskCtx.clearRect(0, 0, maskW, maskH);
     maskCtx.globalCompositeOperation = 'source-over';
-    maskCtx.globalAlpha = tune.darknessAlpha ?? .82;
+    const ghostLighting = room.id === 'keyLabyrinth' && ex.ghostEncounterActive;
+    const blackout = ghostLighting && (ex.ghostBlackoutTimer || 0) > 0;
+    const flicker = ghostLighting && (ex.ghostLightFlicker || 0) > 0 ? Math.sin(t * 48) * .12 : 0;
+    maskCtx.globalAlpha = clamp((tune.darknessAlpha ?? .82) + flicker + (blackout ? .04 : 0), .68, .94);
     maskCtx.fillStyle = '#020407';
     maskCtx.fillRect(0, 0, maskW, maskH);
 
     maskCtx.globalCompositeOperation = 'destination-out';
     maskCtx.globalAlpha = 1;
-    drawExpeditionDarkLight(maskCtx, S.hero.x - x, S.hero.y - y, tune.playerLightRadius || 155, tune.softEdge || 95);
+    drawExpeditionDarkLight(maskCtx, S.hero.x - x, S.hero.y - y, blackout ? 54 : (tune.playerLightRadius || 155), tune.softEdge || 95);
     if (ex.riftActivated && ex.rift) {
-      drawExpeditionDarkLight(maskCtx, ex.rift.x - x, ex.rift.y - y, tune.riftLightRadius || 355, tune.softEdge || 95);
+      drawExpeditionDarkLight(maskCtx, ex.rift.x - x, ex.rift.y - y, blackout ? 110 : (tune.riftLightRadius || 355), tune.softEdge || 95);
+    }
+    if (ghostLighting) {
+      const ghost = (S.cornerGhosts || []).find(g => g && !g.dead && g.boneWardenFinal);
+      if (ghost) drawExpeditionDarkLight(maskCtx, ghost.x - x, ghost.y - y, blackout ? 58 : 86, 48);
     }
     maskCtx.globalCompositeOperation = 'source-over';
     maskCtx.globalAlpha = 1;
 
     ctx.drawImage(mask, x, y);
-    ctx.globalAlpha = tune.floorReadabilityAlpha ?? .18;
+    ctx.globalAlpha = blackout ? .04 : (tune.floorReadabilityAlpha ?? .18);
     ctx.fillStyle = room.color || '#49656b';
     ctx.fillRect(x, y, w, h);
     ctx.globalAlpha = .58;
@@ -22628,12 +23151,12 @@ function drawExpeditionHud(t) {
   if (chapelCountdownActive) {
     ctx.font = '900 24px Arial';
     ctx.fillStyle = '#fff6d6';
-    ctx.strokeText('WAVE STARTS IN', W / 2, H / 2 - 20);
-    ctx.fillText('WAVE STARTS IN', W / 2, H / 2 - 20);
+    ctx.strokeText('WAVE STARTS IN', W / 2, 190);
+    ctx.fillText('WAVE STARTS IN', W / 2, 190);
     ctx.font = '900 72px Arial';
     ctx.fillStyle = '#ffe09c';
-    ctx.strokeText(`${Math.ceil(ex.chapelCountdown || 0)}`, W / 2, H / 2 + 56);
-    ctx.fillText(`${Math.ceil(ex.chapelCountdown || 0)}`, W / 2, H / 2 + 56);
+    ctx.strokeText(`${Math.ceil(ex.chapelCountdown || 0)}`, W / 2, 260);
+    ctx.fillText(`${Math.ceil(ex.chapelCountdown || 0)}`, W / 2, 260);
   }
   if ((ex.messageTime || 0) > 0 && ex.message) {
     ctx.font = '900 18px Arial';
@@ -23281,6 +23804,7 @@ function drawExpeditionRiftWarningOverlay(t) {
 
 
 function drawAtmosphere(t) {
+  if (pointInAbstractGouacheRoom(S.hero.x, S.hero.y)) return;
   // Portal glow
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
@@ -23523,7 +24047,7 @@ function drawFortressDressing(t) {
   }
 
   // Corner skull hazards replace the old flags.
-  if (!Array.isArray(S.cornerSkulls) || !S.cornerSkulls.length) resetCornerSkulls();
+  if (!isExpeditionRun() && (!Array.isArray(S.cornerSkulls) || !S.cornerSkulls.length)) resetCornerSkulls();
   for (const skull of S.cornerSkulls) {
     if (skull.dead) continue;
     drawCornerSkull(skull, t);
@@ -23966,7 +24490,7 @@ function drawHero(t) {
   ctx.restore();
 
   // ── Persistent white locator outline ─────────────────────────────
-  const weaponHaloColors = { ranger:'#a4d067', crossbow:'#d6b26b', storm:'#8edcff', freeze:'#c8f4ff', blunderbuss:'#ffd27a' };
+  const weaponHaloColors = { ranger:'#a4d067', crossbow:'#d6b26b', storm:'#8edcff', freeze:'#c8f4ff', blunderbuss:'#ffd27a', riftblade:'#b98cff' };
   const haloColor = weaponHaloColors[h.weapon] || '#f0c96b';
   ctx.save();
   ctx.globalAlpha = h.inv > 0 && Math.floor(t * 18) % 2 ? .2 : .88;
@@ -24034,6 +24558,15 @@ function drawHero(t) {
       ctx.fill();
       ctx.restore();
     }
+  } else if (h.weapon === 'riftblade') {
+    ctx.strokeStyle = slimeActive ? slimeTint.gunHi : '#efe2ff';
+    ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(8, 2); ctx.lineTo(34, -2); ctx.stroke();
+    ctx.strokeStyle = slimeActive ? slimeTint.gun : '#7f4ca8';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(11, -7); ctx.lineTo(13, 9); ctx.stroke();
+    ctx.fillStyle = slimeActive ? slimeTint.gunHi : '#b98cff';
+    ctx.beginPath(); ctx.moveTo(34, -2); ctx.lineTo(27, -7); ctx.lineTo(29, 3); ctx.closePath(); ctx.fill();
   } else {
     ctx.fillStyle = slimeActive ? slimeTint.gun : '#c6b08c';
     ctx.beginPath(); ctx.moveTo(9, -4); ctx.lineTo(28, -4); ctx.lineTo(31, 0); ctx.lineTo(28, 4); ctx.lineTo(9, 4); ctx.closePath(); ctx.fill();
@@ -24452,7 +24985,11 @@ function drawEnemy(e) {
 
   ctx.strokeStyle = '#1e1008'; ctx.lineWidth = 2;
 
-  if (enemySpritesReady && ENEMY_SPRITES[e.type]) {
+  if (pointInAbstractGouacheRoom(e.x, e.y)) {
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+    drawAbstractGouacheEnemy(e, blink);
+  } else if (enemySpritesReady && ENEMY_SPRITES[e.type]) {
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';
     drawEnemySprite(e, base);
@@ -24862,6 +25399,18 @@ function drawSlimeKing(e, base) {
 }
 
 function drawTowerShot(s, c) {
+  if (pointInAbstractGouacheRoom(s.x, s.y)) {
+    ctx.save();
+    ctx.strokeStyle = ABSTRACT_GOUACHE_PALETTE.coral;
+    ctx.lineWidth = 6;
+    ctx.lineCap = 'round';
+    ctx.globalAlpha = .88;
+    ctx.beginPath(); ctx.moveTo(s.t.x, s.t.y); ctx.lineTo(s.x, s.y); ctx.stroke();
+    ctx.fillStyle = ABSTRACT_GOUACHE_PALETTE.black;
+    ctx.beginPath(); ctx.arc(s.x, s.y, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    return;
+  }
   ctx.strokeStyle = c; ctx.lineWidth = 4;
   ctx.beginPath(); ctx.moveTo(s.t.x, s.t.y); ctx.lineTo(s.x, s.y); ctx.stroke();
   ctx.fillStyle = c;
@@ -24869,6 +25418,28 @@ function drawTowerShot(s, c) {
 }
 
 function drawArrow(s, c, glow = false) {
+  if (pointInAbstractGouacheRoom(s.x, s.y)) {
+    const a = Math.atan2(s.vy, s.vx);
+    const color = s.slime ? ABSTRACT_GOUACHE_PALETTE.mint
+      : s.type === 'iceShard' ? ABSTRACT_GOUACHE_PALETTE.powder
+      : s.weapon === 'storm' ? ABSTRACT_GOUACHE_PALETTE.yellow
+      : S.enemyShots.includes(s) ? ABSTRACT_GOUACHE_PALETTE.red
+      : ABSTRACT_GOUACHE_PALETTE.coral;
+    ctx.save();
+    ctx.translate(s.x, s.y);
+    ctx.rotate(a);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 6;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(-18, 1);
+    ctx.quadraticCurveTo(-5, -3, 9, 0);
+    ctx.stroke();
+    ctx.fillStyle = ABSTRACT_GOUACHE_PALETTE.black;
+    ctx.beginPath(); ctx.arc(9, 0, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    return;
+  }
   ctx.save();
   const tx = s.x - s.vx * .032, ty = s.y - s.vy * .032;
   const hx = s.x - s.vx * .018, hy = s.y - s.vy * .018;
@@ -25033,6 +25604,34 @@ function drawArrow(s, c, glow = false) {
 
 function drawParticle(p) {
   const alpha = Math.max(0, p.maxLife ? p.life / p.maxLife : p.life / .75);
+  if (pointInAbstractGouacheRoom(p.x, p.y)) {
+    const palette = ABSTRACT_GOUACHE_PALETTE;
+    ctx.save();
+    ctx.globalAlpha = alpha * .82;
+    if (p.kind === 'shockwave') {
+      const grow = 1 - (p.life / p.maxLife);
+      drawGouacheArc(p.x, p.y, p.maxR * grow, p.maxR * grow * .72, .2, .3, Math.PI * 1.65, palette.coral, 9, alpha);
+      drawGouacheArc(p.x, p.y, p.maxR * grow * .72, p.maxR * grow * .55, -.3, .8, Math.PI * 1.8, palette.yellow, 6, alpha);
+    } else if (p.kind === 'bolt') {
+      ctx.strokeStyle = palette.lavender;
+      ctx.lineWidth = p.w || 4;
+      ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x2, p.y2); ctx.stroke();
+    } else {
+      const color = p.kind === 'smoke' ? palette.powder
+        : p.kind === 'debris' ? palette.black
+        : p.kind === 'ember' ? palette.yellow
+        : palette.coral;
+      ctx.fillStyle = color;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(((p.vx || 0) + (p.vy || 0)) * .018);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, (p.r || 4) * 1.7, Math.max(1.5, (p.r || 4) * .52), .18, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+    return;
+  }
   ctx.globalAlpha = p.kind === 'bolt' && (p.c === '#ffe56b' || p.c === '#fff34d' || p.c === '#fff7bf')
     ? Math.max(.92, alpha)
     : alpha;
@@ -25082,6 +25681,23 @@ function drawParticle(p) {
     ctx.lineTo(58, 24);
     ctx.closePath();
     ctx.fill();
+    ctx.restore();
+  } else if (p.kind === 'riftSlash') {
+    const fade = Math.max(0, p.life / (p.maxLife || .16));
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.a || 0);
+    ctx.globalAlpha = fade;
+    ctx.strokeStyle = p.c || '#d8b7ff';
+    ctx.lineWidth = 12 * fade + 3;
+    ctx.beginPath();
+    ctx.arc(0, 0, p.range || 92, -(p.halfArc || .72), p.halfArc || .72);
+    ctx.stroke();
+    ctx.strokeStyle = '#fff4ff';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(0, 0, (p.range || 92) - 5, -(p.halfArc || .72), p.halfArc || .72);
+    ctx.stroke();
     ctx.restore();
   } else {
     ctx.fillStyle = p.c;
@@ -25622,6 +26238,11 @@ $('devPowerupDebugToggle').onclick = () => { S.powerupDebugMode = !S.powerupDebu
 $('devRiftGuardToggle').onclick = () => { S.devRiftGuard = !S.devRiftGuard; ui(); toast(`Rift Guard ${S.devRiftGuard ? 'ON' : 'OFF'}`); };
 $('devRiftNoHpLossToggle').onclick = () => { S.devRiftNoHpLoss = !S.devRiftNoHpLoss; ui(); toast(`Rift No HP Loss ${S.devRiftNoHpLoss ? 'ON' : 'OFF'}`); };
 $('devPlayerTowerCollisionToggle').onclick = () => { S.devPlayerTowerCollision = !S.devPlayerTowerCollision; ui(); toast(`Player Collision With Towers ${S.devPlayerTowerCollision ? 'ON' : 'OFF'}`); };
+$('devAbstractGouacheToggle').onclick = () => {
+  S.devAbstractGouache = !S.devAbstractGouache;
+  ui();
+  toast(`Abstract Gouache Rift Access ${S.devAbstractGouache ? 'ON' : 'OFF'}`);
+};
 $('devRoomBoundsToggle').onclick = () => { S.devShowRoomBounds = !S.devShowRoomBounds; ui(); toast(`Room Bounds ${S.devShowRoomBounds ? 'ON' : 'OFF'}`); };
 $('devPathToggle').onclick = () => { S.devShowPathing = !S.devShowPathing; ui(); toast(`Pathing ${S.devShowPathing ? 'ON' : 'OFF'}`); };
 $('devAudioToggle').onclick = () => { unlockAudio(); setAudioMuted(!AUDIO.muted); toast(`Audio ${AUDIO.muted ? 'OFF' : 'ON'}`); };
@@ -25693,7 +26314,8 @@ $('begin').onclick   = startGameFromLoadout;
 $('playLastRun').onclick = playLastRun;
 $('clearBtn').onclick = () => {
   if (S.expedition?.completed) {
-    location.reload();
+    $('clear').classList.add('hidden');
+    exitToLoadoutScreen();
     return;
   }
   if (S.mutationPending) return toast('Choose a Boon first.');
