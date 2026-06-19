@@ -5587,8 +5587,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.27.0</b>
-      <span id="warRoomBuildName">ShatterCycle</span>
+      <b id="warRoomVersion">v7.28.0</b>
+      <span id="warRoomBuildName">ChapelCircuit</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -5675,7 +5675,7 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.27.0 ShatterCycle</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.28.0 ChapelCircuit</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -6219,7 +6219,12 @@ const LEVELS = {
           rect: [1, 4, 26, 15],
           color: '#514968',
           darkRoom: true,
-          lightsAfterKey: true,
+          lightPads: [
+            { c: 7, r: 7 },
+            { c: 20, r: 7 },
+            { c: 7, r: 12 },
+            { c: 20, r: 12 },
+          ],
           darkness: {
             darknessAlpha: .9,
             floorReadabilityAlpha: .07,
@@ -7168,11 +7173,12 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.27.0';
+const GAME_VERSION = '7.28.0';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'ShatterCycle';
+const BUILD_NAME = 'ChapelCircuit';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Made Freeze fully disable enemies and replaced Ice Halo with the frozen-target Shatter Bolt combo finisher.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Made Dark Chapel lighting depend on placing the Rift on one of four illuminated power pads.' },
+  { version: '7.27.0', name: 'ShatterCycle', changes: 'Made Freeze fully disable enemies and replaced Ice Halo with the frozen-target Shatter Bolt combo finisher.' },
   { version: '7.26.0', name: 'GouacheWorld', changes: 'Extended the abstract gouache treatment across Expedition 01 rooms, Rift animations, towers, skulls, minibosses, and Slime King.' },
   { version: '7.25.0', name: 'GouacheRoom', changes: 'Added an optional abstract gouache visual treatment for the Expedition Rift Access test room.' },
   { version: '7.24.4', name: 'WestOpen', changes: 'Removed the Rift Chamber west wall while preserving the four-key locked doorway.' },
@@ -8503,6 +8509,16 @@ function expeditionRoomContainsCell(room, c, r) {
 function expeditionRoomContainsPoint(room, x, y) {
   const cell = cellAt(x, y);
   return expeditionRoomContainsCell(room, cell.c, cell.r);
+}
+
+function expeditionRoomLightPads(room) {
+  return Array.isArray(room?.lightPads) ? room.lightPads : [];
+}
+
+function expeditionRiftPowersRoomLights(room) {
+  const ex = S.expedition;
+  if (!room || !ex?.riftActivated || ex.riftCarried || !ex.rift) return false;
+  return expeditionRoomLightPads(room).some(pad => dist(ex.rift.x, ex.rift.y, cx(pad.c), cy(pad.r)) <= G * .8);
 }
 
 function activeExpeditionBlockingSkulls() {
@@ -10022,7 +10038,8 @@ function spawnBoneWarden(room) {
   const ex = S.expedition;
   if (!isExpeditionRun() || !ex || !room || room.id !== 'keyLabyrinth' || ex.boneWardenSpawned || ex.boneWardenDefeated) return null;
   if (!Array.isArray(S.cornerSkulls)) S.cornerSkulls = [];
-  const spot = { c: 14, r: 9 };
+  const [x1, y1, x2, y2] = room.rect;
+  const spot = { c: (x1 + x2) / 2, r: (y1 + y2) / 2 };
   const boss = {
     ...createCornerSkull('boneWarden', cx(spot.c), cy(spot.r), 0),
     expeditionRoomId: room.id,
@@ -10040,6 +10057,7 @@ function spawnBoneWarden(room) {
   S.cornerSkulls.push(boss);
   ex.boneWardenSpawned = true;
   floatText('BONE WARDEN', boss.x - 54, boss.y - 52, '#ffe09c');
+  shockwave(boss.x, boss.y, '#ffe09c', 190, .42);
   return boss;
 }
 
@@ -23099,6 +23117,51 @@ function drawExpeditionKeyContainer(container, t) {
   ctx.restore();
 }
 
+function drawExpeditionLightPads(t) {
+  const room = (expeditionConfig()?.rooms || []).find(candidate => candidate.id === 'keyLabyrinth');
+  const pads = expeditionRoomLightPads(room);
+  if (!pads.length) return;
+  const powered = expeditionRiftPowersRoomLights(room);
+  const gouache = abstractGouacheEnabled();
+  for (const pad of pads) {
+    const x = cx(pad.c), y = cy(pad.r);
+    const pulse = 1 + Math.sin(t * 5 + pad.c + pad.r) * .08;
+    ctx.save();
+    if (gouache) {
+      drawGouacheSwipe(x, y, 76 * pulse, 48 * pulse, -.12, powered ? ABSTRACT_GOUACHE_PALETTE.yellow : ABSTRACT_GOUACHE_PALETTE.powder, .88);
+      drawGouacheArc(x, y, 31 * pulse, 22 * pulse, t * .15, .2, Math.PI * 1.72, powered ? ABSTRACT_GOUACHE_PALETTE.mint : ABSTRACT_GOUACHE_PALETTE.lavender, 9, .94);
+      ctx.fillStyle = powered ? ABSTRACT_GOUACHE_PALETTE.yellow : '#FFFFFF';
+    } else {
+      ctx.globalCompositeOperation = 'screen';
+      ctx.globalAlpha = powered ? .38 : .2 + Math.sin(t * 5 + pad.c) * .05;
+      ctx.fillStyle = powered ? '#fff1a8' : '#8edcff';
+      ctx.beginPath(); ctx.arc(x, y, 46 * pulse, 0, 7); ctx.fill();
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = .95;
+      ctx.fillStyle = powered ? '#675b24' : '#172c38';
+      ctx.strokeStyle = powered ? '#fff1a8' : '#8edcff';
+      ctx.lineWidth = 5;
+      ctx.beginPath(); ctx.arc(x, y, 30 * pulse, 0, 7); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = powered ? '#fffbd8' : '#d8f6ff';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x - 9, y - 16);
+      ctx.lineTo(x + 3, y - 3);
+      ctx.lineTo(x - 4, y + 2);
+      ctx.lineTo(x + 10, y + 16);
+      ctx.stroke();
+      ctx.fillStyle = '#fff4dc';
+    }
+    ctx.strokeStyle = gouache ? ABSTRACT_GOUACHE_PALETTE.black : '#120805';
+    ctx.lineWidth = 4;
+    ctx.font = '900 10px Georgia';
+    ctx.textAlign = 'center';
+    ctx.strokeText(powered ? 'RIFT POWERED' : 'PLACE RIFT', x, y - 39);
+    ctx.fillText(powered ? 'RIFT POWERED' : 'PLACE RIFT', x, y - 39);
+    ctx.restore();
+  }
+}
+
 function drawExpeditionObjects(t) {
   const ex = S.expedition;
   const cfg = expeditionConfig();
@@ -23107,6 +23170,7 @@ function drawExpeditionObjects(t) {
   const staticX = cx(cfg.rift.c);
   const staticY = cy(cfg.rift.r);
   const nearRift = ex.riftActivated || ex.riftFound || dist(S.hero.x, S.hero.y, staticX, staticY) < 360;
+  drawExpeditionLightPads(t);
   if (nearRift) drawExpeditionRiftCore(ex.riftActivated ? ex.rift.x : staticX, ex.riftActivated ? ex.rift.y : staticY, t, ex.riftActivated, !!ex.riftCarried);
   for (const nest of ex.roomNests || []) {
     if (nest.dead) continue;
@@ -23279,8 +23343,7 @@ function expeditionDarkRoomTuning(room) {
 
 function expeditionRoomDarkActive(room) {
   if (!room?.darkRoom) return false;
-  if (room.id === 'keyLabyrinth' && S.expedition?.ghostEncounterActive) return true;
-  if (room.id === 'keyLabyrinth' && S.expedition?.boneWardenDefeated) return false;
+  if (room.id === 'keyLabyrinth') return !expeditionRiftPowersRoomLights(room);
   if (room.lightsAfterKey) return !S.expedition?.finalKeyCollected;
   return !expeditionRoomTerminalPowered(room.id) && expeditionRoomState(room.id) !== 'cleared';
 }
@@ -23297,7 +23360,6 @@ function drawExpeditionDarkLight(maskCtx, x, y, radius, softEdge) {
 }
 
 function drawExpeditionDarkRooms(t) {
-  if (abstractGouacheEnabled()) return;
   const ex = S.expedition;
   const cfg = expeditionConfig();
   if (!isExpeditionRun() || !ex || !cfg) return;
@@ -23334,6 +23396,9 @@ function drawExpeditionDarkRooms(t) {
     drawExpeditionDarkLight(maskCtx, S.hero.x - x, S.hero.y - y, blackout ? 54 : (tune.playerLightRadius || 155), tune.softEdge || 95);
     if (ex.riftActivated && ex.rift) {
       drawExpeditionDarkLight(maskCtx, ex.rift.x - x, ex.rift.y - y, blackout ? 110 : (tune.riftLightRadius || 355), tune.softEdge || 95);
+    }
+    for (const pad of expeditionRoomLightPads(room)) {
+      drawExpeditionDarkLight(maskCtx, cx(pad.c) - x, cy(pad.r) - y, 76, 46);
     }
     if (ghostLighting) {
       const ghost = (S.cornerGhosts || []).find(g => g && !g.dead && g.boneWardenFinal);
