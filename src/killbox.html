@@ -5588,8 +5588,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.29.0</b>
-      <span id="warRoomBuildName">CoreEscape</span>
+      <b id="warRoomVersion">v7.29.1</b>
+      <span id="warRoomBuildName">FastBloodbath</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -5676,7 +5676,7 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.29.0 CoreEscape</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.29.1 FastBloodbath</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -7174,11 +7174,12 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.29.0';
+const GAME_VERSION = '7.29.1';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'CoreEscape';
+const BUILD_NAME = 'FastBloodbath';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Turned Relay completion into a collapsing-dungeon escape with an ejected, overloaded Rift and a final return to the Entrance.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Made the Core escape swarm start immediately and use cheap screen-crossing movement for a smoother bloodbath.' },
+  { version: '7.29.0', name: 'CoreEscape', changes: 'Turned Relay completion into a collapsing-dungeon escape with an ejected, overloaded Rift and a final return to the Entrance.' },
   { version: '7.28.1', name: 'CornerCircuit', changes: 'Moved Dark Chapel light pads into the corners and limited each pad to illuminating its own quadrant.' },
   { version: '7.28.0', name: 'ChapelCircuit', changes: 'Made Dark Chapel lighting depend on placing the Rift on one of four illuminated power pads.' },
   { version: '7.27.0', name: 'ShatterCycle', changes: 'Made Freeze fully disable enemies and replaced Ice Halo with the frozen-target Shatter Bolt combo finisher.' },
@@ -8982,7 +8983,7 @@ function startExpeditionEscapeSequence() {
   ex.extractionActive = false;
   ex.escapeActive = true;
   ex.escapeElapsed = 0;
-  ex.escapeSpawnTimer = .3;
+  ex.escapeSpawnTimer = 0;
   ex.escapeOverloadTimer = 0;
   ex.escapeRelayFxTimer = .18;
   ex.phase = 'escape';
@@ -8995,8 +8996,8 @@ function startExpeditionEscapeSequence() {
     ex.rift.flash = 1.4;
     shockwave(relay.x, relay.y, '#ffffff', 420, .85);
     shockwave(relay.x, relay.y, '#ff3b61', 310, .7);
-    burst(relay.x, relay.y, '#f0b8ff', 90, 'spark', 420);
-    burst(relay.x, relay.y, '#ff3b61', 55, 'smoke', 260);
+    burst(relay.x, relay.y, '#f0b8ff', 38, 'spark', 360);
+    burst(relay.x, relay.y, '#ff3b61', 20, 'smoke', 220);
   }
   for (const e of S.enemies) {
     if (!e || e.dead || e.expeditionTarget !== 'rift') continue;
@@ -9012,36 +9013,51 @@ function startExpeditionEscapeSequence() {
   playSfx('bossWarning');
   shake(28, 1.25);
   showMissionHint('Pick up the Core and return to the Entrance.', 'expedition-core-escape', 6);
+  for (let i = 0; i < 24; i++) spawnExpeditionCollapseEnemy(true);
 }
 
-function spawnExpeditionCollapseEnemy() {
+function spawnExpeditionCollapseEnemy(openingBurst = false) {
   const ex = S.expedition;
-  const spawns = levelDef(S.levelId)?.spawns || [];
-  if (!ex?.escapeActive || !spawns.length || S.enemies.filter(e => e && !e.dead && e.expeditionCollapse).length >= 110) return null;
-  const spawn = spawns[Math.floor(Math.random() * spawns.length)];
-  const target = cellAt(S.hero.x, S.hero.y);
-  let path = routePath(spawn, target);
-  if (!path.length) path = [
-    { ...spawn, x: cx(spawn.c), y: cy(spawn.r) },
-    { ...target, x: cx(target.c), y: cy(target.r) },
-  ];
-  const roll = Math.random();
-  const type = roll < .64 ? 'runner' : roll < .82 ? 'bomber' : roll < .93 ? 'sapper' : 'grunt';
+  if (!ex?.escapeActive || S.enemies.filter(e => e && !e.dead && e.expeditionCollapse).length >= 64) return null;
+  const x = openingBurst
+    ? S.hero.x - Math.max(420, W * .52) + Math.random() * Math.max(760, W * 1.04)
+    : S.hero.x - Math.max(520, W * (.55 + Math.random() * .18));
+  const y = S.hero.y + (Math.random() - .5) * Math.max(500, H * .9);
+  const type = Math.random() < .82 ? 'runner' : 'grunt';
   const oldWave = S.wave;
   S.wave = Math.max(S.wave, 10);
-  const enemy = spawnEnemyAt(type, cx(spawn.c), cy(spawn.r), path, 0);
+  const enemy = spawnEnemyAt(type, x, y, [{ c: 0, r: 0, x, y }], 0);
   S.wave = oldWave;
   if (!enemy) return null;
-  enemy.entry = spawn.label || 'collapse breach';
+  enemy.entry = 'reality collapse';
   enemy.expeditionSpawn = true;
   enemy.expeditionCollapse = true;
-  enemy.expeditionTarget = 'hero';
+  enemy.expeditionAiTier = 'collapse';
+  enemy.expeditionTarget = null;
   enemy.riftHunter = false;
-  enemy.expeditionTargetKey = key(target.c, target.r);
-  enemy.expeditionLastTarget = enemy.expeditionTargetKey;
-  enemy.expeditionTargetCell = { c: target.c, r: target.r };
-  enemy.expeditionNextRetargetAt = performance.now() / 1000 + .7 + Math.random() * .5;
+  enemy.collapseVx = 190 + Math.random() * 150;
+  enemy.collapseVy = (Math.random() - .5) * 70;
+  enemy.collapseLife = 6 + Math.random() * 3;
+  enemy.wild = false;
+  enemy.behaviors = [];
   return enemy;
+}
+
+function expeditionCollapseEnemyStep(e, dt) {
+  if (!e || e.dead) return;
+  e.flash = Math.max(0, (e.flash || 0) - dt);
+  e.stun = Math.max(0, (e.stun || 0) - dt);
+  e.collapseLife = (e.collapseLife || 0) - dt;
+  if (e.stun > 0) {
+    e.x += (e.kx || 0) * dt;
+    e.y += (e.ky || 0) * dt;
+    e.kx = (e.kx || 0) * Math.max(0, 1 - dt * 5);
+    e.ky = (e.ky || 0) * Math.max(0, 1 - dt * 5);
+  } else {
+    e.x += (e.collapseVx || 240) * dt;
+    e.y += (e.collapseVy || 0) * dt;
+  }
+  if (e.collapseLife <= 0 || e.x > S.hero.x + Math.max(620, W * .7)) e.dead = true;
 }
 
 function applyExpeditionCoreOverload() {
@@ -9063,15 +9079,20 @@ function applyExpeditionCoreOverload() {
         : large
           ? Math.max(95, e.max * .42)
           : Math.max(e.hp, e.max) * 1.4;
-    hit(e, damage, null, true);
+    if (e.expeditionCollapse) {
+      e.hp = 0;
+      e.dead = true;
+    } else {
+      hit(e, damage, null, true);
+    }
     const a = Math.atan2(e.y - S.hero.y, e.x - S.hero.x);
     const force = boss ? 110 : large ? 260 : 520;
     e.kx = (e.kx || 0) + Math.cos(a) * force;
     e.ky = (e.ky || 0) + Math.sin(a) * force;
     e.stun = Math.max(e.stun || 0, boss ? .08 : large ? .16 : .3);
-    if (visualHits < 8) {
-      for (let i = 0; i < (large ? 2 : 4); i++) spawnBloodSplats(e.x, e.y, e);
-      burst(e.x, e.y, wasAlive && e.dead ? '#b01822' : '#8a1118', large ? 14 : 20, 'blood', large ? 300 : 380);
+    if (visualHits < 5) {
+      for (let i = 0; i < (large ? 1 : 2); i++) spawnBloodSplats(e.x, e.y, e);
+      burst(e.x, e.y, wasAlive && e.dead ? '#b01822' : '#8a1118', large ? 8 : 12, 'blood', large ? 260 : 320);
       if (!large && wasAlive) floatText('CRIT', e.x - 14, e.y - 30, '#fff1a8');
       visualHits++;
     }
@@ -9168,15 +9189,15 @@ function updateExpeditionEscapeSequence(dt) {
     const relay = expeditionRelayPadCenter();
     if (relay) {
       shockwave(relay.x, relay.y, Math.random() < .5 ? '#ff3b61' : '#f0b8ff', 120 + Math.random() * 150, .3);
-      burst(relay.x + (Math.random() - .5) * 90, relay.y + (Math.random() - .5) * 70, '#fff1a8', 12, 'spark', 180);
+      burst(relay.x + (Math.random() - .5) * 90, relay.y + (Math.random() - .5) * 70, '#fff1a8', 5, 'spark', 150);
     }
     shake(4, .16);
     ex.escapeRelayFxTimer = .55 + Math.random() * .55;
   }
   if (ex.escapeSpawnTimer <= 0) {
-    const count = ex.escapeElapsed > 10 ? 4 : 3;
+    const count = ex.riftCarried ? 8 : 6;
     for (let i = 0; i < count; i++) spawnExpeditionCollapseEnemy();
-    ex.escapeSpawnTimer = ex.riftCarried ? .32 : .48;
+    ex.escapeSpawnTimer = ex.riftCarried ? .34 : .42;
   }
   if (ex.riftCarried && ex.escapeOverloadTimer <= 0) {
     applyExpeditionCoreOverload();
@@ -19576,7 +19597,6 @@ function scoreExpeditionFullAi(e, currentRoom, adjacentRoomIds) {
   const rift = S.expedition?.rift;
   const riftD = rift ? dist(e.x, e.y, rift.x, rift.y) : Infinity;
   let score = 0;
-  if (e.expeditionCollapse) score += 1200;
   if (e.eliteRoomTarget || e.type === 'slimeking') score += 1000;
   if (e.expeditionTarget === 'rift' || e.riftHunter) score += 820 - Math.min(riftD, 700) * .25;
   if (room && currentRoom && room.id === currentRoom.id) score += 600;
@@ -19595,6 +19615,10 @@ function assignExpeditionAiTiers() {
   const scored = [];
   for (const e of S.enemies) {
     if (!e || e.dead) continue;
+    if (e.expeditionCollapse) {
+      e.expeditionAiTier = 'collapse';
+      continue;
+    }
     if (!e.expeditionRoomId && !e.expeditionSpawn && !e.expeditionEncounter && !e.expeditionTarget) {
       e.expeditionAiTier = 'full';
       continue;
@@ -19605,7 +19629,7 @@ function assignExpeditionAiTiers() {
     const riftD = rift ? dist(e.x, e.y, rift.x, rift.y) : Infinity;
     const visible = expeditionEnemyVisible(e);
     const currentOrAdjacent = room && currentRoom && (room.id === currentRoom.id || adjacentRoomIds.has(room.id));
-    const engaged = e.expeditionCollapse || visible || heroD < EXPEDITION_PRESSURE_TUNING.heroKeepAliveRadius || riftD < EXPEDITION_PRESSURE_TUNING.riftKeepAliveRadius || (e.expeditionRecentlyEngagedUntil || 0) > performance.now() / 1000;
+    const engaged = visible || heroD < EXPEDITION_PRESSURE_TUNING.heroKeepAliveRadius || riftD < EXPEDITION_PRESSURE_TUNING.riftKeepAliveRadius || (e.expeditionRecentlyEngagedUntil || 0) > performance.now() / 1000;
     if (!currentOrAdjacent && !engaged && convertExpeditionEnemyToPressure(e, 'dormant')) continue;
     scored.push({ e, score: scoreExpeditionFullAi(e, currentRoom, adjacentRoomIds), currentOrAdjacent });
   }
@@ -19682,6 +19706,7 @@ function simpleExpeditionEnemyStep(e, dt) {
 
 function updateExpeditionPressureZones(dt) {
   profileMeasure('pressureZones', () => {
+    if (S.expedition?.escapeActive) return;
     releaseAdjacentExpeditionPressure(dt);
     assignExpeditionAiTiers();
   });
@@ -21783,10 +21808,13 @@ function step(dt) {
     buildEnemySpatialGrid(S.enemies);
     for (const e of S.enemies) {
       const oldX = e.x, oldY = e.y;
-      if (isExpeditionRun() && e.expeditionAiTier === 'simple') simpleExpeditionEnemyStep(e, dt);
+      if (isExpeditionRun() && e.expeditionCollapse) expeditionCollapseEnemyStep(e, dt);
+      else if (isExpeditionRun() && e.expeditionAiTier === 'simple') simpleExpeditionEnemyStep(e, dt);
       else enemyStep(e, dt);
-      applyBlackoutContainmentLavaToEnemy(e, dt);
-      maybeWoundedTrail(e, oldX, oldY, dt);
+      if (!e.expeditionCollapse) {
+        applyBlackoutContainmentLavaToEnemy(e, dt);
+        maybeWoundedTrail(e, oldX, oldY, dt);
+      }
     }
   });
 
