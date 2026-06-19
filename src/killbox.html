@@ -5509,6 +5509,7 @@ body.expeditionGameplay #combatHud {
             <button id="devRestartMission"><span class="actionLabel">Restart Mission</span><span class="actionMeta">Current run</span></button>
             <button id="devClearRoom"><span class="actionLabel">Clear Room</span><span class="actionMeta">Expedition</span></button>
             <button id="devRevealMap"><span class="actionLabel">Reveal Map</span><span class="actionMeta">Expedition</span></button>
+            <button id="devGrantKeys"><span class="actionLabel">Grant All Keys</span><span class="actionMeta">Expedition</span></button>
             <button id="devDamageCore"><span class="actionLabel">Damage Rift</span><span class="actionMeta">Expedition</span></button>
             <button id="devTeleportRelay"><span class="actionLabel">Teleport Relay</span><span class="actionMeta">Expedition</span></button>
           </div>
@@ -5587,8 +5588,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.28.0</b>
-      <span id="warRoomBuildName">ChapelCircuit</span>
+      <b id="warRoomVersion">v7.29.0</b>
+      <span id="warRoomBuildName">CoreEscape</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -5675,7 +5676,7 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.28.0 ChapelCircuit</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.29.0 CoreEscape</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -6220,10 +6221,10 @@ const LEVELS = {
           color: '#514968',
           darkRoom: true,
           lightPads: [
-            { c: 7, r: 7 },
-            { c: 20, r: 7 },
-            { c: 7, r: 12 },
-            { c: 20, r: 12 },
+            { c: 2, r: 6, quadrant: 'nw' },
+            { c: 25, r: 6, quadrant: 'ne' },
+            { c: 2, r: 14, quadrant: 'sw' },
+            { c: 23, r: 14, quadrant: 'se' },
           ],
           darkness: {
             darknessAlpha: .9,
@@ -7173,11 +7174,13 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.28.0';
+const GAME_VERSION = '7.29.0';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'ChapelCircuit';
+const BUILD_NAME = 'CoreEscape';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Made Dark Chapel lighting depend on placing the Rift on one of four illuminated power pads.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Turned Relay completion into a collapsing-dungeon escape with an ejected, overloaded Rift and a final return to the Entrance.' },
+  { version: '7.28.1', name: 'CornerCircuit', changes: 'Moved Dark Chapel light pads into the corners and limited each pad to illuminating its own quadrant.' },
+  { version: '7.28.0', name: 'ChapelCircuit', changes: 'Made Dark Chapel lighting depend on placing the Rift on one of four illuminated power pads.' },
   { version: '7.27.0', name: 'ShatterCycle', changes: 'Made Freeze fully disable enemies and replaced Ice Halo with the frozen-target Shatter Bolt combo finisher.' },
   { version: '7.26.0', name: 'GouacheWorld', changes: 'Extended the abstract gouache treatment across Expedition 01 rooms, Rift animations, towers, skulls, minibosses, and Slime King.' },
   { version: '7.25.0', name: 'GouacheRoom', changes: 'Added an optional abstract gouache visual treatment for the Expedition Rift Access test room.' },
@@ -8382,6 +8385,11 @@ function createExpeditionState(levelId = S.levelId) {
     extractionStarted: false,
     extractionHoldMessageTime: 0,
     extractionSpawnTimer: 0,
+    escapeActive: false,
+    escapeElapsed: 0,
+    escapeSpawnTimer: 0,
+    escapeOverloadTimer: 0,
+    escapeRelayFxTimer: 0,
     shortcutsOpen: false,
     completed: false,
     message: 'Relay locked. Find 4 keys.',
@@ -8515,10 +8523,10 @@ function expeditionRoomLightPads(room) {
   return Array.isArray(room?.lightPads) ? room.lightPads : [];
 }
 
-function expeditionRiftPowersRoomLights(room) {
+function expeditionPoweredRoomLightPad(room) {
   const ex = S.expedition;
-  if (!room || !ex?.riftActivated || ex.riftCarried || !ex.rift) return false;
-  return expeditionRoomLightPads(room).some(pad => dist(ex.rift.x, ex.rift.y, cx(pad.c), cy(pad.r)) <= G * .8);
+  if (!room || !ex?.riftActivated || ex.riftCarried || !ex.rift) return null;
+  return expeditionRoomLightPads(room).find(pad => dist(ex.rift.x, ex.rift.y, cx(pad.c), cy(pad.r)) <= G * .8) || null;
 }
 
 function activeExpeditionBlockingSkulls() {
@@ -8968,20 +8976,127 @@ function spawnExpeditionRelayEnemy(type, directionIndex) {
   return enemy;
 }
 
+function startExpeditionEscapeSequence() {
+  const ex = S.expedition;
+  if (!ex || ex.completed) return;
+  ex.extractionActive = false;
+  ex.escapeActive = true;
+  ex.escapeElapsed = 0;
+  ex.escapeSpawnTimer = .3;
+  ex.escapeOverloadTimer = 0;
+  ex.escapeRelayFxTimer = .18;
+  ex.phase = 'escape';
+  ex.riftCarried = false;
+  const relay = expeditionRelayPadCenter();
+  if (relay && ex.rift) {
+    ex.rift.x = relay.x;
+    ex.rift.y = relay.y + 72;
+    ex.rift.hp = ex.rift.max;
+    ex.rift.flash = 1.4;
+    shockwave(relay.x, relay.y, '#ffffff', 420, .85);
+    shockwave(relay.x, relay.y, '#ff3b61', 310, .7);
+    burst(relay.x, relay.y, '#f0b8ff', 90, 'spark', 420);
+    burst(relay.x, relay.y, '#ff3b61', 55, 'smoke', 260);
+  }
+  for (const e of S.enemies) {
+    if (!e || e.dead || e.expeditionTarget !== 'rift') continue;
+    e.expeditionTarget = 'hero';
+    e.riftHunter = false;
+    retargetExpeditionEnemy(e, 'relay-collapse');
+  }
+  ex.message = 'REALITY COLLAPSE DETECTED — EXTRACT THE CORE';
+  ex.messageTime = 8;
+  ex.prompt = 'PICK UP THE CORE. RETURN TO THE ENTRANCE.';
+  ex.promptTime = 8;
+  announceWave('REALITY COLLAPSE DETECTED', 'boss', 2.2);
+  playSfx('bossWarning');
+  shake(28, 1.25);
+  showMissionHint('Pick up the Core and return to the Entrance.', 'expedition-core-escape', 6);
+}
+
+function spawnExpeditionCollapseEnemy() {
+  const ex = S.expedition;
+  const spawns = levelDef(S.levelId)?.spawns || [];
+  if (!ex?.escapeActive || !spawns.length || S.enemies.filter(e => e && !e.dead && e.expeditionCollapse).length >= 110) return null;
+  const spawn = spawns[Math.floor(Math.random() * spawns.length)];
+  const target = cellAt(S.hero.x, S.hero.y);
+  let path = routePath(spawn, target);
+  if (!path.length) path = [
+    { ...spawn, x: cx(spawn.c), y: cy(spawn.r) },
+    { ...target, x: cx(target.c), y: cy(target.r) },
+  ];
+  const roll = Math.random();
+  const type = roll < .64 ? 'runner' : roll < .82 ? 'bomber' : roll < .93 ? 'sapper' : 'grunt';
+  const oldWave = S.wave;
+  S.wave = Math.max(S.wave, 10);
+  const enemy = spawnEnemyAt(type, cx(spawn.c), cy(spawn.r), path, 0);
+  S.wave = oldWave;
+  if (!enemy) return null;
+  enemy.entry = spawn.label || 'collapse breach';
+  enemy.expeditionSpawn = true;
+  enemy.expeditionCollapse = true;
+  enemy.expeditionTarget = 'hero';
+  enemy.riftHunter = false;
+  enemy.expeditionTargetKey = key(target.c, target.r);
+  enemy.expeditionLastTarget = enemy.expeditionTargetKey;
+  enemy.expeditionTargetCell = { c: target.c, r: target.r };
+  enemy.expeditionNextRetargetAt = performance.now() / 1000 + .7 + Math.random() * .5;
+  return enemy;
+}
+
+function applyExpeditionCoreOverload() {
+  const ex = S.expedition;
+  if (!ex?.escapeActive || !ex.riftCarried) return;
+  let hits = 0;
+  let visualHits = 0;
+  for (const e of S.enemies) {
+    if (!e || e.dead) continue;
+    const d = dist(S.hero.x, S.hero.y, e.x, e.y);
+    if (d > 205 + (e.rad || 0)) continue;
+    const boss = e.type === 'slimeking' || !!e.boss || !!e.eliteRoomTarget;
+    const large = boss || isLargeEnemy(e) || ['brute', 'ogre', 'siege', 'warden'].includes(e.type);
+    const wasAlive = !e.dead;
+    const damage = e.type === 'runner'
+      ? Math.max(e.hp, e.max) * 2
+      : boss
+        ? Math.max(80, e.max * .12)
+        : large
+          ? Math.max(95, e.max * .42)
+          : Math.max(e.hp, e.max) * 1.4;
+    hit(e, damage, null, true);
+    const a = Math.atan2(e.y - S.hero.y, e.x - S.hero.x);
+    const force = boss ? 110 : large ? 260 : 520;
+    e.kx = (e.kx || 0) + Math.cos(a) * force;
+    e.ky = (e.ky || 0) + Math.sin(a) * force;
+    e.stun = Math.max(e.stun || 0, boss ? .08 : large ? .16 : .3);
+    if (visualHits < 8) {
+      for (let i = 0; i < (large ? 2 : 4); i++) spawnBloodSplats(e.x, e.y, e);
+      burst(e.x, e.y, wasAlive && e.dead ? '#b01822' : '#8a1118', large ? 14 : 20, 'blood', large ? 300 : 380);
+      if (!large && wasAlive) floatText('CRIT', e.x - 14, e.y - 30, '#fff1a8');
+      visualHits++;
+    }
+    hits++;
+  }
+  if (hits) {
+    shockwave(S.hero.x, S.hero.y, '#6a0a0f', 205, .18);
+    shake(Math.min(9, 3 + hits * .45), .12);
+  }
+}
+
 function finishExpeditionExtraction() {
   const ex = S.expedition;
   if (!ex || ex.completed) return;
   ex.completed = true;
-  ex.extractionActive = false;
-  ex.message = 'Relay complete.';
+  ex.escapeActive = false;
+  ex.message = 'Core extracted.';
   ex.messageTime = 20;
   S.gameOver = true;
   S.waveActive = false;
   S.queue = [];
   S.enemies = [];
   document.querySelector('#clear .card').classList.add('clearCard');
-  $('clearTitle').textContent = 'EXPEDITION COMPLETE';
-  $('clearText').innerHTML = '<strong>YOU DID IT</strong><br><br>“Courage is found in unlikely places.”';
+  $('clearTitle').textContent = 'CORE EXTRACTED';
+  $('clearText').innerHTML = '<strong>EXPEDITION COMPLETE</strong><br><br>“Courage is found in unlikely places.”';
   if ($('clearStats')) $('clearStats').innerHTML = '<div><small>More Expeditions</small><b>COMING SOON</b></div>';
   if ($('clearCountdownValue')) $('clearCountdownValue').textContent = '0';
   const countdownBox = $('clearCountdownValue')?.closest('.clearCountdownBox');
@@ -9039,7 +9154,45 @@ function updateExpeditionExtractionEvent(dt) {
     spawnExpeditionRelayEnemy(next.type, next.direction);
     ex.extractionSpawnTimer = .55;
   }
-  if (ex.extractionTimer <= 0) finishExpeditionExtraction();
+  if (ex.extractionTimer <= 0) startExpeditionEscapeSequence();
+}
+
+function updateExpeditionEscapeSequence(dt) {
+  const ex = S.expedition;
+  if (!isExpeditionRun() || !ex?.escapeActive || ex.completed) return;
+  ex.escapeElapsed = (ex.escapeElapsed || 0) + dt;
+  ex.escapeSpawnTimer = Math.max(0, (ex.escapeSpawnTimer || 0) - dt);
+  ex.escapeOverloadTimer = Math.max(0, (ex.escapeOverloadTimer || 0) - dt);
+  ex.escapeRelayFxTimer = Math.max(0, (ex.escapeRelayFxTimer || 0) - dt);
+  if (ex.escapeRelayFxTimer <= 0) {
+    const relay = expeditionRelayPadCenter();
+    if (relay) {
+      shockwave(relay.x, relay.y, Math.random() < .5 ? '#ff3b61' : '#f0b8ff', 120 + Math.random() * 150, .3);
+      burst(relay.x + (Math.random() - .5) * 90, relay.y + (Math.random() - .5) * 70, '#fff1a8', 12, 'spark', 180);
+    }
+    shake(4, .16);
+    ex.escapeRelayFxTimer = .55 + Math.random() * .55;
+  }
+  if (ex.escapeSpawnTimer <= 0) {
+    const count = ex.escapeElapsed > 10 ? 4 : 3;
+    for (let i = 0; i < count; i++) spawnExpeditionCollapseEnemy();
+    ex.escapeSpawnTimer = ex.riftCarried ? .32 : .48;
+  }
+  if (ex.riftCarried && ex.escapeOverloadTimer <= 0) {
+    applyExpeditionCoreOverload();
+    ex.escapeOverloadTimer = .18;
+  }
+  const entrance = (expeditionConfig()?.rooms || []).find(room => room.id === 'entry');
+  if (ex.riftCarried && entrance && expeditionRoomContainsPoint(entrance, S.hero.x, S.hero.y)) {
+    finishExpeditionExtraction();
+    return;
+  }
+  ex.message = ex.riftCarried
+    ? 'CORE OVERLOAD — RETURN TO THE ENTRANCE'
+    : 'EXTRACT THE CORE';
+  ex.messageTime = Math.max(ex.messageTime || 0, .25);
+  ex.prompt = ex.riftCarried ? 'RETURN TO THE ENTRANCE' : 'PICK UP THE CORE';
+  ex.promptTime = Math.max(ex.promptTime || 0, .25);
 }
 
 function clearExpeditionRoomCombatLeftovers(roomId) {
@@ -9677,8 +9830,15 @@ function tryToggleExpeditionRiftCarry() {
   }
   ex.rift.x = S.hero.x;
   ex.rift.y = S.hero.y;
-  ex.message = 'Rift carried. Deploy it to build.';
-  showMissionHint('Deploy the Rift before building.', 'expedition-core-deploy', 4);
+  ex.message = ex.escapeActive ? 'CORE OVERLOAD ACTIVE.' : 'Rift carried. Deploy it to build.';
+  if (ex.escapeActive) {
+    ex.escapeOverloadTimer = 0;
+    announceWave('CORE OVERLOAD ACTIVE', 'boss', 1.4);
+    showMissionHint('Return the Core to the Entrance.', 'expedition-core-return', 5);
+    shake(14, .55);
+  } else {
+    showMissionHint('Deploy the Rift before building.', 'expedition-core-deploy', 4);
+  }
   ex.messageTime = 4;
   shockwave(S.hero.x, S.hero.y, '#f0b8ff', 95, .22);
   for (const e of S.enemies) {
@@ -9757,7 +9917,7 @@ function spawnExpeditionEnemy(pool) {
 
 function completeExpedition() {
   const ex = S.expedition;
-  if (!ex || ex.completed || ex.extractionActive) return;
+  if (!ex || ex.completed || ex.extractionActive || ex.escapeActive) return;
   if (!expeditionExtractionUnlocked()) {
     ex.message = `Relay locked. ${expeditionExtractionKeyProgressText()}.`;
     ex.messageTime = 5;
@@ -9784,6 +9944,7 @@ function updateExpedition(dt) {
   discoverExpeditionCells();
   updateKeyLabyrinthAwakening(dt);
   updateExpeditionExtractionEvent(dt);
+  updateExpeditionEscapeSequence(dt);
   expeditionApplyRiftUpgrades(dt);
   if (ex.completed) return;
 
@@ -9819,14 +9980,14 @@ function updateExpedition(dt) {
   const extractionRoom = expeditionExtractionRoom();
   const relay = expeditionRelayPadCenter();
   const nearExtraction = relay && dist(S.hero.x, S.hero.y, relay.x, relay.y) < 145;
-  if (!ex.extractionActive && nearExtraction && !expeditionExtractionUnlocked()) {
+  if (!ex.escapeActive && !ex.extractionActive && nearExtraction && !expeditionExtractionUnlocked()) {
     ex.prompt = `Relay locked: ${expeditionExtractionKeyProgressText()}.`;
     ex.promptTime = .25;
-  } else if (!ex.extractionActive && nearExtraction && expeditionExtractionUnlocked() && !expeditionRiftAtRelay()) {
+  } else if (!ex.escapeActive && !ex.extractionActive && nearExtraction && expeditionExtractionUnlocked() && !expeditionRiftAtRelay()) {
     ex.prompt = 'RETURN RIFT TO RELAY';
     ex.promptTime = .25;
   }
-  if (!ex.extractionActive && extractionRoom && expeditionRoomContainsPoint(extractionRoom, S.hero.x, S.hero.y)) {
+  if (!ex.escapeActive && !ex.extractionActive && extractionRoom && expeditionRoomContainsPoint(extractionRoom, S.hero.x, S.hero.y)) {
     completeExpedition();
   }
 
@@ -11339,6 +11500,20 @@ function devRevealMap() {
   return true;
 }
 
+function devGrantAllExpeditionKeys() {
+  const ex = S.expedition;
+  if (!isExpeditionRun() || !ex) return false;
+  ex.keyContainersOpened ||= {};
+  for (const container of expeditionContainers()) ex.keyContainersOpened[container.id] = true;
+  ex.extractionKeys = expeditionKeyGoal();
+  ex.finalKeyCollected = true;
+  unlockExpeditionExtraction();
+  ex.message = `All keys granted. ${expeditionExtractionKeyProgressText()}.`;
+  ex.messageTime = 5;
+  ui();
+  return true;
+}
+
 function devClearCurrentRoom() {
   const ex = S.expedition;
   if (!isExpeditionRun() || !ex?.activeRoomId) return false;
@@ -12566,6 +12741,7 @@ function missionObjectiveText() {
   if (isExpeditionRun()) {
     const ex = S.expedition;
     if (!ex) return 'Explore the facility';
+    if (ex.escapeActive) return ex.riftCarried ? 'Return Core To Entrance' : 'Pick Up The Core';
     if (ex.extractionActive) return !ex.extractionStarted
       ? `Wave Starts In ${Math.ceil(ex.extractionCountdown || 0)} Second${Math.ceil(ex.extractionCountdown || 0) === 1 ? '' : 's'}`
       : ex.extractionHoldMessageTime > 0
@@ -12599,6 +12775,11 @@ function missionObjectiveHudState() {
   if (isExpeditionRun()) {
     const ex = S.expedition;
     if (!ex) return { title: 'EXPLORE', sub: 'FIND THE RIFT' };
+    if (ex.escapeActive) {
+      return ex.riftCarried
+        ? { title: 'EXTRACT THE CORE', sub: 'RETURN TO THE ENTRANCE' }
+        : { title: 'REALITY COLLAPSE', sub: 'PICK UP THE CORE' };
+    }
     if (ex.extractionActive) {
       if (!ex.extractionStarted) {
         const seconds = Math.ceil(ex.extractionCountdown || 0);
@@ -19395,6 +19576,7 @@ function scoreExpeditionFullAi(e, currentRoom, adjacentRoomIds) {
   const rift = S.expedition?.rift;
   const riftD = rift ? dist(e.x, e.y, rift.x, rift.y) : Infinity;
   let score = 0;
+  if (e.expeditionCollapse) score += 1200;
   if (e.eliteRoomTarget || e.type === 'slimeking') score += 1000;
   if (e.expeditionTarget === 'rift' || e.riftHunter) score += 820 - Math.min(riftD, 700) * .25;
   if (room && currentRoom && room.id === currentRoom.id) score += 600;
@@ -19423,7 +19605,7 @@ function assignExpeditionAiTiers() {
     const riftD = rift ? dist(e.x, e.y, rift.x, rift.y) : Infinity;
     const visible = expeditionEnemyVisible(e);
     const currentOrAdjacent = room && currentRoom && (room.id === currentRoom.id || adjacentRoomIds.has(room.id));
-    const engaged = visible || heroD < EXPEDITION_PRESSURE_TUNING.heroKeepAliveRadius || riftD < EXPEDITION_PRESSURE_TUNING.riftKeepAliveRadius || (e.expeditionRecentlyEngagedUntil || 0) > performance.now() / 1000;
+    const engaged = e.expeditionCollapse || visible || heroD < EXPEDITION_PRESSURE_TUNING.heroKeepAliveRadius || riftD < EXPEDITION_PRESSURE_TUNING.riftKeepAliveRadius || (e.expeditionRecentlyEngagedUntil || 0) > performance.now() / 1000;
     if (!currentOrAdjacent && !engaged && convertExpeditionEnemyToPressure(e, 'dormant')) continue;
     scored.push({ e, score: scoreExpeditionFullAi(e, currentRoom, adjacentRoomIds), currentOrAdjacent });
   }
@@ -23121,9 +23303,10 @@ function drawExpeditionLightPads(t) {
   const room = (expeditionConfig()?.rooms || []).find(candidate => candidate.id === 'keyLabyrinth');
   const pads = expeditionRoomLightPads(room);
   if (!pads.length) return;
-  const powered = expeditionRiftPowersRoomLights(room);
+  const poweredPad = expeditionPoweredRoomLightPad(room);
   const gouache = abstractGouacheEnabled();
   for (const pad of pads) {
+    const powered = pad === poweredPad;
     const x = cx(pad.c), y = cy(pad.r);
     const pulse = 1 + Math.sin(t * 5 + pad.c + pad.r) * .08;
     ctx.save();
@@ -23172,6 +23355,27 @@ function drawExpeditionObjects(t) {
   const nearRift = ex.riftActivated || ex.riftFound || dist(S.hero.x, S.hero.y, staticX, staticY) < 360;
   drawExpeditionLightPads(t);
   if (nearRift) drawExpeditionRiftCore(ex.riftActivated ? ex.rift.x : staticX, ex.riftActivated ? ex.rift.y : staticY, t, ex.riftActivated, !!ex.riftCarried);
+  if (ex.escapeActive && ex.riftCarried) {
+    ctx.save();
+    ctx.translate(S.hero.x, S.hero.y);
+    ctx.rotate(t * 3.8);
+    ctx.globalAlpha = .82;
+    ctx.strokeStyle = '#ff3b61';
+    ctx.lineWidth = 12;
+    ctx.setLineDash([28, 13, 9, 16]);
+    ctx.beginPath();
+    ctx.arc(0, 0, 150 + Math.sin(t * 11) * 12, 0, 7);
+    ctx.stroke();
+    ctx.rotate(-t * 7.2);
+    ctx.strokeStyle = '#fff1a8';
+    ctx.lineWidth = 5;
+    ctx.setLineDash([13, 18]);
+    ctx.beginPath();
+    ctx.arc(0, 0, 188 + Math.sin(t * 15) * 8, 0, 7);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
   for (const nest of ex.roomNests || []) {
     if (nest.dead) continue;
     const pct = Math.max(0, nest.hp / nest.max);
@@ -23239,10 +23443,10 @@ function drawExpeditionObjects(t) {
     const riftReturned = expeditionRiftAtRelay();
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
-    ctx.fillStyle = unlocked ? (riftReturned ? '#9fffc866' : '#8a8f9644') : '#ffd45a33';
+    ctx.fillStyle = ex.escapeActive ? '#ff3b6166' : unlocked ? (riftReturned ? '#9fffc866' : '#8a8f9644') : '#ffd45a33';
     ctx.beginPath(); ctx.arc(exX, exY, 46 + keyPct * 42 + Math.sin(t * 6) * 5, 0, 7); ctx.fill();
-    ctx.strokeStyle = unlocked ? (riftReturned ? '#d8ffd8' : '#c4c8cc') : '#ffd45a';
-    ctx.lineWidth = unlocked ? 5 : 3;
+    ctx.strokeStyle = ex.escapeActive ? (Math.sin(t * 18) > 0 ? '#fff1a8' : '#ff3b61') : unlocked ? (riftReturned ? '#d8ffd8' : '#c4c8cc') : '#ffd45a';
+    ctx.lineWidth = ex.escapeActive ? 8 : unlocked ? 5 : 3;
     ctx.beginPath(); ctx.arc(exX, exY, 58 + keyPct * 24, 0, 7); ctx.stroke();
     ctx.globalCompositeOperation = 'source-over';
     drawExpeditionRiftSocket(exX, exY, riftReturned);
@@ -23256,9 +23460,9 @@ function drawExpeditionObjects(t) {
       ctx.lineTo(exX - 48, exY + 28);
       ctx.stroke();
     }
-    let relayLine1 = unlocked ? 'RELAY READY' : 'RELAY LOCKED';
-    let relayLine2 = unlocked ? 'HOLD HERE' : `${expeditionKeyCount()}/${expeditionKeyGoal()} KEYS`;
-    if (unlocked && !riftReturned) {
+    let relayLine1 = ex.escapeActive ? 'RELAY UNSTABLE' : unlocked ? 'RELAY READY' : 'RELAY LOCKED';
+    let relayLine2 = ex.escapeActive ? 'REALITY COLLAPSE' : unlocked ? 'HOLD HERE' : `${expeditionKeyCount()}/${expeditionKeyGoal()} KEYS`;
+    if (!ex.escapeActive && unlocked && !riftReturned) {
       relayLine1 = 'RETURN RIFT';
       relayLine2 = 'TO RELAY';
     }
@@ -23343,7 +23547,7 @@ function expeditionDarkRoomTuning(room) {
 
 function expeditionRoomDarkActive(room) {
   if (!room?.darkRoom) return false;
-  if (room.id === 'keyLabyrinth') return !expeditionRiftPowersRoomLights(room);
+  if (room.id === 'keyLabyrinth') return true;
   if (room.lightsAfterKey) return !S.expedition?.finalKeyCollected;
   return !expeditionRoomTerminalPowered(room.id) && expeditionRoomState(room.id) !== 'cleared';
 }
@@ -23357,6 +23561,16 @@ function drawExpeditionDarkLight(maskCtx, x, y, radius, softEdge) {
   maskCtx.beginPath();
   maskCtx.arc(x, y, radius, 0, 7);
   maskCtx.fill();
+}
+
+function drawExpeditionPoweredLightQuadrant(maskCtx, room, pad, roomWidth, roomHeight) {
+  if (!pad?.quadrant) return;
+  const halfW = roomWidth / 2;
+  const halfH = roomHeight / 2;
+  const west = pad.quadrant.endsWith('w');
+  const north = pad.quadrant.startsWith('n');
+  maskCtx.fillStyle = 'rgba(0,0,0,1)';
+  maskCtx.fillRect(west ? 0 : halfW, north ? 0 : halfH, halfW, halfH);
 }
 
 function drawExpeditionDarkRooms(t) {
@@ -23394,7 +23608,10 @@ function drawExpeditionDarkRooms(t) {
     maskCtx.globalCompositeOperation = 'destination-out';
     maskCtx.globalAlpha = 1;
     drawExpeditionDarkLight(maskCtx, S.hero.x - x, S.hero.y - y, blackout ? 54 : (tune.playerLightRadius || 155), tune.softEdge || 95);
-    if (ex.riftActivated && ex.rift) {
+    const poweredPad = room.id === 'keyLabyrinth' ? expeditionPoweredRoomLightPad(room) : null;
+    if (poweredPad) {
+      drawExpeditionPoweredLightQuadrant(maskCtx, room, poweredPad, maskW, maskH);
+    } else if (ex.riftActivated && ex.rift) {
       drawExpeditionDarkLight(maskCtx, ex.rift.x - x, ex.rift.y - y, blackout ? 110 : (tune.riftLightRadius || 355), tune.softEdge || 95);
     }
     for (const pad of expeditionRoomLightPads(room)) {
@@ -23403,6 +23620,10 @@ function drawExpeditionDarkRooms(t) {
     if (ghostLighting) {
       const ghost = (S.cornerGhosts || []).find(g => g && !g.dead && g.boneWardenFinal);
       if (ghost) drawExpeditionDarkLight(maskCtx, ghost.x - x, ghost.y - y, blackout ? 58 : 86, 48);
+    }
+    if (room.id === 'keyLabyrinth') {
+      const boneWarden = (S.cornerSkulls || []).find(skull => skull && !skull.dead && skull.boneWarden);
+      if (boneWarden) drawExpeditionDarkLight(maskCtx, boneWarden.x - x, boneWarden.y - y, 170, 58);
     }
     maskCtx.globalCompositeOperation = 'source-over';
     maskCtx.globalAlpha = 1;
@@ -26732,6 +26953,9 @@ $('devResetCd').onclick = () => devResetCooldowns();
 $('devRestartMission').onclick = () => restartMission();
 $('devClearRoom').onclick = () => { if (!devClearCurrentRoom()) toast('No active room to clear.'); };
 $('devRevealMap').onclick = () => { if (!devRevealMap()) toast('Reveal Map is Expedition-only.'); };
+$('devGrantKeys').onclick = () => {
+  if (!devGrantAllExpeditionKeys()) toast('Grant All Keys is Expedition-only.');
+};
 $('devDamageCore').onclick = () => devDamageCore();
 $('devTeleportRelay').onclick = () => {
   devTeleportToRelay();
