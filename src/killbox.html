@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Killbox 7.26.0 GouacheWorld</title>
+<title>Killbox 7.27.0 ShatterCycle</title>
 <style>
 /* ── Design tokens ─────────────────────────────────────────────── */
 :root {
@@ -5587,8 +5587,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.26.0</b>
-      <span id="warRoomBuildName">GouacheWorld</span>
+      <b id="warRoomVersion">v7.27.0</b>
+      <span id="warRoomBuildName">ShatterCycle</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -5675,7 +5675,7 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.26.0 GouacheWorld</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.27.0 ShatterCycle</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -6758,8 +6758,8 @@ const WEAPONS = {
     },
   },
   freeze: {
-    name: 'Freeze Gun', shortName: 'Freeze Gun', icon: '🧊', desc: 'A frozen relic unearthed from 1980s Japan. Fires a freezing spreadshot that slows and locks enemies in place.',
-    primaryCooldown: 0.28, secondaryCooldown: 9.0,
+    name: 'Freeze Gun', shortName: 'Freeze Gun', icon: '🧊', desc: 'A frozen relic unearthed from 1980s Japan. Freeze enemies with Cryo Spray, then break them with Shatter Bolt.',
+    primaryCooldown: 0.28, secondaryCooldown: 1.4,
     primaryFire(h, aim) {
       const speed = 700, range = 250;
       for (let i = -1; i <= 1; i++) {
@@ -6770,19 +6770,17 @@ const WEAPONS = {
       }
       h.weaponCd = this.primaryCooldown;
     },
-    secondaryFire(h) {
+    secondaryFire(h, aim) {
       if (h.secondaryCd > 0) return;
-      for (const e of S.enemies) {
-        if (e.dead) continue;
-        const d = dist(h.x, h.y, e.x, e.y);
-        if (d > 120) continue;
-        e.chill = (e.chill || 0) + 3;
-        if (e.type !== 'slimeking') e.freeze = Math.max(e.freeze || 0, 3);
-      }
-      shockwave(h.x, h.y, '#9fe8ff', 148, .58);
-      shockwave(h.x, h.y, '#dff4ff', 78, .24);
-      burst(h.x, h.y, '#c8f4ff', 24, 'spark', 190);
-      burst(h.x, h.y, '#ffffff', 10, 'spark', 120);
+      const speed = 820, range = 460;
+      S.heroShots.push({
+        x:h.x, y:h.y,
+        vx:Math.cos(aim)*speed, vy:Math.sin(aim)*speed,
+        dmg:18 + h.level * 2,
+        life:range/speed, range, travel:0,
+        type:'shatterBolt', weapon:'freeze', shatterBolt:true,
+      });
+      burst(h.x + Math.cos(aim) * 16, h.y + Math.sin(aim) * 16, '#ffffff', 8, 'spark', 150);
       h.secondaryCd = this.secondaryCooldown;
     },
   },
@@ -6926,7 +6924,7 @@ const WEAPON_ABILITY_NAMES = {
   blunderbuss: { primary: 'Scatter Shot', secondary: 'Iron Guard' },
   riftblade: { primary: 'Rift Slash', secondary: 'Return Cast' },
   storm: { primary: 'Chain Lightning', secondary: 'Pulse Nova' },
-  freeze: { primary: 'Cryo Spray', secondary: 'Ice Halo' },
+  freeze: { primary: 'Cryo Spray', secondary: 'Shatter Bolt' },
 };
 const WEAPON_FIRE_COPY = {
   ranger: { primary: 'Rapid armor-piercing micro bolts.', secondary: 'Hold to charge, release a piercing burst.' },
@@ -6934,7 +6932,7 @@ const WEAPON_FIRE_COPY = {
   blunderbuss: { primary: 'Wide close-range scatter shot.', secondary: 'Temporary shield for dangerous close fights.' },
   riftblade: { primary: 'Fast short-range arc that can cut through a group.', secondary: 'Throw a returning blade that damages and stuns normal enemies.' },
   storm: { primary: 'Lightning arc that chains through nearby enemies.', secondary: 'Point-blank arc pulse that stuns and damages.' },
-  freeze: { primary: 'Freezing spreadshot that chills enemies.', secondary: 'Freeze pulse around the hero.' },
+  freeze: { primary: 'Freezing spreadshot that fully disables enemies.', secondary: 'High-impact bolt that deals 4x damage to frozen enemies.' },
 };
 function weaponAbilityNames(k) {
   return WEAPON_ABILITY_NAMES[k] || { primary: 'Primary Fire', secondary: 'Secondary Fire' };
@@ -7036,16 +7034,16 @@ const LOADOUT_INSPECTOR_COPY = {
     name: 'FREEZE GUN',
     role: 'Weapon',
     identity: 'CONTROL',
-    desc: 'Fires a freezing spreadshot that slows and freezes advancing enemies.',
+    desc: 'Freezes enemies in place, then breaks them with a high-damage Shatter Bolt.',
     quickStats: [['Damage', '4/10'], ['Fire Rate', '6/10'], ['Range', '4/10']],
     flavor: 'A 1980s Japanese prototype designed for industrial accident containment.',
-    abilities: ['Cryo Spray', 'Ice Halo'],
+    abilities: ['Cryo Spray', 'Shatter Bolt'],
     mechanics: [
-      'Cryo Spray slows and freezes enemies in front of the hero.',
-      'Ice Halo releases a freezing burst around the hero and knocks nearby enemies back.',
-      'Best for slowing crowds, buying time, and controlling space.',
+      'Cryo Spray builds chill until enemies freeze and become fully disabled.',
+      'Shatter Bolt deals four times its normal damage to frozen enemies.',
+      'Killing a frozen small or medium enemy with Shatter Bolt instantly shatters it.',
     ],
-    stats: [['Damage', 'Low'], ['Fire Rate', 'Fast'], ['Range', 'Medium'], ['Spread', 'Wide freezing cone'], ['Origin', '1980s Japan'], ['Weak Against', 'Boss damage']],
+    stats: [['Damage', 'Low / high combo'], ['Fire Rate', 'Fast'], ['Range', 'Medium'], ['Combo', 'Freeze → Shatter'], ['Origin', '1980s Japan'], ['Weak Against', 'Boss damage']],
   },
   archer: {
     name: 'ARCHER',
@@ -7170,11 +7168,12 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.26.0';
+const GAME_VERSION = '7.27.0';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'GouacheWorld';
+const BUILD_NAME = 'ShatterCycle';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Extended the abstract gouache treatment across Expedition 01 rooms, Rift animations, towers, skulls, minibosses, and Slime King.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Made Freeze fully disable enemies and replaced Ice Halo with the frozen-target Shatter Bolt combo finisher.' },
+  { version: '7.26.0', name: 'GouacheWorld', changes: 'Extended the abstract gouache treatment across Expedition 01 rooms, Rift animations, towers, skulls, minibosses, and Slime King.' },
   { version: '7.25.0', name: 'GouacheRoom', changes: 'Added an optional abstract gouache visual treatment for the Expedition Rift Access test room.' },
   { version: '7.24.4', name: 'WestOpen', changes: 'Removed the Rift Chamber west wall while preserving the four-key locked doorway.' },
   { version: '7.24.3', name: 'RelayTimer', changes: 'Added a 20-second Relay wave countdown followed by a two-minute holdout.' },
@@ -19443,6 +19442,11 @@ function simpleExpeditionEnemyStep(e, dt) {
 
   if ((e.burn || 0) > 0) { e.burn -= dt; hit(e, e.burnD * dt, null); }
   if ((e.poison || 0) > 0) { e.poison -= dt; hit(e, e.poisonD * dt, null); }
+  if ((e.freeze || 0) > 0) {
+    e.kx = 0;
+    e.ky = 0;
+    return;
+  }
   if (e.dead || damageExpeditionRift(e, dt)) return;
   if (e.stun > 0) {
     const prevX = e.x, prevY = e.y;
@@ -19521,6 +19525,12 @@ function enemyStep(e, dt) {
   if (e.burn   > 0) { e.burn   -= dt; hit(e, e.burnD   * dt, null); }
   if (e.poison > 0) { e.poison -= dt; hit(e, e.poisonD * dt, null); }
   if (e.dead) { if (KB_PROFILE.active) profileAdd('enemyStatus', profileNow() - statusT0); return; }
+  if ((e.freeze || 0) > 0) {
+    e.kx = 0;
+    e.ky = 0;
+    if (KB_PROFILE.active) profileAdd('enemyStatus', profileNow() - statusT0);
+    return;
+  }
   if (maybeWaitAtLockedExpeditionDoor(e)) { if (KB_PROFILE.active) profileAdd('enemyRoomChecks', profileNow() - statusT0); return; }
   if (enemyWaitingBehindLockedDoor(e)) {
     e.stun = Math.max(0, (e.stun || 0) - dt);
@@ -19617,8 +19627,7 @@ function enemyStep(e, dt) {
   // Oil patch slow
   const pathT0 = KB_PROFILE.active ? profileNow() : 0;
   let slow = (e.slow > 0 ? .55 : 1) * enemyBehaviorSpeedMult(e);
-  if (e.freeze > 0 && e.type !== 'slimeking') slow = Math.min(slow, .18);
-  else if (e.chill > 0) slow = Math.min(slow, 1 - Math.min(.45, e.chill * .12));
+  if (e.chill > 0) slow = Math.min(slow, 1 - Math.min(.45, e.chill * .12));
   if ((e.riftFieldDrag || 0) > 0) slow = Math.min(slow, .32);
   e.slow -= dt;
   for (const o of S.oilPatches) {
@@ -20533,14 +20542,27 @@ function projectiles(dt) {
           if (s.weapon === 'ranger' && ['runner','slinger','healer','bomber'].includes(e.type)) dmg *= 1.35;
           if (s.weapon === 'storm' && (e.type === 'slimeking' || e.type === 'ogre' || e.type === 'siege')) dmg *= .55;
           if (s.weapon === 'crossbow' && e.type === 'shield') dmg *= 1.25;
-          if (s.weapon === 'freeze') {
+          const frozenBefore = (e.freeze || 0) > 0;
+          if (s.weapon === 'freeze' && !s.shatterBolt) {
             e.chill = (e.chill || 0) + (s.chill || 1);
             if (e.type !== 'slimeking' && e.chill >= 3) {
               e.chill = 0;
               e.freeze = 1.5 * (S.hero.freezeDurationMult || 1);
             }
           }
+          if (s.shatterBolt && frozenBefore) dmg *= 4;
+          const shatterKillTarget = s.shatterBolt
+            && frozenBefore
+            && !isLargeEnemy(e)
+            && !e.boss
+            && !e.eliteRoomTarget;
           hit(e, dmg, null, true);
+          if (shatterKillTarget && e.dead) {
+            floatText('SHATTERED!', e.x - 42, e.y - e.rad - 34, '#ffffff');
+            burst(e.x, e.y, '#e9fbff', 28, 'spark', 260);
+            burst(e.x, e.y, '#8edcff', 14, 'debris', 180);
+            shockwave(e.x, e.y, '#9fe8ff', 92, .28);
+          }
           if (e.freeze > 0) {
             e.slow = Math.max(e.slow || 0, .88);
           }
@@ -21834,11 +21856,12 @@ function draw(t) {
         : s.type === 'chargedArrow' ? '#7fd0ff'
         : s.type === 'bolt' ? '#ffad66'
         : s.type === 'stunBolt' ? '#ffd07a'
+        : s.type === 'shatterBolt' ? '#ffffff'
         : s.type === 'iceShard' ? '#d8f2ff'
         : s.blunder ? '#fff3b2'
         : s.weapon === 'storm' ? '#ffe56b'
         : '#18a8ff';
-      drawArrow(s, c, !!s.electric || s.type === 'stunBolt' || s.type === 'chargedArrow' || s.blunder);
+      drawArrow(s, c, !!s.electric || s.type === 'stunBolt' || s.type === 'chargedArrow' || s.type === 'shatterBolt' || s.blunder);
     });
     S.enemyShots.forEach(s => drawArrow(s, s.slime ? '#7cff4f' : '#ff3030', s.slime));
   });
@@ -25761,7 +25784,7 @@ function drawArrow(s, c, glow = false) {
   if (pointInAbstractGouacheRoom(s.x, s.y)) {
     const a = Math.atan2(s.vy, s.vx);
     const color = s.slime ? ABSTRACT_GOUACHE_PALETTE.mint
-      : s.type === 'iceShard' ? ABSTRACT_GOUACHE_PALETTE.powder
+      : s.type === 'iceShard' || s.type === 'shatterBolt' ? ABSTRACT_GOUACHE_PALETTE.powder
       : s.weapon === 'storm' ? ABSTRACT_GOUACHE_PALETTE.yellow
       : S.enemyShots.includes(s) ? ABSTRACT_GOUACHE_PALETTE.red
       : ABSTRACT_GOUACHE_PALETTE.coral;
@@ -25785,7 +25808,7 @@ function drawArrow(s, c, glow = false) {
   const hx = s.x - s.vx * .018, hy = s.y - s.vy * .018;
   const isCrossbow = s.weapon === 'crossbow' || s.type === 'bolt' || s.type === 'stunBolt' || s.thunk;
   const isSlime = !!s.slime;
-  const isIce = s.type === 'iceShard';
+  const isIce = s.type === 'iceShard' || s.type === 'shatterBolt';
   const isChargedRanger = s.type === 'chargedArrow';
   const chargePct = isChargedRanger ? Math.max(.15, Math.min(1, s.charge || 0)) : 0;
   const fullCharge = !!s.fullCharge;
