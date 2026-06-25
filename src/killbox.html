@@ -5453,7 +5453,7 @@ body.expeditionGameplay #combatHud {
             <button id="devRiftGuardToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Rift Guard</span><span class="devBadge" id="devRiftGuardState">OFF</span></button>
             <button id="devRiftNoHpLossToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Rift No HP Loss</span><span class="devBadge" id="devRiftNoHpLossState">OFF</span></button>
             <button id="devPlayerTowerCollisionToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Player Collision With Towers</span><span class="devBadge" id="devPlayerTowerCollisionState">ON</span></button>
-            <button id="devAbstractGouacheToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Abstract Gouache Level</span><span class="devBadge" id="devAbstractGouacheState">OFF</span></button>
+            <button id="devAbstractGouacheToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Hyper Goo Level</span><span class="devBadge" id="devAbstractGouacheState">OFF</span></button>
             <button id="devRoomBoundsToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Room Bounds</span><span class="devBadge" id="devRoomBoundsState">OFF</span></button>
             <button id="devPathToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Pathing</span><span class="devBadge" id="devPathState">OFF</span></button>
           </div>
@@ -5588,8 +5588,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.29.2</b>
-      <span id="warRoomBuildName">RelayLock</span>
+      <b id="warRoomVersion">v7.30.0</b>
+      <span id="warRoomBuildName">HyperGoo</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -5676,7 +5676,7 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.29.2 RelayLock</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.30.0 HyperGoo</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -6444,7 +6444,7 @@ const LEVELS = {
   },
 };
 const EXPEDITION_PROTOTYPE_TUNING = {
-  roomScale: 2.0,
+  roomScale: 3.0,
   enemyDensity: 1.5,
   darkRooms: {
     darknessAlpha: .9,
@@ -7174,11 +7174,12 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.29.2';
+const GAME_VERSION = '7.30.0';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'RelayLock';
+const BUILD_NAME = 'HyperGoo';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Started the Relay holdout immediately, locked the room, and paused the timer when the Core is picked up.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Expanded Expedition 01 to triple scale and switched the default Expedition look to a neon hyper goo treatment.' },
+  { version: '7.29.2', name: 'RelayLock', changes: 'Started the Relay holdout immediately, locked the room, and paused the timer when the Core is picked up.' },
   { version: '7.29.1', name: 'FastBloodbath', changes: 'Made the Core escape swarm start immediately and use cheap screen-crossing movement for a smoother bloodbath.' },
   { version: '7.29.0', name: 'CoreEscape', changes: 'Turned Relay completion into a collapsing-dungeon escape with an ejected, overloaded Rift and a final return to the Entrance.' },
   { version: '7.28.1', name: 'CornerCircuit', changes: 'Moved Dark Chapel light pads into the corners and limited each pad to illuminating its own quadrant.' },
@@ -7361,7 +7362,7 @@ const S = {
   synergyLog: [],
   runStats: { heroKills: 0, towerKills: 0, otherKills: 0, leaked: 0, powerups: 0, goldEarned: 0, bonusGold: 0, interestGold: 0, wavesCleared: 0 },
   selected: null, sel: null, menuOpen: false, aiEngineerOwned: false, placeDir: 1,
-  devToolsOpen: false, devHotkeyHelp: false, devUnlimitedGold: false, devInvincible: false, devNoclip: false, devShowInfo: false, devRiftGuard: false, devRiftNoHpLoss: false, devPlayerTowerCollision: true, devAbstractGouache: false, devShowRoomBounds: false, devShowPathing: false,
+  devToolsOpen: false, devHotkeyHelp: false, devUnlimitedGold: false, devInvincible: false, devNoclip: false, devShowInfo: false, devRiftGuard: false, devRiftNoHpLoss: false, devPlayerTowerCollision: true, devAbstractGouache: true, devShowRoomBounds: false, devShowPathing: false,
   balanceReportLogged: false,
   powerupDebugMode: false, powerupDebugLog: [],
   devArenaChoice: 'field',
@@ -22361,9 +22362,9 @@ function draw(t) {
 }
 
 const ABSTRACT_GOUACHE_PALETTE = {
-  sky: '#69B9E8', powder: '#A9CDEA', mint: '#8DD0A5', sage: '#B7C69B',
-  coral: '#F27E55', red: '#E63946', lavender: '#8B63B6', blush: '#F5B7C7',
-  beige: '#DFC8B7', yellow: '#F3E34A', black: '#111111',
+  sky: '#00E7FF', powder: '#D7FFF4', mint: '#39FF88', sage: '#9BFF4A',
+  coral: '#FF7A1A', red: '#FF1F8F', lavender: '#8E35FF', blush: '#FF71D9',
+  beige: '#D9FF42', yellow: '#FFF200', black: '#07100A',
 };
 const ABSTRACT_GOUACHE_ROOM_PROFILES = {
   entry:        { colors:['powder','coral','beige'], motif:'swipes', angle:-.18 },
@@ -22456,8 +22457,19 @@ function drawAbstractGouacheRoom(room, t) {
   ctx.beginPath();
   ctx.rect(x, y, w, h);
   ctx.clip();
-  ctx.fillStyle = '#FFFFFF';
+  ctx.fillStyle = '#07100A';
   ctx.fillRect(x, y, w, h);
+  for (let i = 0; i < 18; i++) {
+    const nx = ((seed * 17 + i * 29) % 100) / 100;
+    const ny = ((seed * 31 + i * 43) % 100) / 100;
+    const radius = 12 + ((seed + i * 11) % 28);
+    ctx.globalAlpha = .2 + (i % 4) * .07;
+    ctx.fillStyle = [primary, secondary, accent, p.yellow][i % 4];
+    ctx.beginPath();
+    ctx.ellipse(x + w * nx, y + h * ny, radius * 1.5, radius, (i + seed) * .37, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
 
   drawGouacheSwipe(x + w * .14, y + h * .2, w * .24, h * .1, profile.angle, primary, .7);
   drawGouacheArc(x + w * .38, y + h * .28, w * .14, h * .1, profile.angle + .34, .15, Math.PI * 1.55, secondary, 24, .7);
@@ -22535,7 +22547,7 @@ function drawAbstractGouacheRoom(room, t) {
   drawGouacheSwipe(x + w * .5, y + h - 9, w * .38, 24, -.03, secondary, .7);
   drawGouacheSwipe(x + 10, y + h * .5, 26, h * .44, Math.PI / 2 + .04, accent, .72);
   drawGouacheSwipe(x + w - 10, y + h * .5, 28, h * .36, Math.PI / 2 - .05, primary, .68);
-  ctx.fillStyle = p.black;
+  ctx.fillStyle = p.powder;
   ctx.globalAlpha = .82;
   ctx.font = 'bold 13px Georgia';
   ctx.fillText(room.name.toUpperCase(), x + 18, y + 29);
@@ -24511,12 +24523,12 @@ function drawAtmosphere(t) {
 function drawMap(t) {
   const gouache = abstractGouacheEnabled();
   // Fortress board background
-  ctx.fillStyle = gouache ? '#FFFFFF' : '#0f1820';
+  ctx.fillStyle = gouache ? '#07100A' : '#0f1820';
   ctx.fillRect(OX - 18, OY - 18, COLS * G + 36, ROWS * G + 36);
 
   const frameX = OX - 18, frameY = OY - 18;
   const frameW = COLS * G + 36, frameH = ROWS * G + 36;
-  ctx.fillStyle = gouache ? '#FFFFFF' : '#1c2630';
+  ctx.fillStyle = gouache ? '#10161F' : '#1c2630';
   ctx.fillRect(frameX, frameY, frameW, frameH);
   ctx.strokeStyle = gouache ? ABSTRACT_GOUACHE_PALETTE.black : '#9d7643'; ctx.lineWidth = 4;
   ctx.strokeRect(frameX + 1, frameY + 1, frameW - 2, frameH - 2);
@@ -24529,7 +24541,7 @@ function drawMap(t) {
     dirt.addColorStop(0, '#586571');
     dirt.addColorStop(1, '#3a444d');
   }
-  ctx.fillStyle = gouache ? '#FFFFFF' : dirt;
+  ctx.fillStyle = gouache ? '#07100A' : dirt;
   ctx.fillRect(OX - 12, OY - 12, COLS * G + 24, ROWS * G + 24);
 
   for (let c = 0; c < COLS; c++) {
@@ -24539,28 +24551,36 @@ function drawMap(t) {
       const v = n - Math.floor(n);
       if (gouache) {
         if (isRoad(c, r) && !isBlockedTerrain(c, r)) {
-          ctx.fillStyle = '#FFFFFF';
+          ctx.fillStyle = v > .55 ? '#0E2316' : '#0A1A14';
           ctx.fillRect(x, y, G, G);
-          if ((c * 7 + r * 11) % 17 === 3) {
-            ctx.globalAlpha = .18;
-            ctx.fillStyle = v > .5 ? ABSTRACT_GOUACHE_PALETTE.powder : ABSTRACT_GOUACHE_PALETTE.beige;
+          if ((c * 7 + r * 11) % 9 === 3) {
+            ctx.globalAlpha = .26;
+            ctx.fillStyle = v > .5 ? ABSTRACT_GOUACHE_PALETTE.mint : ABSTRACT_GOUACHE_PALETTE.yellow;
             ctx.beginPath();
-            ctx.ellipse(x + G * .52, y + G * .5, 17, 7, (v - .5) * .8, 0, Math.PI * 2);
+            ctx.ellipse(x + G * .52, y + G * .5, 21, 9, (v - .5) * .8, 0, Math.PI * 2);
             ctx.fill();
             ctx.globalAlpha = 1;
           }
         } else if (isBlockedTerrain(c, r)) {
-          ctx.fillStyle = v > .5 ? '#E7D8CA' : ABSTRACT_GOUACHE_PALETTE.beige;
+          ctx.fillStyle = v > .5 ? '#1E0C2C' : '#111824';
           ctx.fillRect(x, y, G, G);
-          ctx.globalAlpha = .48;
-          ctx.fillStyle = v > .6 ? ABSTRACT_GOUACHE_PALETTE.sage : ABSTRACT_GOUACHE_PALETTE.blush;
+          ctx.globalAlpha = .55;
+          ctx.fillStyle = v > .6 ? ABSTRACT_GOUACHE_PALETTE.lavender : ABSTRACT_GOUACHE_PALETTE.red;
           ctx.beginPath();
           ctx.ellipse(x + G * .5, y + G * .5, 18 + v * 4, 13 + (1 - v) * 5, v * .6, 0, Math.PI * 2);
           ctx.fill();
           ctx.globalAlpha = 1;
         } else {
-          ctx.fillStyle = '#FAFAF8';
+          ctx.fillStyle = v > .5 ? '#080E18' : '#060A10';
           ctx.fillRect(x, y, G, G);
+          if ((c * 13 + r * 5) % 23 === 2) {
+            ctx.globalAlpha = .2;
+            ctx.fillStyle = v > .5 ? ABSTRACT_GOUACHE_PALETTE.sky : ABSTRACT_GOUACHE_PALETTE.blush;
+            ctx.beginPath();
+            ctx.arc(x + G * .5, y + G * .5, 7 + v * 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+          }
         }
         continue;
       }
@@ -26937,7 +26957,7 @@ $('devPlayerTowerCollisionToggle').onclick = () => { S.devPlayerTowerCollision =
 $('devAbstractGouacheToggle').onclick = () => {
   S.devAbstractGouache = !S.devAbstractGouache;
   ui();
-  toast(`Abstract Gouache Expedition ${S.devAbstractGouache ? 'ON' : 'OFF'}`);
+  toast(`Hyper Goo Expedition ${S.devAbstractGouache ? 'ON' : 'OFF'}`);
 };
 $('devRoomBoundsToggle').onclick = () => { S.devShowRoomBounds = !S.devShowRoomBounds; ui(); toast(`Room Bounds ${S.devShowRoomBounds ? 'ON' : 'OFF'}`); };
 $('devPathToggle').onclick = () => { S.devShowPathing = !S.devShowPathing; ui(); toast(`Pathing ${S.devShowPathing ? 'ON' : 'OFF'}`); };
