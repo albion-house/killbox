@@ -2,6 +2,31 @@
 
 ## Locked-In Terms
 
+### Arena
+The fast, chaotic, escalating mode.
+
+Arena is the power-fantasy survival loop.
+
+Arena should feel like:
+
+- Fast
+- Chaotic
+- Escalating
+- Power-fantasy focused
+
+### Expedition
+The exploration and adventure mode.
+
+Expedition should feel like:
+
+- Exploration
+- Discovery
+- Resource management
+- Risk and reward
+- Adventure
+
+Expedition alternates between exploration, combat waves, dungeons, and Relays.
+
 ### Rift
 The portable civilization engine.
 
@@ -21,12 +46,14 @@ Relays are discovered throughout Expedition maps.
 Installing the Rift into a Relay expands the network and advances progression.
 
 Desired feeling:
-"We found another Relay."
+
+> We found another Relay.
 
 ### Boons
 Permanent upgrade choices.
 
 Examples:
+
 - Increased damage
 - Faster reloads
 - Improved tower range
@@ -39,6 +66,7 @@ Choose a permanent upgrade.
 Temporary power spikes.
 
 Examples:
+
 - Bullet Hell
 - Rocket Storm
 - Double Fire Rate
@@ -47,12 +75,15 @@ Examples:
 Meaning:
 Gain a temporary power boost.
 
+---
+
 ## Design Language
 
 ### Hearth
 A design concept, not necessarily an in-world object.
 
 Represents:
+
 - Home
 - Safety
 - Civilization
@@ -64,18 +95,34 @@ The Rift functions as the player's Hearth.
 The collection of active Relays connected through the Rift.
 
 Example messaging:
+
 - Network Expanded
 - Relay Online
 - Network Stabilized
 
-### Expedition
-The exploration mode.
+### Dungeon Archetype
+A named shape for an Expedition level.
 
-Fantasy:
-Carry civilization into hostile territory.
-Establish footholds.
-Expand the network.
-Protect the Rift.
+Examples:
+
+- Pressure Cooker
+- Fortress
+- Exploration-focused
+- Defense-focused
+- Boss-focused
+
+### Pressure Cooker
+The current Expedition 01 dungeon archetype.
+
+This means:
+
+- Locked rooms
+- Ambushes
+- Core or Rift management
+- Defensive play
+- High tension
+
+---
 
 ## Terms To Avoid
 
@@ -87,16 +134,22 @@ Protect the Rift.
 - Blessing
 - Prophecy
 - Chosen One
+- Generic kingdom language
+- Standard RPG lore
 
 Killbox is moving toward strange technology, exploration, facilities, biomechanical systems, and network expansion rather than traditional fantasy.
+
+---
 
 ## North Star Test
 
 Does a new term feel like it belongs alongside:
 
-Rift
-Relay
-Boons
-Powerups
+- Arena
+- Expedition
+- Rift
+- Relay
+- Boons
+- Powerups
 
 If not, reconsider it.
