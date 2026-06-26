@@ -5589,8 +5589,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.32.0</b>
-      <span id="warRoomBuildName">ShatterConvoy</span>
+      <b id="warRoomVersion">v7.32.1</b>
+      <span id="warRoomBuildName">StartFix</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -5678,7 +5678,7 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.32.0 ShatterConvoy</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.32.1 StartFix</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -6458,12 +6458,7 @@ const LEVELS = {
       [4, 1, 12, 5],
       [7, 5, 10, 7],
     ],
-    blockedRects: [
-      [21, 6, 23, 6],
-      [21, 11, 23, 11],
-      [37, 5, 39, 6],
-      [37, 11, 39, 12],
-    ],
+    blockedRects: [],
     spawns: [
       { c: 17, r: 4, label: 'NORTH BREACH' },
       { c: 17, r: 13, label: 'SOUTH BREACH' },
@@ -6514,6 +6509,10 @@ const LEVELS = {
           color: '#6a4f54',
           holdSeconds: 30,
           riftPoint: { c: 22, r: 8 },
+          blockedRects: [
+            [21, 6, 23, 6],
+            [21, 11, 23, 11],
+          ],
           entrances: [
             { c: 17, r: 8, side: 'west', kind: 'door', label: 'WEST DOOR' },
             { c: 27, r: 8, side: 'east', kind: 'door', label: 'EAST DOOR' },
@@ -6538,6 +6537,10 @@ const LEVELS = {
           color: '#5e604c',
           holdSeconds: 75,
           riftPoint: { c: 38, r: 8 },
+          blockedRects: [
+            [37, 5, 39, 6],
+            [37, 11, 39, 12],
+          ],
           entrances: [
             { c: 33, r: 8, side: 'west', kind: 'door', label: 'WEST DOOR' },
             { c: 43, r: 4, side: 'east', kind: 'vent', label: 'RELAY VENT' },
@@ -7308,11 +7311,12 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.32.0';
+const GAME_VERSION = '7.32.1';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'ShatterConvoy';
+const BUILD_NAME = 'StartFix';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Added the Expedition 02: Shatter Convoy vertical slice with directed Core carry, breach gate, holdouts, relay charge, and escape flow.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Fixed Expedition 02 start validation so the loadout Start button loads Shatter Convoy correctly.' },
+  { version: '7.32.0', name: 'ShatterConvoy', changes: 'Added the Expedition 02: Shatter Convoy vertical slice with directed Core carry, breach gate, holdouts, relay charge, and escape flow.' },
   { version: '7.31.1', name: 'FlatLab', changes: 'Removed the fake isometric view and kept the Containment Vault visual slice in a flat, readable graphic style.' },
   { version: '7.31.0', name: 'GraphicLab', changes: 'Reworked the Containment Vault as a clean graphic Expedition art slice with clearer floor, wall, obstacle, and reactor hierarchy.' },
   { version: '7.30.3', name: 'ChapelDark', changes: 'Removed the Dark Chapel light-pad mechanic while preserving the room darkness and Skull Boss encounter.' },
