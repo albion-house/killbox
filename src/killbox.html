@@ -5589,8 +5589,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.33.1</b>
-      <span id="warRoomBuildName">RiftPolish</span>
+      <b id="warRoomVersion">v7.35.4</b>
+      <span id="warRoomBuildName">BigJoel</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -5678,7 +5678,7 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.33.1 RiftPolish</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.35.4 BigJoel</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -7319,11 +7319,18 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.33.1';
+const GAME_VERSION = '7.35.4';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'RiftPolish';
+const BUILD_NAME = 'BigJoel';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Polished Expedition 02 objective flow, event feedback, combat readability, and extraction presentation.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Cropped the Joel hero sprite frames so the visible character renders much larger without scaling the transparent border.' },
+  { version: '7.35.3', name: 'BigJoel', changes: 'Set the Joel hero sprite draw size to 175 for a much larger on-screen read.' },
+  { version: '7.35.2', name: 'BigJoel', changes: 'Scaled the Joel hero sprite up to read near Rift scale in gameplay.' },
+  { version: '7.35.1', name: 'ChunkyJoel', changes: 'Increased the Joel hero sprite render size and raised the health bar above the larger character.' },
+  { version: '7.35.0', name: 'JoelSprite', changes: 'Replaced the hero body drawing with the first-pass Joel idle sprite sheet for visual testing.' },
+  { version: '7.34.0', name: 'EnvSignal', changes: 'Strengthened Expedition 02 environmental communication with breach machinery, relay charge visuals, extraction beacons, and shorter HUD prompts.' },
+  { version: '7.33.3', name: 'Riftsteel', changes: 'Replaced the Riftblade loadout and hotbar icon with the new riftsword art asset.' },
+  { version: '7.33.1', name: 'RiftPolish', changes: 'Polished Expedition 02 objective flow, event feedback, combat readability, and extraction presentation.' },
   { version: '7.33.0', name: 'Instability', changes: 'Added a simple Expedition 02 Rift Instability pressure system for leaving the Core deployed outside required holdouts.' },
   { version: '7.32.3', name: 'SpawnFix', changes: 'Fixed Expedition 02 deploy rooms so Ambush and Dead Relay no longer auto-clear before the Core hold starts.' },
   { version: '7.32.2', name: 'PaceSpike', changes: 'Tightened Expedition 02 pacing with faster Ambush pressure, three Dead Relay phases, and a stronger collapse escape climax.' },
@@ -7444,6 +7451,7 @@ function iconPath(kind, k) {
       crossbow: 'assets/icons/weapons/crossbow.png',
       blunderbuss: 'assets/icons/weapons/blunderbuss.png',
       blunder: 'assets/icons/weapons/blunderbuss.png',
+      riftblade: 'assets/icons/weapons/riftblade.png',
       storm: 'assets/icons/weapons/storm.png',
       freeze: 'assets/icons/weapons/freeze.png',
     },
@@ -9195,14 +9203,14 @@ function startExpeditionEscapeSequence() {
     e.riftHunter = false;
     retargetExpeditionEnemy(e, 'relay-collapse');
   }
-  ex.message = shatterConvoy ? 'RELAY SHATTERED — GRAB THE CORE' : 'REALITY COLLAPSE DETECTED — EXTRACT THE CORE';
+  ex.message = shatterConvoy ? 'RELAY SHATTERED' : 'REALITY COLLAPSE DETECTED — EXTRACT THE CORE';
   ex.messageTime = 8;
-  ex.prompt = shatterConvoy ? 'PICK UP THE CORE. REACH EXTRACTION.' : 'PICK UP THE CORE. RETURN TO THE ENTRANCE.';
+  ex.prompt = shatterConvoy ? 'ESCAPE' : 'PICK UP THE CORE. RETURN TO THE ENTRANCE.';
   ex.promptTime = 8;
   announceWave(shatterConvoy ? 'RELAY SHATTERED — RUN' : 'REALITY COLLAPSE DETECTED', 'boss', 2.2);
   playSfx('bossWarning');
   shake(shatterConvoy ? 38 : 28, shatterConvoy ? 1.55 : 1.25);
-  showMissionHint(shatterConvoy ? 'Grab the Core. The exit route is back through the convoy path.' : 'Pick up the Core and return to the Entrance.', 'expedition-core-escape', 6);
+  showMissionHint(shatterConvoy ? 'Escape' : 'Pick up the Core and return to the Entrance.', 'expedition-core-escape', 4);
   const burstCount = shatterConvoy ? 44 : 24;
   for (let i = 0; i < burstCount; i++) spawnExpeditionCollapseEnemy(true);
 }
@@ -9665,6 +9673,11 @@ function completeShatterConvoyRoom(room, message = '') {
   }
   ex.message = message || eventCopy[1];
   ex.messageTime = 5;
+  if (room.id === 'ambush') {
+    showMissionHint('Move Forward', 'expedition02-temporary-base-loop', 3.2);
+  } else if (room.id === 'deadRelay') {
+    showMissionHint('Escape', 'expedition02-relay-charged-move', 3.2);
+  }
   announceWave(eventCopy[0], 'resting', room.id === 'deadRelay' ? 1.35 : 1.05);
   playSfx(room.id === 'deadRelay' ? 'bossWarning' : 'waveClear');
   shockwave(point.x, point.y, eventCopy[2], room.id === 'deadRelay' ? 260 : 155, room.id === 'deadRelay' ? .55 : .35);
@@ -9678,7 +9691,7 @@ function shatterConvoyStartHold(room) {
   const ex = S.expedition;
   if (!ex || !room) return false;
   const duration = room.holdSeconds || (room.id === 'deadRelay' ? 75 : 30);
-  const label = room.id === 'deadRelay' ? `Charge Dead Relay: ${duration}s` : `Defend Rift: ${duration}s`;
+  const label = room.id === 'deadRelay' ? 'Relay Charging' : 'Hold Rift';
   ex.riftEverCarried = true;
   ex.riftAwakeningTime = 0;
   ex.roomObjective = {
@@ -9702,7 +9715,7 @@ function shatterConvoyStartHold(room) {
     burst(point.x, point.y, '#f0b8ff', room.id === 'deadRelay' ? 24 : 14, 'spark', 190);
     floatText(room.id === 'deadRelay' ? 'RELAY CHARGING' : 'HOLD STARTED', point.x - 58, point.y - 52, '#fff1ff');
   }
-  showMissionHint(room.id === 'deadRelay' ? 'Dead Relay charging. Hold until the final push ends.' : 'Doors closing. Defend the Rift until the exit opens.', `expedition02-${room.id}-hold-start`, 3.6);
+  showMissionHint(room.id === 'deadRelay' ? 'Relay Charging' : 'Hold Rift', `expedition02-${room.id}-hold-start`, 3);
   updateShatterConvoyHold(0, room);
   return true;
 }
@@ -9713,8 +9726,8 @@ function handleShatterConvoyRiftDeployed() {
   const room = expeditionRoomById(ex.activeRoomId);
   if (!room || expeditionRoomState(room.id) !== 'active') return false;
   if (ex.roomObjective?.type === 'breachGate') {
-    if (!shatterConvoyRiftAtRoomPoint(room)) {
-      ex.message = 'Deploy Rift at the Breach Gate.';
+    if (!shatterConvoyRiftAtRoomPoint(room) && !shatterConvoyRiftDeployedInRoom(room)) {
+      ex.message = 'Dock Rift.';
       ex.messageTime = 3;
       return false;
     }
@@ -9723,12 +9736,12 @@ function handleShatterConvoyRiftDeployed() {
     completeShatterConvoyRoom(room, 'Breach Gate opened.');
     ex.message = 'Breach Gate opened.';
     ex.messageTime = 4;
-    showMissionHint('Breach Gate open. Move the Rift forward.', 'expedition02-breach-open', 3);
+    showMissionHint('Move Forward', 'expedition02-breach-open', 2.6);
     return true;
   }
   if (ex.roomObjective?.type === 'ambushDeploy' || ex.roomObjective?.type === 'relayDeploy') {
     if (!shatterConvoyRiftAtRoomPoint(room) && !shatterConvoyRiftDeployedInRoom(room)) {
-      ex.message = room.id === 'deadRelay' ? 'Deploy Rift near the dead relay.' : 'Deploy Rift in the room.';
+      ex.message = 'Dock Rift.';
       ex.messageTime = 3;
       return false;
     }
@@ -9745,39 +9758,39 @@ function startShatterConvoyRoomEncounter(room) {
   ex.activeRoomId = room.id;
   ex.roomTerminalStates[room.id] = 'offline';
   if (room.id === 'breach') {
-    ex.roomObjective = { roomId: room.id, type: 'breachGate', label: 'Deploy Rift at Gate' };
+    ex.roomObjective = { roomId: room.id, type: 'breachGate', label: 'Dock Rift' };
     ex.roomBlockers = shatterConvoyGateBlockers(room);
-    ex.message = 'Deploy Rift at Gate.';
+    ex.message = 'Dock Rift.';
     ex.messageTime = 5;
     announceWave('BREACH GATE', 'danger', .9);
     playSfx('ui');
     const point = shatterConvoyRoomPoint(room);
     if (point) floatText('DEPLOY HERE', point.x - 40, point.y - 40, '#fff1a8');
-    showMissionHint('Deploy the Core at the Breach Gate.', 'expedition02-breach-gate', 4);
+    showMissionHint('Dock Rift', 'expedition02-breach-gate', 2.8);
     return true;
   }
   if (room.id === 'ambush') {
-    ex.roomObjective = { roomId: room.id, type: 'ambushDeploy', label: 'Defend Rift: 30s' };
+    ex.roomObjective = { roomId: room.id, type: 'ambushDeploy', label: 'Dock Rift' };
     ex.roomBlockers = [];
-    ex.message = 'Deploy Rift to start the ambush hold.';
+    ex.message = 'Dock Rift.';
     ex.messageTime = 5;
     announceWave('AMBUSH ROOM', 'danger', .9);
     playSfx('ui');
     const point = shatterConvoyRoomPoint(room);
     if (point) floatText('DEPLOY RIFT', point.x - 38, point.y - 42, '#fff1a8');
-    showMissionHint('Deploy the Core to begin the hold.', 'expedition02-ambush-deploy', 4);
+    showMissionHint('Dock Rift', 'expedition02-ambush-deploy', 2.8);
     return true;
   }
   if (room.id === 'deadRelay') {
-    ex.roomObjective = { roomId: room.id, type: 'relayDeploy', label: 'Charge Dead Relay: 75s' };
+    ex.roomObjective = { roomId: room.id, type: 'relayDeploy', label: 'Dock Rift' };
     ex.roomBlockers = [];
-    ex.message = 'Deploy Rift near the dead relay.';
+    ex.message = 'Dock Rift.';
     ex.messageTime = 5;
     announceWave('DEAD RELAY', 'danger', 1);
     playSfx('ui');
     const point = shatterConvoyRoomPoint(room);
     if (point) floatText('CHARGE RELAY', point.x - 46, point.y - 48, '#fff1a8');
-    showMissionHint('Deploy the Core near the dead relay.', 'expedition02-dead-relay', 4);
+    showMissionHint('Dock Rift', 'expedition02-dead-relay', 2.8);
     return true;
   }
   return false;
@@ -9808,9 +9821,7 @@ function updateShatterConvoyHold(dt, activeRoom) {
       ex.messageTime = 3;
     }
   }
-  objective.label = activeRoom.id === 'deadRelay'
-    ? `Charge Dead Relay: ${Math.ceil(objective.timer)}s`
-    : `Defend Rift: ${Math.ceil(objective.timer)}s`;
+  objective.label = activeRoom.id === 'deadRelay' ? 'Relay Charging' : 'Hold Rift';
   if (objective.timer <= 0) {
     if (activeRoom.id === 'deadRelay') {
       completeShatterConvoyRoom(activeRoom, 'Dead Relay charged.');
@@ -10381,7 +10392,7 @@ function tryToggleExpeditionRiftCarry() {
   ex.riftCarried = true;
   if (isShatterConvoyExpedition()) {
     playSfx('secondaryReady');
-    floatText(ex.escapeActive ? 'ESCAPE!' : 'RIFT SECURED', S.hero.x - 42, S.hero.y - 46, '#8edcff');
+    floatText(ex.escapeActive ? 'ESCAPE!' : ex.roomObjective?.type === 'shatterHold' ? 'REPOSITION' : 'RIFT SECURED', S.hero.x - 42, S.hero.y - 46, '#8edcff');
   }
   if (!ex.riftEverCarried && !(ex.riftAwakeningTime > 0)) {
     ex.riftAwakeningTime = 2;
@@ -10393,16 +10404,22 @@ function tryToggleExpeditionRiftCarry() {
   }
   ex.rift.x = S.hero.x;
   ex.rift.y = S.hero.y;
-  ex.message = ex.escapeActive ? 'CORE OVERLOAD ACTIVE.' : 'Rift carried. Deploy it to build.';
+  ex.message = ex.escapeActive
+    ? 'CORE OVERLOAD ACTIVE.'
+    : isShatterConvoyExpedition() && ex.roomObjective?.type === 'shatterHold'
+      ? 'Core moving. Redeploy when ready.'
+      : 'Rift carried. Deploy it to build.';
   if (ex.escapeActive) {
     ex.escapeOverloadTimer = 0;
     announceWave('CORE OVERLOAD ACTIVE', 'boss', 1.4);
-    showMissionHint('Return the Core to the Entrance.', 'expedition-core-return', 5);
+    showMissionHint(isShatterConvoyExpedition() ? 'Escape' : 'Return the Core to the Entrance.', 'expedition-core-return', 3.5);
     shake(14, .55);
   } else if (ex.extractionActive) {
     ex.message = 'Core removed. Relay timer paused.';
     ex.messageTime = 4;
     showMissionHint('Core removed. Relay timer paused.', 'expedition-relay-paused', 4);
+  } else if (isShatterConvoyExpedition() && ex.roomObjective?.type === 'shatterHold') {
+    showMissionHint('Redeploy Rift', 'expedition02-emergency-relocation', 3);
   } else {
     showMissionHint('Deploy the Rift before building.', 'expedition-core-deploy', 4);
   }
@@ -12594,6 +12611,18 @@ const CODEX_ENEMY_SPRITE_FILES = {
 };
 const ENEMY_SPRITES = {};
 let enemySpritesReady = false;
+const HERO_SPRITE_SHEET = {
+  src: 'assets/player/hero-joel-sprites.png',
+  frameW: 256,
+  frameH: 256,
+  frameCount: 8,
+};
+const HERO_SPRITE_FRAME_BY_OCTANT = [3, 2, 1, 0, 7, 6, 5, 4];
+const HERO_SPRITE = new Image();
+let heroSpriteReady = false;
+HERO_SPRITE.onload = () => { heroSpriteReady = true; };
+HERO_SPRITE.onerror = () => { heroSpriteReady = false; };
+HERO_SPRITE.src = HERO_SPRITE_SHEET.src;
 
 function preloadEnemySprites() {
   const jobs = Object.entries(ENEMY_SPRITE_FILES).map(([type, src]) => new Promise(res => {
@@ -13319,10 +13348,11 @@ function missionObjectiveText() {
     const ex = S.expedition;
     if (!ex) return 'Explore the facility';
     if (isShatterConvoyExpedition()) {
-      if (ex.escapeActive) return 'Grab Rift and Escape';
-      if (ex.roomObjective?.type === 'shatterHold') return ex.roomObjective.label;
-      if (ex.activeRoomId && ex.roomObjective?.label) return ex.roomObjective.label;
-      return 'Carry Rift Forward';
+      if (ex.escapeActive) return 'Escape';
+      if (ex.roomObjective?.type === 'shatterHold' && ex.riftCarried) return 'Redeploy Rift';
+      if (ex.roomObjective?.type === 'shatterHold') return ex.roomObjective.roomId === 'deadRelay' ? 'Relay Charging' : 'Hold Rift';
+      if (ex.roomObjective?.type === 'breachGate' || ex.roomObjective?.type === 'ambushDeploy' || ex.roomObjective?.type === 'relayDeploy') return 'Dock Rift';
+      return 'Move Forward';
     }
     if (ex.escapeActive) return ex.riftCarried ? 'Return Core To Entrance' : 'Pick Up The Core';
     if (ex.extractionActive) return ex.riftCarried
@@ -13360,15 +13390,15 @@ function missionObjectiveHudState() {
     const ex = S.expedition;
     if (!ex) return { title: 'EXPLORE', sub: 'FIND THE RIFT' };
     if (isShatterConvoyExpedition()) {
-      if (ex.escapeActive) return { title: 'GRAB RIFT', sub: 'AND ESCAPE' };
+      if (ex.escapeActive) return { title: 'ESCAPE', sub: '' };
       if (ex.roomObjective?.type === 'shatterHold') {
-        const title = ex.roomObjective.roomId === 'deadRelay' ? 'CHARGE DEAD RELAY' : 'DEFEND RIFT';
-        return { title, sub: `${Math.ceil(ex.roomObjective.timer || 0)} SECONDS` };
+        if (ex.riftCarried) return { title: 'REDEPLOY RIFT', sub: '' };
+        return ex.roomObjective.roomId === 'deadRelay'
+          ? { title: 'RELAY CHARGING', sub: '' }
+          : { title: 'HOLD RIFT', sub: '' };
       }
-      if (ex.roomObjective?.type === 'breachGate') return { title: 'DEPLOY RIFT', sub: 'AT GATE' };
-      if (ex.roomObjective?.type === 'ambushDeploy') return { title: 'DEFEND RIFT', sub: '30 SECONDS' };
-      if (ex.roomObjective?.type === 'relayDeploy') return { title: 'CHARGE DEAD RELAY', sub: '75 SECONDS' };
-      return { title: 'CARRY RIFT', sub: 'FORWARD' };
+      if (ex.roomObjective?.type === 'breachGate' || ex.roomObjective?.type === 'ambushDeploy' || ex.roomObjective?.type === 'relayDeploy') return { title: 'DOCK RIFT', sub: '' };
+      return { title: 'MOVE FORWARD', sub: '' };
     }
     if (ex.escapeActive) {
       return ex.riftCarried
@@ -23469,6 +23499,301 @@ function drawExpeditionGraphicLab(room, t) {
   ctx.restore();
 }
 
+function shatterConvoyRoomVisualState(room) {
+  const ex = S.expedition;
+  if (!isShatterConvoyExpedition() || !room || !ex) return null;
+  const objective = ex.roomObjective || null;
+  const objectiveType = objective?.roomId === room.id ? objective.type : '';
+  const roomState = ex.roomStates?.[room.id] || 'inactive';
+  const holdActive = objectiveType === 'shatterHold';
+  const duration = Math.max(1, objective?.duration || room.holdSeconds || 1);
+  const holdProgress = holdActive
+    ? clamp(1 - (objective.timer || 0) / duration, 0, 1)
+    : roomState === 'cleared' || (room.id === 'deadRelay' && ex.escapeActive)
+      ? 1
+      : 0;
+  return {
+    roomState,
+    objectiveType,
+    holdActive,
+    holdProgress,
+    riftCarried: !!ex.riftCarried,
+    riftNearPoint: shatterConvoyRiftAtRoomPoint(room, room.id === 'breach' ? 150 : 130),
+    riftDeployed: shatterConvoyRiftDeployedInRoom(room),
+    escapeActive: !!ex.escapeActive,
+    roomActive: ex.activeRoomId === room.id,
+    cleared: roomState === 'cleared',
+  };
+}
+
+function drawShatterConvoyRouteLights(x1, y1, x2, y2, color, t, density = 8, travel = 0) {
+  ctx.save();
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  for (let i = 0; i < density; i++) {
+    const pct = ((i / Math.max(1, density - 1)) + travel) % 1;
+    const x = x1 + dx * pct;
+    const y = y1 + dy * pct;
+    const pulse = 1 + Math.sin(t * 7 + i * .8) * .18;
+    ctx.globalAlpha = .2 + (i / Math.max(1, density)) * .18;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, 5 * pulse, 0, 7);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawShatterConvoyEntranceMarker(entrance, color, t, intensity = 1) {
+  if (!entrance) return;
+  const x = cx(entrance.c);
+  const y = cy(entrance.r);
+  const pulse = .92 + Math.sin(t * 6 + entrance.c * .4 + entrance.r * .2) * .12;
+  ctx.save();
+  ctx.globalAlpha = .3 * intensity;
+  ctx.fillStyle = color;
+  ctx.fillRect(x - 16, y - 30, 32, 60);
+  ctx.globalAlpha = .9 * intensity;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(x - 18, y - 26 * pulse);
+  ctx.lineTo(x + 18, y - 26 * pulse);
+  ctx.moveTo(x - 18, y + 26 * pulse);
+  ctx.lineTo(x + 18, y + 26 * pulse);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawShatterConvoyBreachDevice(room, visual, t) {
+  if (!room?.gatePoint || !room?.gate) return;
+  const point = shatterConvoyRoomPoint(room);
+  const gateX = cx(room.gate.c);
+  const gateY = cy(room.gate.r + Math.max(1, room.gate.height || 1) * .5 - .5);
+  const powered = visual.cleared || visual.riftNearPoint || visual.riftDeployed;
+  const completed = visual.cleared;
+  ctx.save();
+  ctx.globalAlpha = .95;
+  ctx.fillStyle = '#191d20';
+  ctx.fillRect(point.x - 34, point.y - 30, 68, 60);
+  ctx.strokeStyle = powered ? '#8edcff' : '#676f78';
+  ctx.lineWidth = completed ? 5 : 3;
+  ctx.strokeRect(point.x - 34, point.y - 30, 68, 60);
+  ctx.fillStyle = powered ? '#203740' : '#23272d';
+  ctx.beginPath();
+  ctx.ellipse(point.x, point.y, 24, 16, 0, 0, 7);
+  ctx.fill();
+  ctx.strokeStyle = powered ? '#dffbff' : '#7f8790';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.ellipse(point.x, point.y, 32, 44, -.16, 0, 7);
+  ctx.stroke();
+  ctx.strokeStyle = powered ? '#62d7ff' : '#454c54';
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(point.x + 34, point.y);
+  ctx.lineTo(gateX - 20, gateY);
+  ctx.stroke();
+  ctx.fillStyle = powered ? '#8edcff' : '#4d5660';
+  for (let i = 0; i < 4; i++) {
+    const px = point.x + 12 + i * 14;
+    const py = point.y + Math.sin(t * 8 + i) * 2;
+    ctx.globalAlpha = powered ? .55 + Math.sin(t * 10 + i) * .2 : .3;
+    ctx.beginPath();
+    ctx.arc(px, py, 3.5, 0, 7);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  if (!completed) {
+    ctx.strokeStyle = powered ? '#8edcff' : '#7d848c';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(point.x - 18, point.y - 10);
+    ctx.lineTo(point.x + 18, point.y + 10);
+    ctx.moveTo(point.x - 18, point.y + 10);
+    ctx.lineTo(point.x + 4, point.y - 2);
+    ctx.stroke();
+  }
+  if (powered) {
+    drawShatterConvoyRouteLights(point.x + 28, point.y, gateX - 18, gateY, completed ? '#fff1a8' : '#8edcff', t, completed ? 10 : 7, t * .55 % 1);
+  }
+  const gatePulse = completed ? '#9fffc8' : powered ? '#8edcff' : '#595f66';
+  ctx.globalAlpha = completed ? .75 : powered ? .42 : .24;
+  ctx.fillStyle = gatePulse;
+  ctx.fillRect(gateX - 20, gateY - 64, 40, 128);
+  ctx.restore();
+}
+
+function drawShatterConvoyHoldSocket(room, visual, t) {
+  const point = shatterConvoyRoomPoint(room);
+  if (!point) return;
+  const powered = visual.holdActive || visual.cleared || visual.riftNearPoint || visual.riftDeployed;
+  drawExpeditionRiftSocket(point.x, point.y, !powered);
+  ctx.save();
+  ctx.translate(point.x, point.y);
+  ctx.globalAlpha = powered ? .82 : .35;
+  ctx.strokeStyle = room.id === 'deadRelay' ? '#79ffae' : '#f0c96b';
+  ctx.lineWidth = room.id === 'deadRelay' ? 5 : 3;
+  ctx.setLineDash(room.id === 'deadRelay' ? [18, 10] : [12, 10]);
+  ctx.beginPath();
+  ctx.arc(0, 0, room.id === 'deadRelay' ? 74 : 58, t * .32, t * .32 + Math.PI * (room.id === 'deadRelay' ? .8 : 1.5));
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+
+function drawShatterConvoyRelay(room, visual, t) {
+  const point = shatterConvoyRoomPoint(room);
+  if (!point) return;
+  const charging = visual.holdActive && !visual.riftCarried;
+  const carryingDuringHold = visual.holdActive && visual.riftCarried;
+  const progress = visual.holdProgress;
+  const activeAlpha = visual.cleared || visual.escapeActive ? 1 : charging ? .95 : carryingDuringHold ? .42 : visual.riftNearPoint ? .55 : .2;
+  ctx.save();
+  ctx.translate(point.x, point.y);
+  ctx.globalAlpha = .96;
+  ctx.fillStyle = activeAlpha > .5 ? '#243227' : '#2c2f30';
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 52, 68, -.18, 0, 7);
+  ctx.fill();
+  ctx.strokeStyle = activeAlpha > .5 ? '#8ee6a8' : '#7a8085';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 44, 58, -.18, 0, 7);
+  ctx.stroke();
+  ctx.fillStyle = activeAlpha > .5 ? '#16371f' : '#181a1b';
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 24, 17, 0, 0, 7);
+  ctx.fill();
+  ctx.globalAlpha = .24 + activeAlpha * .22;
+  ctx.fillStyle = activeAlpha > .5 ? '#79ffae' : '#a5adb4';
+  ctx.beginPath();
+  ctx.arc(0, 0, 84 + Math.sin(t * 4) * 4, 0, 7);
+  ctx.fill();
+  ctx.globalAlpha = .95;
+  if (charging || visual.cleared || visual.escapeActive) {
+    const start = -Math.PI / 2;
+    const end = start + Math.PI * 2 * progress;
+    ctx.strokeStyle = '#79ffae';
+    ctx.lineWidth = 8;
+    ctx.beginPath();
+    ctx.arc(0, 0, 92, start, end);
+    ctx.stroke();
+    ctx.strokeStyle = '#d8ffe4';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(0, 0, 92, end - .22, end + .14);
+    ctx.stroke();
+    drawShatterConvoyRouteLights(0, -86, 0, -86, '#79ffae', t, 1, 0);
+  }
+  if (charging) {
+    for (let i = 0; i < 4; i++) {
+      const r = 42 + i * 18 + Math.sin(t * 5 + i) * 4;
+      ctx.globalAlpha = .16 + i * .04;
+      ctx.strokeStyle = '#79ffae';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, 7);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = .86;
+    ctx.strokeStyle = '#79ffae';
+    ctx.lineWidth = 3;
+    for (let i = 0; i < 6; i++) {
+      const a = t * 1.5 + i * Math.PI / 3;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * 24, Math.sin(a) * 24);
+      ctx.lineTo(Math.cos(a) * 48, Math.sin(a) * 48);
+      ctx.stroke();
+    }
+  }
+  if (carryingDuringHold) {
+    ctx.globalAlpha = .34;
+    ctx.strokeStyle = '#79ffae';
+    ctx.lineWidth = 5;
+    ctx.setLineDash([12, 12]);
+    ctx.beginPath();
+    ctx.arc(0, 0, 92, 0, 7);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  if (visual.cleared || visual.escapeActive) {
+    ctx.globalAlpha = .95;
+    ctx.strokeStyle = '#dffff0';
+    ctx.lineWidth = 4;
+    for (let i = 0; i < 8; i++) {
+      const a = i * Math.PI / 4 + t * .18;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * 56, Math.sin(a) * 56);
+      ctx.lineTo(Math.cos(a) * 108, Math.sin(a) * 108);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function drawShatterConvoyExtractionBeacon(room, t) {
+  if (!room) return;
+  const goalPoint = { x: cx(GOAL.c), y: cy(GOAL.r) };
+  const entryPoint = { x: cx(room.rect[2] - 1), y: cy(room.rect[3] - 1) };
+  const active = !!S.expedition?.escapeActive;
+  ctx.save();
+  ctx.globalAlpha = active ? .9 : .3;
+  ctx.fillStyle = active ? '#8edcff' : '#5d6870';
+  ctx.beginPath();
+  ctx.arc(goalPoint.x, goalPoint.y, active ? 22 + Math.sin(t * 7) * 3 : 18, 0, 7);
+  ctx.fill();
+  ctx.strokeStyle = active ? '#fff1a8' : '#9aa6af';
+  ctx.lineWidth = active ? 4 : 2;
+  ctx.beginPath();
+  ctx.arc(goalPoint.x, goalPoint.y, active ? 56 + Math.sin(t * 4) * 5 : 38, 0, 7);
+  ctx.stroke();
+  if (active) {
+    drawShatterConvoyRouteLights(entryPoint.x, entryPoint.y, goalPoint.x, goalPoint.y, '#8edcff', t, 9, t * .28 % 1);
+    drawShatterConvoyRouteLights(entryPoint.x, entryPoint.y + 18, goalPoint.x, goalPoint.y + 18, '#fff1a8', t, 7, t * .18 % 1);
+  }
+  ctx.restore();
+}
+
+function drawShatterConvoyEnvironmentalCue(room, t) {
+  const visual = shatterConvoyRoomVisualState(room);
+  if (!visual) return;
+  if (room.id === 'staging') {
+    drawShatterConvoyRouteLights(cx(room.rect[0] + 2), cy(8), cx(room.rect[2] - .4), cy(8), '#8edcff', t, 6, t * .16 % 1);
+    return;
+  }
+  if (room.id === 'breach') {
+    drawShatterConvoyBreachDevice(room, visual, t);
+    if (!visual.cleared) {
+      drawShatterConvoyRouteLights(cx(room.rect[0] + 1), cy(8), shatterConvoyRoomPoint(room).x - 40, shatterConvoyRoomPoint(room).y, '#8edcff', t, 6, t * .2 % 1);
+    }
+    return;
+  }
+  if (room.id === 'ambush') {
+    drawShatterConvoyHoldSocket(room, visual, t);
+    const lockColor = visual.holdActive ? '#ff6c6c' : visual.cleared ? '#9fffc8' : '#8a8f96';
+    for (const entrance of room.entrances || []) {
+      drawShatterConvoyEntranceMarker(entrance, entrance.side === 'east' && visual.cleared ? '#9fffc8' : lockColor, t, entrance.side === 'east' && visual.cleared ? 1.1 : .85);
+    }
+    if (visual.cleared) {
+      drawShatterConvoyRouteLights(cx(room.rect[2] - 2), cy(8), cx(room.rect[2] + 5), cy(8), '#9fffc8', t, 6, t * .2 % 1);
+    }
+    return;
+  }
+  if (room.id === 'deadRelay') {
+    drawShatterConvoyRelay(room, visual, t);
+    const routeColor = visual.cleared || visual.escapeActive ? '#8edcff' : '#79ffae';
+    drawShatterConvoyRouteLights(cx(room.rect[0] + 1), cy(8), shatterConvoyRoomPoint(room).x - 48, shatterConvoyRoomPoint(room).y, routeColor, t, 6, t * .14 % 1);
+    if (visual.cleared || visual.escapeActive) {
+      drawShatterConvoyRouteLights(shatterConvoyRoomPoint(room).x - 14, shatterConvoyRoomPoint(room).y - 36, cx(25), cy(10), '#8edcff', t, 8, t * .16 % 1);
+    }
+    return;
+  }
+  if (room.id === 'collapseExit') {
+    drawShatterConvoyExtractionBeacon(room, t);
+  }
+}
+
 function drawExpeditionDressing(t) {
   const cfg = expeditionConfig();
   const ex = S.expedition;
@@ -23506,6 +23831,7 @@ function drawExpeditionDressing(t) {
       ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
       ctx.globalAlpha = .75;
     }
+    if (isShatterConvoyExpedition()) drawShatterConvoyEnvironmentalCue(room, t);
     ctx.globalAlpha = .75;
     if (room.id !== 'extraction' || S.expedition?.extractionRevealed) {
       ctx.fillStyle = '#fff1c0';
@@ -24203,7 +24529,7 @@ function drawExpeditionObjects(t) {
     ctx.lineWidth = ex.escapeActive ? 8 : unlocked ? 5 : 3;
     ctx.beginPath(); ctx.arc(exX, exY, 58 + keyPct * 24, 0, 7); ctx.stroke();
     ctx.globalCompositeOperation = 'source-over';
-    drawExpeditionRiftSocket(exX, exY, riftReturned);
+    if (!shatterConvoy) drawExpeditionRiftSocket(exX, exY, riftReturned);
     if (!unlocked) {
       ctx.strokeStyle = '#ffcf6a';
       ctx.lineWidth = 7;
@@ -24215,8 +24541,19 @@ function drawExpeditionObjects(t) {
       ctx.stroke();
     }
     let relayLine1 = ex.escapeActive ? 'RELAY UNSTABLE' : shatterConvoy ? 'DEAD RELAY' : unlocked ? 'RELAY READY' : 'RELAY LOCKED';
-    let relayLine2 = ex.escapeActive ? 'REALITY COLLAPSE' : shatterConvoy ? 'CHARGE HERE' : unlocked ? 'HOLD HERE' : `${expeditionKeyCount()}/${expeditionKeyGoal()} KEYS`;
-    if (!ex.escapeActive && unlocked && !riftReturned) {
+    let relayLine2 = ex.escapeActive ? 'REALITY COLLAPSE' : shatterConvoy ? '' : unlocked ? 'HOLD HERE' : `${expeditionKeyCount()}/${expeditionKeyGoal()} KEYS`;
+    if (shatterConvoy) {
+      const visual = shatterConvoyRoomVisualState((cfg.rooms || []).find(room => room.id === 'deadRelay'));
+      if (ex.escapeActive) {
+        relayLine1 = 'ESCAPE';
+      } else if (visual?.holdActive) {
+        relayLine1 = 'CHARGING';
+      } else if (visual?.objectiveType === 'relayDeploy') {
+        relayLine1 = 'DOCK RIFT';
+      } else if (visual?.cleared) {
+        relayLine1 = 'ONLINE';
+      }
+    } else if (!ex.escapeActive && unlocked && !riftReturned) {
       relayLine1 = 'RETURN RIFT';
       relayLine2 = 'TO RELAY';
     }
@@ -24227,9 +24564,11 @@ function drawExpeditionObjects(t) {
     ctx.textAlign = 'center';
     ctx.strokeText(relayLine1, exX, exY - 5);
     ctx.fillText(relayLine1, exX, exY - 5);
-    ctx.font = '900 12px Georgia';
-    ctx.strokeText(relayLine2, exX, exY + 14);
-    ctx.fillText(relayLine2, exX, exY + 14);
+    if (relayLine2) {
+      ctx.font = '900 12px Georgia';
+      ctx.strokeText(relayLine2, exX, exY + 14);
+      ctx.fillText(relayLine2, exX, exY + 14);
+    }
     ctx.restore();
   }
 
@@ -25857,48 +26196,83 @@ function drawEngineer(t) {
   ctx.fillStyle = '#8edcff'; ctx.font = 'bold 11px Georgia'; ctx.fillText('P2', e.x - 9, e.y - 38);
 }
 
-function drawHero(t) {
-  const h = S.hero;
-  if (h.ghostGrabbed) return;
-  if (h.spawnState === 'spawning') return;
-  const m = getMouseWorldPosition();
-  const a = Math.atan2(m.y - h.y, m.x - h.x);
-  const w = WEAPONS[h.weapon] || WEAPONS.blunderbuss;
-  const now = performance.now() / 1000;
-  const blunderShieldActive = h.weapon === 'blunderbuss' && (h.blunderShieldUntil || 0) > now;
-  const slimeActive = (h.slimeDebuffUntil || 0) > now || (h.slimeScarVisualUntil || 0) > now;
-  const recoil = (h.weapon === 'blunderbuss' ? (h.weaponRecoil || 0) : 0);
-  const heroScale = S.activeWaveMutagen === 'giantism' ? 1.55 : (h.heroScale || 1);
-  const lowWarn = S.lowHealthState || 0;
+function heroSpriteFacingAngle(h, aimAngle) {
+  const dx = ((keys.d || keys.ArrowRight) ? 1 : 0) - ((keys.a || keys.ArrowLeft) ? 1 : 0);
+  const dy = ((keys.s || keys.ArrowDown) ? 1 : 0) - ((keys.w || keys.ArrowUp) ? 1 : 0);
+  if (mouse.down || h.charging) {
+    h.visualFacingAngle = aimAngle;
+    return aimAngle;
+  }
+  if (dx || dy) {
+    h.visualFacingAngle = Math.atan2(dy, dx);
+    return h.visualFacingAngle;
+  }
+  if (Number.isFinite(h.visualFacingAngle)) return h.visualFacingAngle;
+  h.visualFacingAngle = aimAngle;
+  return aimAngle;
+}
 
-  // ── Ground shadow (always drawn, before translation) ──────────────
+function heroSpriteFrameIndex(angle) {
+  const octant = ((Math.round(angle / (Math.PI / 4)) % 8) + 8) % 8;
+  return HERO_SPRITE_FRAME_BY_OCTANT[octant] || 0;
+}
+
+function drawHeroCoreWarning(lowWarn) {
+  if (!lowWarn) return;
   ctx.save();
-  ctx.globalAlpha = .32;
-  ctx.fillStyle = '#0a0806';
+  ctx.globalCompositeOperation = 'screen';
+  ctx.globalAlpha = lowWarn === 3 ? .9 : lowWarn === 2 ? .72 : .5;
+  ctx.fillStyle = lowWarn === 3 ? '#ff0000' : '#ff4a2d';
   ctx.beginPath();
-  ctx.ellipse(h.x + 4, h.y + 6, 18 * heroScale, 10 * heroScale, 0, 0, 7);
+  ctx.arc(0, 0, lowWarn === 3 ? 30 : lowWarn === 2 ? 26 : 22, 0, 7);
   ctx.fill();
+  ctx.globalAlpha = lowWarn === 3 ? .85 : lowWarn === 2 ? .6 : .42;
+  ctx.strokeStyle = lowWarn === 3 ? '#fff7f7' : '#ffd6c8';
+  ctx.lineWidth = lowWarn === 3 ? 4 : 2.5;
+  ctx.beginPath();
+  ctx.arc(0, 0, lowWarn === 3 ? 34 : lowWarn === 2 ? 29 : 24, 0, 7);
+  ctx.stroke();
   ctx.restore();
+}
 
-  // ── Persistent white locator outline ─────────────────────────────
-  const weaponHaloColors = { ranger:'#a4d067', crossbow:'#d6b26b', storm:'#8edcff', freeze:'#c8f4ff', blunderbuss:'#ffd27a', riftblade:'#b98cff' };
-  const haloColor = weaponHaloColors[h.weapon] || '#f0c96b';
+const PLAYER_SPRITE_FRAME_SIZE = 256;
+const PLAYER_SPRITE_SOURCE_CROP_X = 64;
+const PLAYER_SPRITE_SOURCE_CROP_Y = 28;
+const PLAYER_SPRITE_SOURCE_CROP_W = 128;
+const PLAYER_SPRITE_SOURCE_CROP_H = 190;
+const PLAYER_SPRITE_DRAW_W = 70;
+const PLAYER_SPRITE_DRAW_H = 96;
+const PLAYER_SPRITE_DRAW_Y_OFFSET = -18;
+const PLAYER_HEALTH_BAR_OFFSET = 18;
+
+function drawHeroSpriteBody(t, h, aimAngle, recoil, heroScale, lowWarn) {
+  if (!heroSpriteReady || !HERO_SPRITE.complete || !HERO_SPRITE.naturalWidth) return false;
+  const angle = heroSpriteFacingAngle(h, aimAngle);
+  const frame = heroSpriteFrameIndex(angle);
+  const drawW = PLAYER_SPRITE_DRAW_W * heroScale;
+  const drawH = PLAYER_SPRITE_DRAW_H * heroScale;
+  const x = h.x - Math.cos(aimAngle) * recoil * 10;
+  const y = h.y - Math.sin(aimAngle) * recoil * 10;
   ctx.save();
-  ctx.globalAlpha = h.inv > 0 && Math.floor(t * 18) % 2 ? .2 : .88;
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 2.5;
-  ctx.beginPath();
-  ctx.arc(h.x, h.y, 16 * heroScale, 0, 7);
-  ctx.stroke();
-  // Weapon-colored inner halo pulse
-  ctx.strokeStyle = haloColor;
-  ctx.lineWidth = 1.5;
-  ctx.globalAlpha = h.inv > 0 && Math.floor(t * 18) % 2 ? .1 : (.42 + Math.sin(t * 4) * .12);
-  ctx.beginPath();
-  ctx.arc(h.x, h.y, 20 * heroScale, 0, 7);
-  ctx.stroke();
+  ctx.translate(x, y);
+  ctx.globalAlpha = h.inv > 0 && Math.floor(t * 18) % 2 ? .45 : 1;
+  ctx.drawImage(
+    HERO_SPRITE,
+    frame * PLAYER_SPRITE_FRAME_SIZE + PLAYER_SPRITE_SOURCE_CROP_X,
+    PLAYER_SPRITE_SOURCE_CROP_Y,
+    PLAYER_SPRITE_SOURCE_CROP_W,
+    PLAYER_SPRITE_SOURCE_CROP_H,
+    -drawW / 2,
+    -drawH / 2 + PLAYER_SPRITE_DRAW_Y_OFFSET,
+    drawW,
+    drawH
+  );
+  drawHeroCoreWarning(lowWarn);
   ctx.restore();
+  return true;
+}
 
+function drawHeroFallbackBody(t, h, a, recoil, heroScale, slimeActive, lowWarn) {
   ctx.save();
   ctx.translate(h.x - Math.cos(a) * recoil * 10, h.y - Math.sin(a) * recoil * 10);
   ctx.scale(heroScale, heroScale);
@@ -25968,23 +26342,55 @@ function drawHero(t) {
   }
   ctx.strokeStyle = slimeActive ? slimeTint.gunHi : '#d8c59a'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.arc(0, 0, 14, -1.15, 1.15); ctx.stroke();
-  if (lowWarn) {
-    ctx.save();
-    ctx.globalCompositeOperation = 'screen';
-    ctx.globalAlpha = lowWarn === 3 ? .9 : lowWarn === 2 ? .72 : .5;
-    ctx.fillStyle = lowWarn === 3 ? '#ff0000' : '#ff4a2d';
-    ctx.beginPath();
-    ctx.arc(0, 0, lowWarn === 3 ? 30 : lowWarn === 2 ? 26 : 22, 0, 7);
-    ctx.fill();
-    ctx.globalAlpha = lowWarn === 3 ? .85 : lowWarn === 2 ? .6 : .42;
-    ctx.strokeStyle = lowWarn === 3 ? '#fff7f7' : '#ffd6c8';
-    ctx.lineWidth = lowWarn === 3 ? 4 : 2.5;
-    ctx.beginPath();
-    ctx.arc(0, 0, lowWarn === 3 ? 34 : lowWarn === 2 ? 29 : 24, 0, 7);
-    ctx.stroke();
-    ctx.restore();
-  }
+  drawHeroCoreWarning(lowWarn);
   ctx.restore();
+}
+
+function drawHero(t) {
+  const h = S.hero;
+  if (h.ghostGrabbed) return;
+  if (h.spawnState === 'spawning') return;
+  const m = getMouseWorldPosition();
+  const a = Math.atan2(m.y - h.y, m.x - h.x);
+  const w = WEAPONS[h.weapon] || WEAPONS.blunderbuss;
+  const now = performance.now() / 1000;
+  const blunderShieldActive = h.weapon === 'blunderbuss' && (h.blunderShieldUntil || 0) > now;
+  const slimeActive = (h.slimeDebuffUntil || 0) > now || (h.slimeScarVisualUntil || 0) > now;
+  const recoil = (h.weapon === 'blunderbuss' ? (h.weaponRecoil || 0) : 0);
+  const heroScale = S.activeWaveMutagen === 'giantism' ? 1.55 : (h.heroScale || 1);
+  const lowWarn = S.lowHealthState || 0;
+
+  // ── Ground shadow (always drawn, before translation) ──────────────
+  ctx.save();
+  ctx.globalAlpha = .32;
+  ctx.fillStyle = '#0a0806';
+  ctx.beginPath();
+  ctx.ellipse(h.x + 4, h.y + 6, 18 * heroScale, 10 * heroScale, 0, 0, 7);
+  ctx.fill();
+  ctx.restore();
+
+  // ── Persistent white locator outline ─────────────────────────────
+  const weaponHaloColors = { ranger:'#a4d067', crossbow:'#d6b26b', storm:'#8edcff', freeze:'#c8f4ff', blunderbuss:'#ffd27a', riftblade:'#b98cff' };
+  const haloColor = weaponHaloColors[h.weapon] || '#f0c96b';
+  ctx.save();
+  ctx.globalAlpha = h.inv > 0 && Math.floor(t * 18) % 2 ? .2 : .88;
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.arc(h.x, h.y, 16 * heroScale, 0, 7);
+  ctx.stroke();
+  // Weapon-colored inner halo pulse
+  ctx.strokeStyle = haloColor;
+  ctx.lineWidth = 1.5;
+  ctx.globalAlpha = h.inv > 0 && Math.floor(t * 18) % 2 ? .1 : (.42 + Math.sin(t * 4) * .12);
+  ctx.beginPath();
+  ctx.arc(h.x, h.y, 20 * heroScale, 0, 7);
+  ctx.stroke();
+  ctx.restore();
+
+  if (!drawHeroSpriteBody(t, h, a, recoil, heroScale, lowWarn)) {
+    drawHeroFallbackBody(t, h, a, recoil, heroScale, slimeActive, lowWarn);
+  }
   ctx.globalAlpha = 1;
 
   if (blunderShieldActive) {
@@ -26029,7 +26435,8 @@ function drawHero(t) {
   const barW = 48 * barScale;
   const barH = lowWarn >= 2 ? 12 : lowWarn === 1 ? 9 : 6;
   const barX = h.x - barW / 2;
-  const barY = h.y - 32;
+  const spriteTop = h.y - (PLAYER_SPRITE_DRAW_H * heroScale / 2) + PLAYER_SPRITE_DRAW_Y_OFFSET;
+  const barY = spriteTop - barH - PLAYER_HEALTH_BAR_OFFSET;
   ctx.fillStyle = '#2b120b';
   ctx.fillRect(barX - 2, barY - 2, barW + 4, barH + 4);
   ctx.fillStyle = lowWarn >= 2 ? 'rgba(110, 10, 6, 0.96)' : 'rgba(75, 36, 18, 0.92)';
