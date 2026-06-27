@@ -5589,8 +5589,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.32.1</b>
-      <span id="warRoomBuildName">StartFix</span>
+      <b id="warRoomVersion">v7.33.1</b>
+      <span id="warRoomBuildName">RiftPolish</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -5678,7 +5678,7 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.32.1 StartFix</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.33.1 RiftPolish</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -6520,13 +6520,17 @@ const LEVELS = {
             { c: 22, r: 13, side: 'south', kind: 'breach', label: 'SOUTH BREACH' },
           ],
           holdWaves: [
-            { at: 0, groups: [
-              { entrance: 2, enemies: ['grunt', 'runner', 'runner'] },
-              { entrance: 3, enemies: ['grunt', 'slinger'] },
+            { at: 0, leadIn: 150, groups: [
+              { entrance: 2, enemies: ['runner', 'runner'] },
+              { entrance: 3, enemies: ['grunt', 'runner'] },
             ] },
-            { at: 15, groups: [
-              { entrance: 2, enemies: ['sapper', 'runner', 'runner'] },
-              { entrance: 3, enemies: ['shield', 'grunt', 'slinger'] },
+            { at: 8, leadIn: 120, groups: [
+              { entrance: 0, enemies: ['grunt', 'sapper'] },
+              { entrance: 1, enemies: ['runner', 'slinger'] },
+            ] },
+            { at: 18, leadIn: 110, groups: [
+              { entrance: 2, enemies: ['sapper', 'runner'] },
+              { entrance: 3, enemies: ['shield', 'grunt', 'runner'] },
             ] },
           ],
         },
@@ -6547,17 +6551,21 @@ const LEVELS = {
             { c: 43, r: 13, side: 'east', kind: 'vent', label: 'LOWER VENT' },
           ],
           holdWaves: [
-            { at: 0, groups: [
+            { at: 0, phase: 'early', banner: 'EARLY PRESSURE', leadIn: 90, groups: [
               { entrance: 1, enemies: ['grunt', 'runner', 'slinger'] },
               { entrance: 2, enemies: ['grunt', 'runner'] },
             ] },
-            { at: 37, spike: true, groups: [
+            { at: 18, phase: 'early', leadIn: 80, groups: [
+              { entrance: 1, enemies: ['sapper', 'runner'] },
+              { entrance: 2, enemies: ['shield', 'grunt'] },
+            ] },
+            { at: 36, phase: 'midpoint', spike: true, banner: 'MIDPOINT SPIKE', leadIn: 115, groups: [
               { entrance: 1, enemies: ['shield', 'hexcaller', 'runner', 'runner'] },
               { entrance: 2, enemies: ['sapper', 'sapper', 'runner', 'grunt'] },
             ] },
-            { at: 58, groups: [
-              { entrance: 1, enemies: ['brute', 'slinger', 'runner'] },
-              { entrance: 2, enemies: ['shield', 'runner', 'runner'] },
+            { at: 60, phase: 'final', banner: 'FINAL PUSH', leadIn: 130, groups: [
+              { entrance: 1, enemies: ['brute', 'slinger', 'runner', 'runner'] },
+              { entrance: 2, enemies: ['shield', 'sapper', 'runner', 'runner'] },
             ] },
           ],
         },
@@ -7311,11 +7319,15 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.32.1';
+const GAME_VERSION = '7.33.1';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'StartFix';
+const BUILD_NAME = 'RiftPolish';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Fixed Expedition 02 start validation so the loadout Start button loads Shatter Convoy correctly.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Polished Expedition 02 objective flow, event feedback, combat readability, and extraction presentation.' },
+  { version: '7.33.0', name: 'Instability', changes: 'Added a simple Expedition 02 Rift Instability pressure system for leaving the Core deployed outside required holdouts.' },
+  { version: '7.32.3', name: 'SpawnFix', changes: 'Fixed Expedition 02 deploy rooms so Ambush and Dead Relay no longer auto-clear before the Core hold starts.' },
+  { version: '7.32.2', name: 'PaceSpike', changes: 'Tightened Expedition 02 pacing with faster Ambush pressure, three Dead Relay phases, and a stronger collapse escape climax.' },
+  { version: '7.32.1', name: 'StartFix', changes: 'Fixed Expedition 02 start validation so the loadout Start button loads Shatter Convoy correctly.' },
   { version: '7.32.0', name: 'ShatterConvoy', changes: 'Added the Expedition 02: Shatter Convoy vertical slice with directed Core carry, breach gate, holdouts, relay charge, and escape flow.' },
   { version: '7.31.1', name: 'FlatLab', changes: 'Removed the fake isometric view and kept the Containment Vault visual slice in a flat, readable graphic style.' },
   { version: '7.31.0', name: 'GraphicLab', changes: 'Reworked the Containment Vault as a clean graphic Expedition art slice with clearer floor, wall, obstacle, and reactor hierarchy.' },
@@ -8555,6 +8567,8 @@ function createExpeditionState(levelId = S.levelId) {
     riftWarnPulse: 0,
     riftWarnFlash: 0,
     riftWarnBeep: 0,
+    riftInstability: 0,
+    riftInstabilityPressureTimer: 0,
     roomStates: {},
     activeRoomId: null,
     roomBlockers: [],
@@ -8908,6 +8922,7 @@ function expeditionExtractionRoom() {
 }
 
 function expeditionExtractionLockedCell(c, r) {
+  if (isShatterConvoyExpedition()) return false;
   if (!isExpeditionRun() || expeditionExtractionUnlocked()) return false;
   const room = expeditionExtractionRoom();
   return !!(room && expeditionRoomContainsCell(room, c, r));
@@ -9135,6 +9150,7 @@ function spawnExpeditionRelayEnemy(type, directionIndex) {
 function startExpeditionEscapeSequence() {
   const ex = S.expedition;
   if (!ex || ex.completed) return;
+  const shatterConvoy = isShatterConvoyExpedition();
   const relayRoom = expeditionExtractionRoom();
   if (relayRoom && ex.activeRoomId === relayRoom.id) {
     ex.roomStates[relayRoom.id] = 'cleared';
@@ -9166,10 +9182,12 @@ function startExpeditionEscapeSequence() {
     ex.rift.y = relay.y + 72;
     ex.rift.hp = ex.rift.max;
     ex.rift.flash = 1.4;
-    shockwave(relay.x, relay.y, '#ffffff', 420, .85);
-    shockwave(relay.x, relay.y, '#ff3b61', 310, .7);
-    burst(relay.x, relay.y, '#f0b8ff', 38, 'spark', 360);
-    burst(relay.x, relay.y, '#ff3b61', 20, 'smoke', 220);
+    shockwave(relay.x, relay.y, '#ffffff', shatterConvoy ? 620 : 420, .85);
+    shockwave(relay.x, relay.y, '#ff3b61', shatterConvoy ? 470 : 310, .7);
+    if (shatterConvoy) shockwave(relay.x, relay.y, '#8edcff', 360, .5);
+    burst(relay.x, relay.y, '#f0b8ff', shatterConvoy ? 70 : 38, 'spark', 360);
+    burst(relay.x, relay.y, '#ff3b61', shatterConvoy ? 42 : 20, 'smoke', 220);
+    if (shatterConvoy) burst(relay.x, relay.y, '#fff1a8', 36, 'spark', 260);
   }
   for (const e of S.enemies) {
     if (!e || e.dead || e.expeditionTarget !== 'rift') continue;
@@ -9177,25 +9195,33 @@ function startExpeditionEscapeSequence() {
     e.riftHunter = false;
     retargetExpeditionEnemy(e, 'relay-collapse');
   }
-  ex.message = 'REALITY COLLAPSE DETECTED — EXTRACT THE CORE';
+  ex.message = shatterConvoy ? 'RELAY SHATTERED — GRAB THE CORE' : 'REALITY COLLAPSE DETECTED — EXTRACT THE CORE';
   ex.messageTime = 8;
-  ex.prompt = isShatterConvoyExpedition() ? 'PICK UP THE CORE. REACH EXTRACTION.' : 'PICK UP THE CORE. RETURN TO THE ENTRANCE.';
+  ex.prompt = shatterConvoy ? 'PICK UP THE CORE. REACH EXTRACTION.' : 'PICK UP THE CORE. RETURN TO THE ENTRANCE.';
   ex.promptTime = 8;
-  announceWave('REALITY COLLAPSE DETECTED', 'boss', 2.2);
+  announceWave(shatterConvoy ? 'RELAY SHATTERED — RUN' : 'REALITY COLLAPSE DETECTED', 'boss', 2.2);
   playSfx('bossWarning');
-  shake(28, 1.25);
-  showMissionHint(isShatterConvoyExpedition() ? 'Pick up the Core and reach extraction.' : 'Pick up the Core and return to the Entrance.', 'expedition-core-escape', 6);
-  for (let i = 0; i < 24; i++) spawnExpeditionCollapseEnemy(true);
+  shake(shatterConvoy ? 38 : 28, shatterConvoy ? 1.55 : 1.25);
+  showMissionHint(shatterConvoy ? 'Grab the Core. The exit route is back through the convoy path.' : 'Pick up the Core and return to the Entrance.', 'expedition-core-escape', 6);
+  const burstCount = shatterConvoy ? 44 : 24;
+  for (let i = 0; i < burstCount; i++) spawnExpeditionCollapseEnemy(true);
 }
 
 function spawnExpeditionCollapseEnemy(openingBurst = false) {
   const ex = S.expedition;
-  if (!ex?.escapeActive || S.enemies.filter(e => e && !e.dead && e.expeditionCollapse).length >= 64) return null;
-  const x = openingBurst
-    ? S.hero.x - Math.max(420, W * .52) + Math.random() * Math.max(760, W * 1.04)
-    : S.hero.x - Math.max(520, W * (.55 + Math.random() * .18));
-  const y = S.hero.y + (Math.random() - .5) * Math.max(500, H * .9);
-  const type = Math.random() < .82 ? 'runner' : 'grunt';
+  const shatterConvoy = isShatterConvoyExpedition();
+  const cap = shatterConvoy ? 96 : 64;
+  if (!ex?.escapeActive || S.enemies.filter(e => e && !e.dead && e.expeditionCollapse).length >= cap) return null;
+  const routeBand = shatterConvoy ? Math.max(210, H * .34) : Math.max(500, H * .9);
+  const x = shatterConvoy
+    ? S.hero.x + (openingBurst ? Math.max(260, W * .28) : Math.max(420, W * (.42 + Math.random() * .14))) + Math.random() * Math.max(220, W * .24)
+    : openingBurst
+      ? S.hero.x - Math.max(420, W * .52) + Math.random() * Math.max(760, W * 1.04)
+      : S.hero.x - Math.max(520, W * (.55 + Math.random() * .18));
+  const y = S.hero.y + (Math.random() - .5) * routeBand;
+  const type = shatterConvoy
+    ? (Math.random() < .88 ? 'runner' : Math.random() < .55 ? 'sapper' : 'grunt')
+    : Math.random() < .82 ? 'runner' : 'grunt';
   const oldWave = S.wave;
   S.wave = Math.max(S.wave, 10);
   const enemy = spawnEnemyAt(type, x, y, [{ c: 0, r: 0, x, y }], 0);
@@ -9207,9 +9233,10 @@ function spawnExpeditionCollapseEnemy(openingBurst = false) {
   enemy.expeditionAiTier = 'collapse';
   enemy.expeditionTarget = null;
   enemy.riftHunter = false;
-  enemy.collapseVx = 190 + Math.random() * 150;
-  enemy.collapseVy = (Math.random() - .5) * 70;
-  enemy.collapseLife = 6 + Math.random() * 3;
+  enemy.collapseDir = shatterConvoy ? -1 : 1;
+  enemy.collapseVx = (shatterConvoy ? -(310 + Math.random() * 230) : 190 + Math.random() * 150);
+  enemy.collapseVy = (Math.random() - .5) * (shatterConvoy ? 46 : 70);
+  enemy.collapseLife = shatterConvoy ? 4.6 + Math.random() * 2.2 : 6 + Math.random() * 3;
   enemy.wild = false;
   enemy.behaviors = [];
   return enemy;
@@ -9229,7 +9256,8 @@ function expeditionCollapseEnemyStep(e, dt) {
     e.x += (e.collapseVx || 240) * dt;
     e.y += (e.collapseVy || 0) * dt;
   }
-  if (e.collapseLife <= 0 || e.x > S.hero.x + Math.max(620, W * .7)) e.dead = true;
+  const dir = e.collapseDir || 1;
+  if (e.collapseLife <= 0 || (dir > 0 && e.x > S.hero.x + Math.max(620, W * .7)) || (dir < 0 && e.x < S.hero.x - Math.max(620, W * .7))) e.dead = true;
 }
 
 function applyExpeditionCoreOverload() {
@@ -9283,6 +9311,17 @@ function finishExpeditionExtraction() {
   ex.escapeActive = false;
   ex.message = 'Core extracted.';
   ex.messageTime = 20;
+  ex.prompt = 'EXPEDITION COMPLETE';
+  ex.promptTime = 2.5;
+  if (isShatterConvoyExpedition()) {
+    announceWave('EXTRACTION COMPLETE', 'resting', 1.8);
+    playSfx('waveClear');
+    shockwave(S.hero.x, S.hero.y, '#8edcff', 280, .65);
+    shockwave(S.hero.x, S.hero.y, '#fff1a8', 190, .45);
+    burst(S.hero.x, S.hero.y, '#8edcff', 36, 'spark', 280);
+    floatText('EXTRACTION COMPLETE', S.hero.x - 78, S.hero.y - 56, '#fff1a8');
+    shake(18, .75);
+  }
   S.gameOver = true;
   S.waveActive = false;
   S.queue = [];
@@ -9348,9 +9387,19 @@ function updateExpeditionEscapeSequence(dt) {
     ex.escapeRelayFxTimer = .55 + Math.random() * .55;
   }
   if (ex.escapeSpawnTimer <= 0) {
-    const count = ex.riftCarried ? 8 : 6;
+    const shatterConvoy = isShatterConvoyExpedition();
+    const climax = shatterConvoy && (ex.escapeElapsed || 0) < 16;
+    const count = shatterConvoy
+      ? ex.riftCarried
+        ? (climax ? 14 : 7)
+        : (climax ? 10 : 5)
+      : ex.riftCarried ? 8 : 6;
     for (let i = 0; i < count; i++) spawnExpeditionCollapseEnemy();
-    ex.escapeSpawnTimer = ex.riftCarried ? .34 : .42;
+    ex.escapeSpawnTimer = shatterConvoy
+      ? ex.riftCarried
+        ? (climax ? .24 : .42)
+        : (climax ? .32 : .52)
+      : ex.riftCarried ? .34 : .42;
   }
   if (ex.riftCarried && ex.escapeOverloadTimer <= 0) {
     applyExpeditionCoreOverload();
@@ -9479,22 +9528,110 @@ function shatterConvoyRiftAtRoomPoint(room, radius = 125) {
   const y = ex.riftCarried ? S.hero.y : ex.rift.y;
   return dist(x, y, point.x, point.y) <= radius;
 }
+function shatterConvoyRiftDeployedInRoom(room) {
+  const ex = S.expedition;
+  return !!(ex?.rift && room && !ex.riftCarried && expeditionRoomContainsPoint(room, ex.rift.x, ex.rift.y));
+}
+function shatterConvoyRiftRoom() {
+  const ex = S.expedition;
+  const cfg = expeditionConfig();
+  if (!ex?.rift || !cfg) return null;
+  const cell = cellAt(ex.rift.x, ex.rift.y);
+  return (cfg.rooms || []).find(room => expeditionRoomContainsCell(room, cell.c, cell.r)) || null;
+}
+function shatterConvoyInstabilityActive() {
+  const ex = S.expedition;
+  return !!(isShatterConvoyExpedition()
+    && ex?.riftActivated
+    && ex.rift
+    && !ex.riftCarried
+    && !ex.escapeActive
+    && !ex.completed
+    && ex.roomObjective?.type !== 'shatterHold');
+}
+function shatterConvoyInstabilityStatus() {
+  const level = Math.max(0, S.expedition?.riftInstability || 0);
+  if (level >= 70) return 'Rift Critical — Move!';
+  if (level >= 35) return 'Rift Unstable';
+  return 'Rift Stable';
+}
+function spawnShatterConvoyInstabilityHunters() {
+  const ex = S.expedition;
+  const room = shatterConvoyRiftRoom() || expeditionRoomAtHero();
+  if (!ex?.rift || !room) return [];
+  const fallback = cellAt(ex.rift.x + 160, ex.rift.y);
+  const cells = expeditionRoomSpawnCells(room, 3);
+  const types = ['runner', 'runner', 'sapper'];
+  const spawned = types.map((type, i) => {
+    const cell = cells[i % Math.max(1, cells.length)] || { c: fallback.c, r: fallback.r, x: cx(fallback.c), y: cy(fallback.r), label: 'instability' };
+    return spawnExpeditionRoomEnemy(type, room, cell, false);
+  }).filter(Boolean);
+  for (const enemy of spawned) {
+    enemy.expeditionTarget = 'rift';
+    enemy.riftHunter = true;
+    enemy.expeditionRecentlyEngagedUntil = performance.now() / 1000 + 5;
+    retargetExpeditionEnemy(enemy, 'shatter-instability');
+  }
+  if (spawned.length) {
+    ex.message = 'Rift instability drew hunters.';
+    ex.messageTime = 3;
+    announceWave('RIFT HUNTERS', 'danger', 1);
+  }
+  return spawned;
+}
+function updateShatterConvoyInstability(dt) {
+  const ex = S.expedition;
+  if (!isShatterConvoyExpedition() || !ex) return;
+  if (ex.roomObjective?.type === 'shatterHold') {
+    ex.riftInstabilityPressureTimer = Math.max(ex.riftInstabilityPressureTimer || 0, 4);
+    return;
+  }
+  if (!shatterConvoyInstabilityActive()) {
+    ex.riftInstability = Math.max(0, (ex.riftInstability || 0) - dt * 7);
+    ex.riftInstabilityPressureTimer = Math.max(0, (ex.riftInstabilityPressureTimer || 0) - dt);
+    return;
+  }
+  ex.riftInstability = Math.min(100, (ex.riftInstability || 0) + dt * 3.6);
+  ex.riftInstabilityPressureTimer = Math.max(0, (ex.riftInstabilityPressureTimer || 0) - dt);
+  if (ex.riftInstability >= 70 && ex.riftInstabilityPressureTimer <= 0) {
+    spawnShatterConvoyInstabilityHunters();
+    ex.riftInstabilityPressureTimer = 14;
+  }
+}
 
 function spawnShatterConvoyHoldWave(room, wave) {
   if (!room || !wave) return [];
   const spawned = [];
   const entrances = room.entrances || [];
+  const focus = shatterConvoyRoomPoint(room) || expeditionRoomCenter(room);
+  const leadIn = Math.max(0, wave.leadIn || 0);
+  const telegraphed = new Set();
   for (const group of wave.groups || []) {
     const entrance = entrances[group.entrance] || entrances[0];
     const spawnCell = entrance
       ? { c: entrance.c, r: entrance.r, x: cx(entrance.c), y: cy(entrance.r), label: entrance.label || room.name, kind: entrance.kind }
       : expeditionRoomSpawnCells(room, 1)[0];
     if (!spawnCell) continue;
+    const spawnKey = key(spawnCell.c, spawnCell.r);
+    if (!telegraphed.has(spawnKey)) {
+      telegraphed.add(spawnKey);
+      shockwave(spawnCell.x, spawnCell.y, wave.spike ? '#ff3b61' : '#ffcf6a', wave.spike ? 125 : 92, .3);
+      burst(spawnCell.x, spawnCell.y, wave.spike ? '#ff3b61' : '#ffd45a', wave.spike ? 18 : 10, 'spark', wave.spike ? 220 : 150);
+      floatText(spawnCell.label || 'BREACH', spawnCell.x - 34, spawnCell.y - 24, wave.spike ? '#ffb8c8' : '#fff1a8');
+    }
     for (const type of group.enemies || []) {
       const enemy = spawnExpeditionRoomEnemy(type, room, spawnCell, false);
       if (!enemy) continue;
+      if (leadIn && focus) {
+        const dx = focus.x - enemy.x;
+        const dy = focus.y - enemy.y;
+        const d = Math.max(1, Math.hypot(dx, dy));
+        enemy.x += dx / d * leadIn;
+        enemy.y += dy / d * leadIn;
+      }
       enemy.expeditionTarget = 'rift';
       enemy.riftHunter = true;
+      enemy.expeditionRecentlyEngagedUntil = performance.now() / 1000 + 5;
       retargetExpeditionEnemy(enemy, 'shatter-convoy-hold');
       spawned.push(enemy);
     }
@@ -9506,6 +9643,12 @@ function spawnShatterConvoyHoldWave(room, wave) {
 function completeShatterConvoyRoom(room, message = '') {
   const ex = S.expedition;
   if (!ex || !room) return false;
+  const point = shatterConvoyRoomPoint(room) || expeditionRoomCenter(room) || { x: S.hero.x, y: S.hero.y };
+  const eventCopy = {
+    breach: ['BREACH GATE OPEN', 'Gate open. Carry the Rift forward.', '#ffcf6a'],
+    ambush: ['AMBUSH EXIT OPEN', 'Ambush survived. Grab the Rift and move.', '#b9d84f'],
+    deadRelay: ['DEAD RELAY CHARGED', 'Relay charged. Grab the Rift and escape.', '#f0b8ff'],
+  }[room.id] || [`${room.name.toUpperCase()} CLEARED`, message || `${room.name} cleared.`, '#b9d84f'];
   ex.roomStates[room.id] = 'cleared';
   ex.activeRoomId = null;
   ex.roomObjective = null;
@@ -9520,10 +9663,14 @@ function completeShatterConvoyRoom(room, message = '') {
       delete e.lockedDoorRetargetAt;
     }
   }
-  ex.message = message || `${room.name} cleared.`;
+  ex.message = message || eventCopy[1];
   ex.messageTime = 5;
-  announceWave(`${room.name.toUpperCase()} CLEARED`, 'resting', .9);
-  shockwave(S.hero.x, S.hero.y, '#b9d84f', 120, .3);
+  announceWave(eventCopy[0], 'resting', room.id === 'deadRelay' ? 1.35 : 1.05);
+  playSfx(room.id === 'deadRelay' ? 'bossWarning' : 'waveClear');
+  shockwave(point.x, point.y, eventCopy[2], room.id === 'deadRelay' ? 260 : 155, room.id === 'deadRelay' ? .55 : .35);
+  burst(point.x, point.y, eventCopy[2], room.id === 'deadRelay' ? 30 : 16, 'spark', room.id === 'deadRelay' ? 280 : 180);
+  floatText(eventCopy[0], point.x - 72, point.y - 46, '#fff1a8');
+  shake(room.id === 'deadRelay' ? 16 : 8, room.id === 'deadRelay' ? .65 : .32);
   return true;
 }
 
@@ -9548,8 +9695,15 @@ function shatterConvoyStartHold(room) {
   ex.message = label;
   ex.messageTime = 4;
   announceWave(room.id === 'deadRelay' ? 'DEAD RELAY CHARGING' : 'AMBUSH HOLD STARTED', 'danger', 1.1);
+  playSfx(room.id === 'deadRelay' ? 'bossWarning' : 'waveStart');
   const point = shatterConvoyRoomPoint(room);
-  if (point) shockwave(point.x, point.y, '#f0b8ff', 190, .4);
+  if (point) {
+    shockwave(point.x, point.y, '#f0b8ff', room.id === 'deadRelay' ? 245 : 190, .4);
+    burst(point.x, point.y, '#f0b8ff', room.id === 'deadRelay' ? 24 : 14, 'spark', 190);
+    floatText(room.id === 'deadRelay' ? 'RELAY CHARGING' : 'HOLD STARTED', point.x - 58, point.y - 52, '#fff1ff');
+  }
+  showMissionHint(room.id === 'deadRelay' ? 'Dead Relay charging. Hold until the final push ends.' : 'Doors closing. Defend the Rift until the exit opens.', `expedition02-${room.id}-hold-start`, 3.6);
+  updateShatterConvoyHold(0, room);
   return true;
 }
 
@@ -9573,7 +9727,7 @@ function handleShatterConvoyRiftDeployed() {
     return true;
   }
   if (ex.roomObjective?.type === 'ambushDeploy' || ex.roomObjective?.type === 'relayDeploy') {
-    if (!shatterConvoyRiftAtRoomPoint(room)) {
+    if (!shatterConvoyRiftAtRoomPoint(room) && !shatterConvoyRiftDeployedInRoom(room)) {
       ex.message = room.id === 'deadRelay' ? 'Deploy Rift near the dead relay.' : 'Deploy Rift in the room.';
       ex.messageTime = 3;
       return false;
@@ -9595,6 +9749,10 @@ function startShatterConvoyRoomEncounter(room) {
     ex.roomBlockers = shatterConvoyGateBlockers(room);
     ex.message = 'Deploy Rift at Gate.';
     ex.messageTime = 5;
+    announceWave('BREACH GATE', 'danger', .9);
+    playSfx('ui');
+    const point = shatterConvoyRoomPoint(room);
+    if (point) floatText('DEPLOY HERE', point.x - 40, point.y - 40, '#fff1a8');
     showMissionHint('Deploy the Core at the Breach Gate.', 'expedition02-breach-gate', 4);
     return true;
   }
@@ -9603,6 +9761,10 @@ function startShatterConvoyRoomEncounter(room) {
     ex.roomBlockers = [];
     ex.message = 'Deploy Rift to start the ambush hold.';
     ex.messageTime = 5;
+    announceWave('AMBUSH ROOM', 'danger', .9);
+    playSfx('ui');
+    const point = shatterConvoyRoomPoint(room);
+    if (point) floatText('DEPLOY RIFT', point.x - 38, point.y - 42, '#fff1a8');
     showMissionHint('Deploy the Core to begin the hold.', 'expedition02-ambush-deploy', 4);
     return true;
   }
@@ -9611,6 +9773,10 @@ function startShatterConvoyRoomEncounter(room) {
     ex.roomBlockers = [];
     ex.message = 'Deploy Rift near the dead relay.';
     ex.messageTime = 5;
+    announceWave('DEAD RELAY', 'danger', 1);
+    playSfx('ui');
+    const point = shatterConvoyRoomPoint(room);
+    if (point) floatText('CHARGE RELAY', point.x - 46, point.y - 48, '#fff1a8');
     showMissionHint('Deploy the Core near the dead relay.', 'expedition02-dead-relay', 4);
     return true;
   }
@@ -9627,11 +9793,19 @@ function updateShatterConvoyHold(dt, activeRoom) {
   while ((objective.waveIndex || 0) < waves.length && waves[objective.waveIndex].at <= elapsed) {
     const wave = waves[objective.waveIndex++];
     spawnShatterConvoyHoldWave(activeRoom, wave);
-    announceWave(wave.spike ? 'INTENSITY SPIKE' : `${activeRoom.name.toUpperCase()} WAVE`, 'danger', wave.spike ? 1.4 : .9);
+    const waveBanner = wave.banner || (wave.spike ? 'INTENSITY SPIKE' : `${activeRoom.name.toUpperCase()} WAVE`);
+    announceWave(waveBanner, 'danger', wave.spike || wave.phase === 'final' ? 1.4 : .9);
     if (wave.spike) {
       ex.message = 'Relay surge. Hold the line.';
       ex.messageTime = 4;
       shake(14, .55);
+    } else if (wave.phase === 'final') {
+      ex.message = 'Final push. Keep the Relay alive.';
+      ex.messageTime = 4;
+      shake(10, .38);
+    } else if (wave.phase === 'early') {
+      ex.message = 'Early pressure. Build fast.';
+      ex.messageTime = 3;
     }
   }
   objective.label = activeRoom.id === 'deadRelay'
@@ -10056,6 +10230,7 @@ function updateExpeditionRoomEncounter(dt = 0) {
         }
       }
       if (updateShatterConvoyHold(dt, activeRoom)) return;
+      if (isShatterConvoyExpedition() && ['breachGate', 'ambushDeploy', 'relayDeploy'].includes(ex.roomObjective?.type)) return;
       if (ex.roomObjective?.type === 'keyEscape') {
         updateExpeditionGhostEncounter(activeRoom, dt);
         if (activeRoom && ex.finalKeyCollected && !expeditionRoomContainsPoint(activeRoom, S.hero.x, S.hero.y)) {
@@ -10189,6 +10364,11 @@ function tryToggleExpeditionRiftCarry() {
     ex.riftCarried = false;
     ex.message = 'Rift deployed.';
     ex.messageTime = 3;
+    if (isShatterConvoyExpedition()) {
+      playSfx('place');
+      announceWave('RIFT DEPLOYED', 'danger', .85);
+      floatText('RIFT DEPLOYED', ex.rift.x - 48, ex.rift.y - 44, '#f0b8ff');
+    }
     shockwave(ex.rift.x, ex.rift.y, '#e6b8ff', 120, .28);
     burst(ex.rift.x, ex.rift.y, '#f0b8ff', 12, 'spark', 120);
     for (const e of S.enemies) {
@@ -10199,6 +10379,10 @@ function tryToggleExpeditionRiftCarry() {
   }
   if (dist(S.hero.x, S.hero.y, ex.rift.x, ex.rift.y) > 95) return false;
   ex.riftCarried = true;
+  if (isShatterConvoyExpedition()) {
+    playSfx('secondaryReady');
+    floatText(ex.escapeActive ? 'ESCAPE!' : 'RIFT SECURED', S.hero.x - 42, S.hero.y - 46, '#8edcff');
+  }
   if (!ex.riftEverCarried && !(ex.riftAwakeningTime > 0)) {
     ex.riftAwakeningTime = 2;
     ex.message = 'The Rift wakes.';
@@ -10329,6 +10513,7 @@ function updateExpedition(dt) {
   updateExpeditionExtractionEvent(dt);
   updateExpeditionEscapeSequence(dt);
   expeditionApplyRiftUpgrades(dt);
+  updateShatterConvoyInstability(dt);
   if (ex.completed) return;
 
   const room = expeditionRoomAtHero();
@@ -13015,6 +13200,15 @@ function missionHintSeenKey(key) {
 
 function missionBriefingCopy(type = currentMissionType()) {
   if (type === 'expedition') {
+    const selectedLevel = S.started ? S.levelId : getSelectedMissionLevel();
+    if (selectedLevel === 'expedition02') {
+      return {
+        title: 'EXPEDITION 02',
+        objective: 'Move the unstable Rift forward.\nCharge the Dead Relay.\nGrab the Rift and escape.',
+        flow: ['Carry Rift.', 'Deploy at mission markers.', 'Hold during Ambush and Relay.', 'Grab Rift.', 'Reach Extraction.'],
+        controls: ['WASD Move', 'LMB Fire', 'RMB Secondary Fire / Sell Tower', 'E Pick Up or Deploy Rift'],
+      };
+    }
     return {
       title: 'EXPEDITION',
       objective: 'Collect keys.\nUnlock extraction.\nEscape.',
@@ -13119,6 +13313,7 @@ function maybeShowMissionHint(text, key, duration) {
 }
 
 function missionObjectiveText() {
+  if (S.gameOver && isShatterConvoyExpedition() && S.expedition?.completed) return 'Expedition Complete';
   if (!S.started || S.gameOver) return 'Ready';
   if (isExpeditionRun()) {
     const ex = S.expedition;
@@ -13159,6 +13354,7 @@ function showRiftDefenseRequired() {
 }
 
 function missionObjectiveHudState() {
+  if (S.gameOver && isShatterConvoyExpedition() && S.expedition?.completed) return { title: 'EXTRACTION', sub: 'COMPLETE' };
   if (!S.started || S.gameOver) return { title: 'READY', sub: '' };
   if (isExpeditionRun()) {
     const ex = S.expedition;
@@ -13214,7 +13410,8 @@ function currentRoomHudState() {
     || null;
   const roomState = room ? expeditionRoomState(room.id) : '';
   let status = 'Facility Unsecured';
-  if (ex?.activeRoomId && ex.roomObjective) status = 'Pressure Zone Active';
+  if (isShatterConvoyExpedition() && shatterConvoyInstabilityActive()) status = shatterConvoyInstabilityStatus();
+  else if (ex?.activeRoomId && ex.roomObjective) status = 'Pressure Zone Active';
   else if (roomState === 'cleared') status = 'Zone Secured';
   else if (ex?.riftActivated) status = ex.riftCarried ? 'Rift In Transit' : 'Rift Signal Active';
   else if (ex?.riftFound) status = 'Rift Signal Located';
@@ -23994,8 +24191,9 @@ function drawExpeditionObjects(t) {
     const relay = expeditionRelayPadCenter();
     const exX = relay?.x ?? cx(cfg.extraction.c);
     const exY = relay?.y ?? cy(cfg.extraction.r);
-    const keyPct = expeditionKeyCount() / expeditionKeyGoal();
-    const unlocked = expeditionExtractionUnlocked();
+    const shatterConvoy = isShatterConvoyExpedition();
+    const keyPct = shatterConvoy ? .65 : expeditionKeyCount() / expeditionKeyGoal();
+    const unlocked = shatterConvoy || expeditionExtractionUnlocked();
     const riftReturned = expeditionRiftAtRelay();
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
@@ -24016,8 +24214,8 @@ function drawExpeditionObjects(t) {
       ctx.lineTo(exX - 48, exY + 28);
       ctx.stroke();
     }
-    let relayLine1 = ex.escapeActive ? 'RELAY UNSTABLE' : unlocked ? 'RELAY READY' : 'RELAY LOCKED';
-    let relayLine2 = ex.escapeActive ? 'REALITY COLLAPSE' : unlocked ? 'HOLD HERE' : `${expeditionKeyCount()}/${expeditionKeyGoal()} KEYS`;
+    let relayLine1 = ex.escapeActive ? 'RELAY UNSTABLE' : shatterConvoy ? 'DEAD RELAY' : unlocked ? 'RELAY READY' : 'RELAY LOCKED';
+    let relayLine2 = ex.escapeActive ? 'REALITY COLLAPSE' : shatterConvoy ? 'CHARGE HERE' : unlocked ? 'HOLD HERE' : `${expeditionKeyCount()}/${expeditionKeyGoal()} KEYS`;
     if (!ex.escapeActive && unlocked && !riftReturned) {
       relayLine1 = 'RETURN RIFT';
       relayLine2 = 'TO RELAY';
@@ -24221,12 +24419,20 @@ function drawExpeditionHud(t) {
     ctx.fillStyle = '#9fffc8';
     ctx.beginPath(); ctx.arc(mx + (cfg.extraction.c + .5) * scale, my + (cfg.extraction.r + .5) * scale, 4.5, 0, 7); ctx.fill();
   }
-  ctx.fillStyle = expeditionExtractionUnlocked() ? '#9fffc8' : '#ffd45a';
+  const shatterConvoy = isShatterConvoyExpedition();
+  const mapStatus = shatterConvoy
+    ? ex.escapeActive
+      ? 'TO EXTRACTION'
+      : ex.activeRoomId
+        ? 'OBJECTIVE'
+        : 'MOVE RIFT'
+    : expeditionExtractionKeyProgressText();
+  ctx.fillStyle = shatterConvoy ? '#8edcff' : expeditionExtractionUnlocked() ? '#9fffc8' : '#ffd45a';
   ctx.font = '900 9px Arial';
   ctx.lineWidth = 3;
   ctx.strokeStyle = '#050302';
-  ctx.strokeText(expeditionExtractionKeyProgressText(), x + 8, y + h - 7);
-  ctx.fillText(expeditionExtractionKeyProgressText(), x + 8, y + h - 7);
+  ctx.strokeText(mapStatus, x + 8, y + h - 7);
+  ctx.fillText(mapStatus, x + 8, y + h - 7);
   ctx.restore();
 
   const chapelCountdownActive = ex.activeRoomId === 'chapel'
