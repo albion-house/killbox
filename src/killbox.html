@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Killbox 7.27.0 ShatterCycle</title>
+<title>Killbox 7.35.5 HeartTether</title>
 <style>
 /* ── Design tokens ─────────────────────────────────────────────── */
 :root {
@@ -5589,8 +5589,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.35.4</b>
-      <span id="warRoomBuildName">BigJoel</span>
+      <b id="warRoomVersion">v7.35.5</b>
+      <span id="warRoomBuildName">HeartTether</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -5678,7 +5678,7 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.35.4 BigJoel</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.35.5 HeartTether</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -7319,11 +7319,12 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.35.4';
+const GAME_VERSION = '7.35.5';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'BigJoel';
+const BUILD_NAME = 'HeartTether';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Cropped the Joel hero sprite frames so the visible character renders much larger without scaling the transparent border.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Redesigned the carried Rift into a tethered floating heart while keeping the deployed anchor intact.' },
+  { version: '7.35.4', name: 'BigJoel', changes: 'Cropped the Joel hero sprite frames so the visible character renders much larger without scaling the transparent border.' },
   { version: '7.35.3', name: 'BigJoel', changes: 'Set the Joel hero sprite draw size to 175 for a much larger on-screen read.' },
   { version: '7.35.2', name: 'BigJoel', changes: 'Scaled the Joel hero sprite up to read near Rift scale in gameplay.' },
   { version: '7.35.1', name: 'ChunkyJoel', changes: 'Increased the Joel hero sprite render size and raised the health bar above the larger character.' },
@@ -7883,6 +7884,54 @@ function expeditionRiftVisualState(t = 0) {
     hasField: upgrades.has('field'),
     danger: count >= 3,
   };
+}
+
+const TETHERED_RIFT_FOLLOW_DISTANCE = 42;
+const TETHERED_RIFT_VERTICAL_OFFSET = -30;
+const TETHERED_RIFT_BOB_AMPLITUDE = 4;
+const TETHERED_RIFT_BOB_SPEED = 5.5;
+const TETHERED_RIFT_LERP = 10;
+const TETHER_LINE_WIDTH = 3.5;
+const TETHERED_RIFT_DRAW_SIZE = 46;
+const DEPLOYED_RIFT_DRAW_SIZE = 92;
+const RIFT_SETTLE_DURATION = 0.5;
+const RIFT_STATUS_BAR_GAP = 14;
+
+function updateExpeditionRiftVisual(dt) {
+  const ex = S.expedition;
+  const rift = ex?.rift;
+  const hero = S.hero;
+  if (!isExpeditionRun() || !ex || !rift || !hero || !ex.riftActivated || ex.completed) return;
+  if (!Number.isFinite(ex.riftFollowPrevHeroX)) ex.riftFollowPrevHeroX = hero.x;
+  if (!Number.isFinite(ex.riftFollowPrevHeroY)) ex.riftFollowPrevHeroY = hero.y;
+  const moveX = hero.x - ex.riftFollowPrevHeroX;
+  const moveY = hero.y - ex.riftFollowPrevHeroY;
+  ex.riftFollowPrevHeroX = hero.x;
+  ex.riftFollowPrevHeroY = hero.y;
+  const moveMag = Math.hypot(moveX, moveY);
+  if (moveMag > .2) {
+    ex.riftCarryFacingX = moveX / moveMag;
+    ex.riftCarryFacingY = moveY / moveMag;
+  }
+  const facingX = Number.isFinite(ex.riftCarryFacingX) ? ex.riftCarryFacingX : 0;
+  const facingY = Number.isFinite(ex.riftCarryFacingY) ? ex.riftCarryFacingY : -1;
+  ex.riftVisualBobPhase = (ex.riftVisualBobPhase || 0) + dt * TETHERED_RIFT_BOB_SPEED;
+  if (ex.riftCarried) {
+    const perpX = -facingY;
+    const perpY = facingX;
+    const desiredX = hero.x - facingX * TETHERED_RIFT_FOLLOW_DISTANCE + perpX * 6;
+    const desiredY = hero.y + TETHERED_RIFT_VERTICAL_OFFSET - facingY * 8 + perpY * 2;
+    const lerp = 1 - Math.exp(-dt * TETHERED_RIFT_LERP);
+    ex.riftVisualX = Number.isFinite(ex.riftVisualX) ? ex.riftVisualX + (desiredX - ex.riftVisualX) * lerp : desiredX;
+    ex.riftVisualY = Number.isFinite(ex.riftVisualY) ? ex.riftVisualY + (desiredY - ex.riftVisualY) * lerp : desiredY;
+    rift.x = ex.riftVisualX;
+    rift.y = ex.riftVisualY + Math.sin(ex.riftVisualBobPhase) * TETHERED_RIFT_BOB_AMPLITUDE;
+    ex.riftSettleTime = 0;
+  } else {
+    ex.riftVisualX = rift.x;
+    ex.riftVisualY = rift.y;
+    ex.riftSettleTime = Math.max(0, (ex.riftSettleTime || 0) - dt);
+  }
 }
 
 function expeditionRiftThreatLevel() {
@@ -8568,6 +8617,12 @@ function createExpeditionState(levelId = S.levelId) {
     patrolTimer: 1.0,
     reinforceTimer: 0,
     rift: { x: riftX, y: riftY, hp: 900, max: 900 },
+    riftVisualX: riftX,
+    riftVisualY: riftY,
+    riftVisualBobPhase: Math.random() * Math.PI * 2,
+    riftCarryFacingX: 0,
+    riftCarryFacingY: -1,
+    riftSettleTime: 0,
     riftCarried: false,
     riftEverCarried: false,
     riftAwakeningTime: 0,
@@ -10372,6 +10427,9 @@ function tryToggleExpeditionRiftCarry() {
     }
     ex.rift.x = cx(hc.c);
     ex.rift.y = cy(hc.r);
+    ex.riftVisualX = ex.rift.x;
+    ex.riftVisualY = ex.rift.y;
+    ex.riftSettleTime = RIFT_SETTLE_DURATION;
     ex.riftCarried = false;
     ex.message = 'Rift deployed.';
     ex.messageTime = 3;
@@ -10390,6 +10448,9 @@ function tryToggleExpeditionRiftCarry() {
   }
   if (dist(S.hero.x, S.hero.y, ex.rift.x, ex.rift.y) > 95) return false;
   ex.riftCarried = true;
+  ex.riftVisualX = ex.rift.x;
+  ex.riftVisualY = ex.rift.y;
+  ex.riftSettleTime = 0;
   if (isShatterConvoyExpedition()) {
     playSfx('secondaryReady');
     floatText(ex.escapeActive ? 'ESCAPE!' : ex.roomObjective?.type === 'shatterHold' ? 'REPOSITION' : 'RIFT SECURED', S.hero.x - 42, S.hero.y - 46, '#8edcff');
@@ -10402,8 +10463,6 @@ function tryToggleExpeditionRiftCarry() {
     playSfx('bossWarning');
     shake(7, .35);
   }
-  ex.rift.x = S.hero.x;
-  ex.rift.y = S.hero.y;
   ex.message = ex.escapeActive
     ? 'CORE OVERLOAD ACTIVE.'
     : isShatterConvoyExpedition() && ex.roomObjective?.type === 'shatterHold'
@@ -10530,6 +10589,7 @@ function updateExpedition(dt) {
   updateExpeditionExtractionEvent(dt);
   updateExpeditionEscapeSequence(dt);
   expeditionApplyRiftUpgrades(dt);
+  updateExpeditionRiftVisual(dt);
   updateShatterConvoyInstability(dt);
   if (ex.completed) return;
 
@@ -22326,7 +22386,7 @@ function updateLowHealthWarning(dt) {
 function updateExpeditionRiftWarning(dt) {
   const ex = S.expedition;
   const rift = ex?.rift;
-  const alive = isExpeditionRun() && ex && rift && ex.riftActivated && !ex.riftCarried && !S.gameOver && rift.max > 0 && rift.hp > 0;
+  const alive = isExpeditionRun() && ex && rift && ex.riftActivated && !S.gameOver && rift.max > 0 && rift.hp > 0;
   const threat = expeditionRiftThreatLevel();
   if (!alive) {
     if (ex) {
@@ -23904,7 +23964,112 @@ function drawExpeditionDressing(t) {
   ctx.restore();
 }
 
+function drawExpeditionRiftTether(heroX, heroY, riftX, riftY, t) {
+  const dx = riftX - heroX;
+  const dy = riftY - heroY;
+  const distLen = Math.max(1, Math.hypot(dx, dy));
+  const nx = dx / distLen;
+  const ny = dy / distLen;
+  const px = -ny;
+  const py = nx;
+  const sway = Math.sin(t * 5.4 + distLen * .012) * 11;
+  const pull = Math.min(1, distLen / 260);
+  const startX = heroX + nx * 16;
+  const startY = heroY - 8 + ny * 16;
+  const endX = riftX - nx * 20;
+  const endY = riftY - ny * 18;
+  const c1x = startX + nx * distLen * .26 + px * sway;
+  const c1y = startY + ny * distLen * .26 + py * sway;
+  const c2x = startX + nx * distLen * .72 - px * sway * .55;
+  const c2y = startY + ny * distLen * .72 - py * sway * .55;
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.globalCompositeOperation = 'screen';
+  ctx.globalAlpha = .16 + pull * .18;
+  ctx.strokeStyle = '#ffb4d2';
+  ctx.lineWidth = TETHER_LINE_WIDTH + 6;
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
+  ctx.bezierCurveTo(c1x, c1y, c2x, c2y, endX, endY);
+  ctx.stroke();
+  ctx.globalAlpha = .55 + pull * .22;
+  ctx.strokeStyle = '#ff5f8d';
+  ctx.lineWidth = TETHER_LINE_WIDTH + 1.5;
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
+  ctx.bezierCurveTo(c1x, c1y, c2x, c2y, endX, endY);
+  ctx.stroke();
+  ctx.globalAlpha = .9;
+  ctx.strokeStyle = '#fff2f7';
+  ctx.lineWidth = TETHER_LINE_WIDTH * .55;
+  ctx.setLineDash([12, 16]);
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
+  ctx.bezierCurveTo(c1x, c1y, c2x, c2y, endX, endY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.globalAlpha = .45;
+  ctx.fillStyle = '#fff1a8';
+  for (let i = 0; i < 4; i++) {
+    const u = .2 + i * .18 + Math.sin(t * 2.4 + i) * .02;
+    const sx = startX + (endX - startX) * u + px * Math.sin(t * 8 + i * 2.4) * (9 - i);
+    const sy = startY + (endY - startY) * u + py * Math.cos(t * 6 + i * 1.7) * (6 - i);
+    ctx.beginPath();
+    ctx.arc(sx, sy, 2.2 - i * .2, 0, 7);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
 function drawExpeditionRiftCore(x, y, t, activated = false, carried = false) {
+  if (carried) {
+    const ex = S.expedition;
+    const warnState = ex?.riftWarnState || 0;
+    const pct = Math.max(0, Math.min(1, (ex?.rift?.hp || 0) / Math.max(1, ex?.rift?.max || 1)));
+    const pulse = 1 + Math.sin(t * 5.8) * .05;
+    const wobble = Math.sin(t * 6.5 + x * .012) * 2.5;
+    const settle = Math.max(0, Math.min(1, (ex?.riftSettleTime || 0) / RIFT_SETTLE_DURATION));
+    ctx.save();
+    ctx.translate(x + wobble, y + Math.sin(t * 4.4 + y * .013) * 2.6);
+    ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = .35;
+    ctx.fillStyle = warnState >= 3 ? '#ff2f4f' : '#ff89bc';
+    ctx.beginPath();
+    ctx.arc(0, 2, 32 * pulse, 0, 7);
+    ctx.fill();
+    ctx.globalAlpha = .52;
+    ctx.strokeStyle = '#ffd2e2';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(0, 2, 26 * pulse, 0, 7);
+    ctx.stroke();
+    ctx.globalAlpha = .95;
+    ctx.scale(.86 + settle * .1, .86 + settle * .1);
+    ctx.translate(0, -2);
+    ctx.fillStyle = warnState >= 3 ? '#ff1737' : pct > .45 ? '#ff5f88' : '#ff7ca0';
+    ctx.beginPath();
+    ctx.moveTo(0, 20);
+    ctx.bezierCurveTo(-24, 2, -28, -18, -12, -26);
+    ctx.bezierCurveTo(-2, -32, 0, -23, 0, -16);
+    ctx.bezierCurveTo(0, -23, 2, -32, 12, -26);
+    ctx.bezierCurveTo(28, -18, 24, 2, 0, 20);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = warnState >= 3 ? '#7b0615' : '#ffeff5';
+    ctx.lineWidth = 3.5;
+    ctx.stroke();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = '#fff7fb';
+    ctx.strokeStyle = '#18081f';
+    ctx.lineWidth = 3;
+    ctx.font = 'bold 10px Georgia';
+    ctx.textAlign = 'center';
+    ctx.strokeText('CARRIED', 0, -40);
+    ctx.fillText('CARRIED', 0, -40);
+    ctx.restore();
+    return;
+  }
   if (pointInAbstractGouacheRoom(x, y)) {
     drawAbstractGouacheRiftCore(x, y, t, activated, carried);
     return;
@@ -23925,9 +24090,10 @@ function drawExpeditionRiftCore(x, y, t, activated = false, carried = false) {
   const weak = visual.count <= 0;
   const pulse = 1 + Math.sin(vt * (weak ? 4 : 6)) * (weak ? .035 : .07);
   const fragile = weak ? .82 + Math.sin(t * 11.7) * .06 : 1;
+  const carryScale = carried ? TETHERED_RIFT_DRAW_SIZE / DEPLOYED_RIFT_DRAW_SIZE : 1;
   ctx.save();
   ctx.translate(x, y);
-  ctx.scale(visual.scale, visual.scale);
+  ctx.scale(visual.scale * carryScale, visual.scale * carryScale);
   if (dormant) {
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = .96;
@@ -24432,8 +24598,14 @@ function drawExpeditionObjects(t) {
   const activeRoom = (cfg.rooms || []).find(room => room.id === ex.activeRoomId) || expeditionRoomAtHero();
   const staticX = cx(cfg.rift.c);
   const staticY = cy(cfg.rift.r);
+  const carriedRiftX = Number.isFinite(ex.riftVisualX) ? ex.riftVisualX : ex.rift?.x;
+  const carriedRiftY = Number.isFinite(ex.riftVisualY) ? ex.riftVisualY : ex.rift?.y;
+  const carriedRiftBob = ex.riftCarried ? Math.sin((ex.riftVisualBobPhase || 0)) * TETHERED_RIFT_BOB_AMPLITUDE : 0;
+  const riftRenderX = ex.riftCarried ? carriedRiftX : ex.rift?.x;
+  const riftRenderY = ex.riftCarried ? carriedRiftY + carriedRiftBob : ex.rift?.y;
   const nearRift = ex.riftActivated || ex.riftFound || dist(S.hero.x, S.hero.y, staticX, staticY) < 360;
-  if (nearRift) drawExpeditionRiftCore(ex.riftActivated ? ex.rift.x : staticX, ex.riftActivated ? ex.rift.y : staticY, t, ex.riftActivated, !!ex.riftCarried);
+  if (nearRift && ex.riftCarried) drawExpeditionRiftTether(S.hero.x, S.hero.y, riftRenderX, riftRenderY, t);
+  if (nearRift) drawExpeditionRiftCore(ex.riftActivated ? riftRenderX : staticX, ex.riftActivated ? riftRenderY : staticY, t, ex.riftActivated, !!ex.riftCarried);
   if (ex.escapeActive && ex.riftCarried) {
     ctx.save();
     ctx.translate(S.hero.x, S.hero.y);
@@ -24504,14 +24676,18 @@ function drawExpeditionObjects(t) {
       }
       ex.rift.flash = Math.max(0, (ex.rift.flash || 0) - .08);
     }
+    const barW = ex.riftCarried ? 84 : 116;
+    const barH = 8;
+    const barX = riftRenderX - barW / 2;
+    const barY = riftRenderY - (ex.riftCarried ? TETHERED_RIFT_DRAW_SIZE : DEPLOYED_RIFT_DRAW_SIZE) * .72 - RIFT_STATUS_BAR_GAP;
     ctx.fillStyle = '#1a070f';
-    ctx.fillRect(ex.rift.x - 58, ex.rift.y - 90, 116, 8);
+    ctx.fillRect(barX, barY, barW, barH);
     ctx.fillStyle = ex.riftCarried ? '#8edcff' : warnState >= 3 ? '#ff1f1f' : warnState >= 2 ? '#ff5a3a' : pct > .45 ? '#e6b8ff' : '#ff7b7b';
-    ctx.fillRect(ex.rift.x - 58, ex.rift.y - 90, 116 * pct, 8);
+    ctx.fillRect(barX, barY, barW * pct, barH);
     ctx.fillStyle = '#fff4ff';
     ctx.font = 'bold 11px Georgia';
     ctx.textAlign = 'center';
-    ctx.fillText(ex.riftCarried ? 'CARRYING RIFT' : warnState >= 2 ? 'RIFT CRITICAL' : warnState === 1 ? 'RIFT DAMAGED' : 'RIFT', ex.rift.x, ex.rift.y - 98);
+    ctx.fillText(ex.riftCarried ? 'CARRYING RIFT' : warnState >= 2 ? 'RIFT CRITICAL' : warnState === 1 ? 'RIFT DAMAGED' : 'RIFT', riftRenderX, barY - 6);
     ctx.restore();
 
     const relay = expeditionRelayPadCenter();
