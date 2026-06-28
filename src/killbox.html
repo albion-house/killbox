@@ -3973,8 +3973,13 @@ body {
 }
 
 .waveBanner {
-  top: 96px;
-  font-size: clamp(26px, 4vw, 46px);
+  top: 72px;
+  max-width: min(560px, calc(100vw - 280px));
+  font-size: clamp(15px, 1.9vw, 24px);
+  line-height: 1;
+  letter-spacing: .08em;
+  opacity: 0;
+  transition: opacity .18s ease, transform .18s ease;
 }
 
 .comboBanner {
@@ -4473,6 +4478,17 @@ body.expeditionGameplay #combatHud {
   letter-spacing: .08em;
   text-transform: uppercase;
   text-shadow: var(--ui-read-shadow);
+}
+
+.objectiveHud.compactObjective b {
+  font-size: clamp(18px, 2vw, 26px);
+  opacity: .82;
+}
+
+.objectiveHud.compactObjective span {
+  margin-top: 5px;
+  font-size: clamp(11px, 1vw, 14px);
+  opacity: .75;
 }
 
 .gameHudToggle {
@@ -7319,11 +7335,15 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.37.4';
+const GAME_VERSION = '7.38.3';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'FaintStep';
+const BUILD_NAME = 'FaceForward';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Moved the hero contact shadow lower and made it fainter.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Fixed Goblin Grunt facing direction and removed basic-grunt Rift hunter diamonds.' },
+  { version: '7.38.2', name: 'CleanFight', changes: 'Reduced combat UI clutter so sprites and in-world effects carry more readability.' },
+  { version: '7.38.1', name: 'GoblinRead', changes: 'Made Goblin Grunts more readable, softened enemy rings, and reduced Core hit text clutter.' },
+  { version: '7.38.0', name: 'GoblinGrunt', changes: 'Replaced Raider Grunt placeholder art with the Goblin Grunt walking sprite sheet.' },
+  { version: '7.37.4', name: 'FaintStep', changes: 'Moved the hero contact shadow lower and made it fainter.' },
   { version: '7.37.3', name: 'SoftStep', changes: 'Removed the hero ground ring and replaced the hard offset oval with a larger soft contact shadow.' },
   { version: '7.37.2', name: 'CoreLift', changes: 'Lifted the carried heart Core and increased its carried read without changing hero scale.' },
   { version: '7.37.1', name: 'HatClear', changes: 'Matched idle Joel to the larger walk read and gave north-facing walk frames enough hat clearance.' },
@@ -10154,6 +10174,25 @@ function damageExpeditionNest(nest, amt) {
   }
 }
 
+function showCoreHitText(label, rift, color = '#ff9b8a') {
+  if (!rift) return;
+  const now = performance.now() / 1000;
+  if ((rift.coreHitTextUntil || 0) > now) {
+    const existing = S.texts.find(t => t.coreHitText);
+    if (existing) {
+      existing.s = label;
+      existing.x = rift.x - 26;
+      existing.y = rift.y - 42;
+      existing.c = color;
+      existing.life = Math.min(existing.life, .45);
+    }
+    return;
+  }
+  S.texts = S.texts.filter(t => !t.coreHitText);
+  S.texts.push({ s: label, x: rift.x - 26, y: rift.y - 42, c: color, life: .55, coreHitText: true });
+  rift.coreHitTextUntil = now + .55;
+}
+
 function damageExpeditionRift(e, dt) {
   const ex = S.expedition;
   const rift = ex?.rift;
@@ -10208,7 +10247,7 @@ function damageExpeditionRift(e, dt) {
   e.slow = Math.max(e.slow || 0, .35);
   e.riftBiteText = Math.max(0, (e.riftBiteText || 0) - dt);
   if (e.riftBiteText <= 0) {
-    floatText('CORE HIT', rift.x - 28, rift.y - 42, '#ff9b8a');
+    showCoreHitText('CORE HIT', rift, '#ff9b8a');
     burst(rift.x, rift.y, '#ff9b8a', 5, 'spark', 80);
     e.riftBiteText = .9;
   }
@@ -12148,7 +12187,7 @@ function devDamageCore(amount = 100) {
   if (isExpeditionRun() && ex?.rift) {
     ex.rift.hp = Math.max(0, ex.rift.hp - amount);
     ex.rift.flash = Math.max(ex.rift.flash || 0, .55);
-    floatText(`CORE -${amount}`, ex.rift.x - 28, ex.rift.y - 42, '#ff9b8a');
+    showCoreHitText(`CORE -${amount}`, ex.rift, '#ff9b8a');
     if (ex.rift.hp <= 0) offerRestart('The Rift collapsed');
     ui();
     return true;
@@ -12687,7 +12726,7 @@ const $ = id => document.getElementById(id);
 let mouse = { x: 0, y: 0, down: false };
 let keys = {};
 const ENEMY_SPRITE_FILES = {
-  grunt: 'assets/enemies/raider-grunt.svg',
+  grunt: 'assets/enemies/goblin-grunt-green-walk.png',
   runner: 'assets/enemies/feral-runner.svg',
   slinger: 'assets/enemies/stone-slinger.svg',
   brute: 'assets/enemies/butcher-brute.svg',
@@ -12716,6 +12755,34 @@ const CODEX_ENEMY_SPRITE_FILES = {
 };
 const ENEMY_SPRITES = {};
 let enemySpritesReady = false;
+const GOBLIN_GRUNT_FRAME_SIZE = 256;
+const GOBLIN_GRUNT_SHEET_COLS = 4;
+const GOBLIN_GRUNT_SHEET_ROWS = 8;
+const GOBLIN_GRUNT_FRAME_MS = 140;
+const GOBLIN_GRUNT_DRAW_W = 72;
+const GOBLIN_GRUNT_DRAW_H = 86;
+const GOBLIN_GRUNT_DRAW_Y_OFFSET = -8;
+const GOBLIN_GRUNT_CROP_X = 54;
+const GOBLIN_GRUNT_CROP_Y = 28;
+const GOBLIN_GRUNT_CROP_W = 148;
+const GOBLIN_GRUNT_CROP_H = 190;
+const GOBLIN_GRUNT_SHADOW_W = 42;
+const GOBLIN_GRUNT_SHADOW_H = 13;
+const GOBLIN_GRUNT_SHADOW_ALPHA = 0.18;
+const GOBLIN_GRUNT_SHADOW_Y = -6;
+const GOBLIN_GRUNT_ROW_BY_DIR = {
+  se: 0,
+  s: 1,
+  sw: 2,
+  w: 3,
+  nw: 4,
+  n: 5,
+  ne: 6,
+  e: 7,
+};
+const GOBLIN_GRUNT_DEFAULT_DIR = 's';
+const GOBLIN_GRUNT_DIR_BY_OCTANT = ['e', 'se', 's', 'sw', 'w', 'nw', 'n', 'ne'];
+// TODO: Replace goblin-grunt-green-walk.png with a transparent export if this first-pass sheet still shows its black backing in play.
 const HERO_SPRITE_SHEET = {
   src: 'assets/player/hero-joel-sprites.png',
   frameW: 256,
@@ -13599,6 +13666,7 @@ function updateObjectiveHud(uiOwnership = getUiOwnershipState()) {
   if ($('hudRoomStatus')) $('hudRoomStatus').textContent = room.status;
   box.classList.toggle('hidden', uiOwnership.objectiveBlocked);
   box.classList.toggle('danger', /boss/i.test(objective.title) || /relay/i.test(objective.title));
+  box.classList.toggle('compactObjective', objective.title === 'REDEPLOY RIFT');
 }
 
 function updateDevHotkeyHelp() {
@@ -22331,7 +22399,7 @@ function showPickupPopup(title, body, x, y, c = '#fff4d0') {
 function announceWave(text, kind = 'normal', duration = 1) {
   S.waveBanner = text;
   S.waveBannerKind = kind;
-  S.waveBannerTime = duration;
+  S.waveBannerTime = Math.min(duration, kind === 'boss' ? 1.4 : 1.1);
   const b = $('waveBanner');
   if (b) {
     b.textContent = text;
@@ -23006,10 +23074,10 @@ function draw(t) {
     for (const q of S.texts) {
       if (q.popup) drawPickupPopup(q);
       else {
-        ctx.globalAlpha = q.life;
+        ctx.globalAlpha = q.life * (q.coreHitText ? .74 : 1);
         ctx.fillStyle   = q.c;
-        ctx.font        = 'bold 15px Georgia';
-        ctx.lineWidth   = 4;
+        ctx.font        = q.coreHitText ? 'bold 13px Georgia' : 'bold 15px Georgia';
+        ctx.lineWidth   = q.coreHitText ? 3 : 4;
         ctx.strokeStyle = '#000000';
         ctx.strokeText(q.s, q.x, q.y);
         ctx.fillText(q.s, q.x, q.y);
@@ -25097,10 +25165,13 @@ function drawExpeditionHud(t) {
     ctx.fillText(ex.message, W / 2, 146);
   }
   if ((ex.promptTime || 0) > 0 && ex.prompt) {
-    ctx.font = '900 22px Arial';
+    ctx.save();
+    ctx.globalAlpha = .72;
+    ctx.font = '900 15px Arial';
     ctx.fillStyle = '#f0b8ff';
-    ctx.strokeText(ex.prompt, W / 2, H - 178);
-    ctx.fillText(ex.prompt, W / 2, H - 178);
+    ctx.strokeText(ex.prompt, W / 2, H - 226);
+    ctx.fillText(ex.prompt, W / 2, H - 226);
+    ctx.restore();
   }
   if ((S.hero?.riftCarryFireFeedbackUntil || 0) > performance.now() / 1000) {
     const feedbackY = (ex.messageTime || 0) > 0 && ex.message ? 172 : 146;
@@ -27159,8 +27230,10 @@ function drawEnemy(e) {
     e.hitPulse = Math.max(0, e.hitPulse - 0.12);
   }
 
-  ctx.fillStyle = '#0005';
-  ctx.beginPath(); ctx.ellipse(3, e.rad * .65, e.rad * 1.1, e.rad * .45, 0, 0, 7); ctx.fill();
+  if (e.type !== 'grunt') {
+    ctx.fillStyle = '#0005';
+    ctx.beginPath(); ctx.ellipse(3, e.rad * .65, e.rad * 1.1, e.rad * .45, 0, 0, 7); ctx.fill();
+  }
 
   const nowForStatus = performance.now() / 1000;
   if ((e.catCharmUntil || 0) > nowForStatus) {
@@ -27233,17 +27306,37 @@ function drawEnemy(e) {
     ctx.arc(0, 0, e.rad + 7, 0, 7);
     ctx.stroke();
   }
-  if (e.wild) { ctx.strokeStyle = '#ffcf3d'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, e.rad + 4, 0, 7); ctx.stroke(); }
-  if (e.range && e.type !== 'slinger') { ctx.strokeStyle = '#e8c783'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(8, 0, 14, -1, 1); ctx.stroke(); }
+  if (e.wild) {
+    ctx.save();
+    ctx.globalAlpha = .24;
+    ctx.strokeStyle = '#ffcf3d';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(0, 0, e.rad + 4, 0, 7); ctx.stroke();
+    ctx.restore();
+  }
+  if (e.range && e.type !== 'slinger') {
+    ctx.save();
+    ctx.globalAlpha = .22;
+    ctx.strokeStyle = '#e8c783';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(8, 0, 14, -1, 1); ctx.stroke();
+    ctx.restore();
+  }
   if (enemyHasBehavior(e, 'beacon')) {
+    ctx.save();
+    ctx.globalAlpha = .26;
     ctx.strokeStyle = '#ffcf6a';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.arc(0, 0, e.rad + 10 + Math.sin(tNow * 5) * 3, 0, 7); ctx.stroke();
+    ctx.restore();
   }
   if ((e.beaconBuffUntil || 0) > 0) {
+    ctx.save();
+    ctx.globalAlpha = .24;
     ctx.strokeStyle = '#fff0b8';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.arc(0, 0, e.rad + 7, 0, 7); ctx.stroke();
+    ctx.restore();
   }
   if (enemyHasBehavior(e, 'scavenger')) {
     ctx.fillStyle = '#ff9b32';
@@ -27258,9 +27351,10 @@ function drawEnemy(e) {
     ctx.fillStyle = '#b9d84f';
     ctx.beginPath(); ctx.arc(-e.rad * .5, -e.rad * .55, 4, 0, 7); ctx.arc(e.rad * .2, -e.rad * .7, 3, 0, 7); ctx.fill();
   }
-  if (isExpeditionRun() && e.expeditionTarget === 'rift') {
+  if (isExpeditionRun() && e.expeditionTarget === 'rift' && e.type !== 'grunt') {
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = .72;
     ctx.fillStyle = '#f0b8ff';
     ctx.strokeStyle = '#2b0d2f';
     ctx.lineWidth = 2;
@@ -27339,10 +27433,19 @@ function drawEnemy(e) {
   ctx.filter = 'none';
   ctx.restore();
 
-  const w = e.rad * 2.2;
-  ctx.fillStyle = '#2b120b'; ctx.fillRect(e.x - w / 2, e.y - e.rad - 13, w, 5);
-  ctx.fillStyle = e.hp / e.max > .5 ? '#4f8d3b' : '#a83b28';
-  ctx.fillRect(e.x - w / 2, e.y - e.rad - 13, w * (e.hp / e.max), 5);
+  const hpPct = Math.max(0, Math.min(1, e.hp / e.max));
+  const basicGrunt = e.type === 'grunt' && !e.elite && !e.boss && !e.wild;
+  const showEnemyHp = !basicGrunt || hpPct < .985 || e.flash > 0 || e.hitPulse > 0;
+  if (showEnemyHp) {
+    const w = e.rad * (basicGrunt ? 1.55 : 2.2);
+    const h = basicGrunt ? 3 : 5;
+    ctx.save();
+    ctx.globalAlpha = basicGrunt ? .52 : 1;
+    ctx.fillStyle = '#2b120b'; ctx.fillRect(e.x - w / 2, e.y - e.rad - 13, w, h);
+    ctx.fillStyle = hpPct > .5 ? '#4f8d3b' : '#a83b28';
+    ctx.fillRect(e.x - w / 2, e.y - e.rad - 13, w * hpPct, h);
+    ctx.restore();
+  }
   if (S.devShowInfo) {
     const hpText = `${Math.max(0, Math.round(e.hp))} / ${Math.max(1, Math.round(e.max))}`;
     ctx.save();
@@ -27376,6 +27479,7 @@ function drawEnemyBehaviorLinks() {
 }
 
 function drawEnemySprite(e, base) {
+  if (e.type === 'grunt') return drawGoblinGruntSprite(e);
   const img = ENEMY_SPRITES[e.type];
   const pad = e.type === 'slimeking' ? 2.8 : e.type === 'siege' ? 2.45 : e.type === 'ogre' || e.type === 'brute' ? 2.35 : 2.15;
   const size = e.rad * pad;
@@ -27445,6 +27549,76 @@ function drawEnemySprite(e, base) {
   ctx.filter = 'none';
 }
 
+function goblinGruntDirectionRow(e) {
+  let dx = Number.isFinite(e.goblinGruntFacingX) ? e.goblinGruntFacingX : 0;
+  let dy = Number.isFinite(e.goblinGruntFacingY) ? e.goblinGruntFacingY : 0;
+  if (Number.isFinite(e.goblinGruntLastX) && Number.isFinite(e.goblinGruntLastY)) {
+    const moveX = e.x - e.goblinGruntLastX;
+    const moveY = e.y - e.goblinGruntLastY;
+    if (Math.hypot(moveX, moveY) > 0.18) {
+      dx = moveX;
+      dy = moveY;
+      e.goblinGruntFacingX = dx;
+      e.goblinGruntFacingY = dy;
+    }
+  }
+  e.goblinGruntLastX = e.x;
+  e.goblinGruntLastY = e.y;
+  const mag = Math.hypot(dx, dy);
+  const defaultRow = GOBLIN_GRUNT_ROW_BY_DIR[GOBLIN_GRUNT_DEFAULT_DIR];
+  if (mag <= 0.18) return {
+    row: Number.isFinite(e.goblinGruntFacingRow) ? e.goblinGruntFacingRow : defaultRow,
+    moving: false,
+  };
+  const octant = (Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) + 8) % 8;
+  const dir = GOBLIN_GRUNT_DIR_BY_OCTANT[octant] || GOBLIN_GRUNT_DEFAULT_DIR;
+  const row = GOBLIN_GRUNT_ROW_BY_DIR[dir] ?? defaultRow;
+  e.goblinGruntFacingRow = row;
+  return { row, moving: true };
+}
+
+function drawGoblinGruntSprite(e) {
+  const img = ENEMY_SPRITES.grunt;
+  if (!img) return;
+  const facing = goblinGruntDirectionRow(e);
+  const frame = facing.moving ? Math.floor(performance.now() / GOBLIN_GRUNT_FRAME_MS) % GOBLIN_GRUNT_SHEET_COLS : 0;
+  const col = Math.max(0, Math.min(GOBLIN_GRUNT_SHEET_COLS - 1, frame));
+  const row = Math.max(0, Math.min(GOBLIN_GRUNT_SHEET_ROWS - 1, facing.row));
+  const sx = col * GOBLIN_GRUNT_FRAME_SIZE + GOBLIN_GRUNT_CROP_X;
+  const sy = row * GOBLIN_GRUNT_FRAME_SIZE + GOBLIN_GRUNT_CROP_Y;
+  const dx = -GOBLIN_GRUNT_DRAW_W / 2;
+  const dy = -GOBLIN_GRUNT_DRAW_H + e.rad + GOBLIN_GRUNT_DRAW_Y_OFFSET;
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.shadowBlur = 0;
+  ctx.filter = 'none';
+  ctx.save();
+  ctx.globalAlpha = GOBLIN_GRUNT_SHADOW_ALPHA;
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.ellipse(0, GOBLIN_GRUNT_SHADOW_Y, GOBLIN_GRUNT_SHADOW_W / 2, GOBLIN_GRUNT_SHADOW_H / 2, 0, 0, 7);
+  ctx.fill();
+  ctx.restore();
+  ctx.drawImage(img, sx, sy, GOBLIN_GRUNT_CROP_W, GOBLIN_GRUNT_CROP_H, dx, dy, GOBLIN_GRUNT_DRAW_W, GOBLIN_GRUNT_DRAW_H);
+  if ((e.freeze || 0) > 0) {
+    ctx.save();
+    ctx.globalAlpha = .34;
+    ctx.fillStyle = '#9fdfff';
+    ctx.fillRect(dx, dy, GOBLIN_GRUNT_DRAW_W, GOBLIN_GRUNT_DRAW_H);
+    ctx.globalAlpha = .22;
+    ctx.strokeStyle = '#d8f4ff';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(dx + 2, dy + 2, GOBLIN_GRUNT_DRAW_W - 4, GOBLIN_GRUNT_DRAW_H - 4);
+    ctx.restore();
+  } else if (e.flash) {
+    ctx.save();
+    ctx.globalAlpha = .34;
+    ctx.fillStyle = '#fffbe0';
+    ctx.fillRect(dx, dy, GOBLIN_GRUNT_DRAW_W, GOBLIN_GRUNT_DRAW_H);
+    ctx.restore();
+  }
+}
+
 function drawEnemyBody(e, base, blink) {
   if (e.type === 'slimeking') return drawSlimeKing(e, base);
   if (e.type === 'siege') return drawRamBeast(e, base);
@@ -27468,6 +27642,7 @@ function drawHumanoidBase(e, base, skin = '#6f8d3b') {
   ctx.fillStyle = base; ctx.beginPath(); ctx.ellipse(0, 3, e.rad * .95, e.rad * 1.05, 0, 0, 7); ctx.fill(); ctx.stroke();
   ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(0, -e.rad * .75, e.rad * .58, 0, 7); ctx.fill(); ctx.stroke();
 }
+// Raider Grunt visual identity is now Goblin Grunt.
 function drawRaiderGrunt(e, base) { drawHumanoidBase(e, base, '#88a64a'); ctx.fillStyle='#8c2f22'; ctx.fillRect(-9,6,18,10); ctx.strokeStyle='#d6b26b'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(8,-6); ctx.lineTo(20,0); ctx.stroke(); }
 function drawFeralRunner(e, base) { drawHumanoidBase(e, base, '#9bb84a'); ctx.strokeStyle='#f07b25'; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(-3,-24); ctx.lineTo(3,-34); ctx.lineTo(9,-24); ctx.stroke(); ctx.strokeStyle='#1e1008'; ctx.beginPath(); ctx.moveTo(-e.rad,6); ctx.lineTo(-e.rad-12,16); ctx.moveTo(e.rad,6); ctx.lineTo(e.rad+12,16); ctx.stroke(); }
 function drawStoneSlinger(e, base) { drawHumanoidBase(e, '#5d4a74', '#7ea64a'); ctx.strokeStyle='#d6b475'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(12,-4,14,-1,1); ctx.stroke(); ctx.fillStyle='#9c8c75'; ctx.beginPath(); ctx.arc(24,-4,4,0,7); ctx.fill(); }
