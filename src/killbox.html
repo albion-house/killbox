@@ -7335,11 +7335,16 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.38.3';
+const GAME_VERSION = '7.38.8';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'FaceForward';
+const BUILD_NAME = 'GoblinTurn';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Fixed Goblin Grunt facing direction and removed basic-grunt Rift hunter diamonds.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Reversed Goblin Grunt facing vector so sprites face their screen movement.' },
+  { version: '7.38.7', name: 'GoblinRows', changes: 'Applied observed Goblin Grunt sprite-sheet row order and disabled the row preview.' },
+  { version: '7.38.6', name: 'RowPreview', changes: 'Added an all-row Goblin Grunt sprite-sheet preview for row-order debugging.' },
+  { version: '7.38.5', name: 'RowCal', changes: 'Added Goblin Grunt row calibration and removed normal-enemy Rift hunter diamonds.' },
+  { version: '7.38.4', name: 'FaceForward', changes: 'Fixed Goblin Grunt horizontal facing and restricted Rift hunter diamonds to important enemies.' },
+  { version: '7.38.3', name: 'FaceForward', changes: 'Fixed Goblin Grunt facing direction and removed basic-grunt Rift hunter diamonds.' },
   { version: '7.38.2', name: 'CleanFight', changes: 'Reduced combat UI clutter so sprites and in-world effects carry more readability.' },
   { version: '7.38.1', name: 'GoblinRead', changes: 'Made Goblin Grunts more readable, softened enemy rings, and reduced Core hit text clutter.' },
   { version: '7.38.0', name: 'GoblinGrunt', changes: 'Replaced Raider Grunt placeholder art with the Goblin Grunt walking sprite sheet.' },
@@ -12770,18 +12775,27 @@ const GOBLIN_GRUNT_SHADOW_W = 42;
 const GOBLIN_GRUNT_SHADOW_H = 13;
 const GOBLIN_GRUNT_SHADOW_ALPHA = 0.18;
 const GOBLIN_GRUNT_SHADOW_Y = -6;
+const DEBUG_GOBLIN_ROW_PREVIEW = false; // Debug-only: set true to show the all-row goblin sprite-sheet preview.
+const GOBLIN_GRUNT_FORCE_ROW = null; // Set 0-7 to force all goblins to one sheet row for Meshy sprite-sheet row calibration.
+// Calibration steps:
+// 1. Set GOBLIN_GRUNT_FORCE_ROW = 0.
+// 2. Run game and observe what direction row 0 faces.
+// 3. Repeat 1-7.
+// 4. Fill GOBLIN_GRUNT_ROW_BY_DIR with the observed row order.
+// 5. Reset GOBLIN_GRUNT_FORCE_ROW = null.
 const GOBLIN_GRUNT_ROW_BY_DIR = {
-  se: 0,
+  n: 5,
+  ne: 0,
+  e: 7,
+  se: 2,
   s: 1,
-  sw: 2,
+  sw: 6,
   w: 3,
   nw: 4,
-  n: 5,
-  ne: 6,
-  e: 7,
 };
 const GOBLIN_GRUNT_DEFAULT_DIR = 's';
 const GOBLIN_GRUNT_DIR_BY_OCTANT = ['e', 'se', 's', 'sw', 'w', 'nw', 'n', 'ne'];
+const NORMAL_ENEMY_TYPES_WITHOUT_RIFT_DIAMOND = new Set(['grunt', 'slinger', 'runner', 'bomber', 'hunter', 'shield', 'healer']);
 // TODO: Replace goblin-grunt-green-walk.png with a transparent export if this first-pass sheet still shows its black backing in play.
 const HERO_SPRITE_SHEET = {
   src: 'assets/player/hero-joel-sprites.png',
@@ -23150,6 +23164,7 @@ function draw(t) {
   }
 
   if (S.shakeTime > 0) ctx.restore();
+  drawGoblinRowPreviewOverlay();
   if (KB_PROFILE.active) profileAdd('rendering', profileNow() - renderT0);
 }
 
@@ -27351,7 +27366,7 @@ function drawEnemy(e) {
     ctx.fillStyle = '#b9d84f';
     ctx.beginPath(); ctx.arc(-e.rad * .5, -e.rad * .55, 4, 0, 7); ctx.arc(e.rad * .2, -e.rad * .7, 3, 0, 7); ctx.fill();
   }
-  if (isExpeditionRun() && e.expeditionTarget === 'rift' && e.type !== 'grunt') {
+  if (isExpeditionRun() && enemyShowsRiftDiamond(e)) {
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
     ctx.globalAlpha = .72;
@@ -27478,6 +27493,12 @@ function drawEnemyBehaviorLinks() {
   }
 }
 
+function enemyShowsRiftDiamond(e) {
+  if (!e || e.expeditionTarget !== 'rift') return false;
+  if (NORMAL_ENEMY_TYPES_WITHOUT_RIFT_DIAMOND.has(e.type)) return false;
+  return !!(e.boss || e.elite || e.eliteRoomTarget || e.type === 'slimeking');
+}
+
 function drawEnemySprite(e, base) {
   if (e.type === 'grunt') return drawGoblinGruntSprite(e);
   const img = ENEMY_SPRITES[e.type];
@@ -27549,17 +27570,41 @@ function drawEnemySprite(e, base) {
   ctx.filter = 'none';
 }
 
+function getForcedGoblinGruntRow() {
+  return Number.isInteger(GOBLIN_GRUNT_FORCE_ROW) && GOBLIN_GRUNT_FORCE_ROW >= 0 && GOBLIN_GRUNT_FORCE_ROW < GOBLIN_GRUNT_SHEET_ROWS
+    ? GOBLIN_GRUNT_FORCE_ROW
+    : null;
+}
+
+function getEightWayDirFromVelocity(vx, vy, fallbackDir = GOBLIN_GRUNT_DEFAULT_DIR) {
+  if (Math.hypot(vx || 0, vy || 0) <= 0.18) return fallbackDir;
+  const octant = (Math.round(Math.atan2(-vy, -vx) / (Math.PI / 4)) + 8) % 8;
+  return GOBLIN_GRUNT_DIR_BY_OCTANT[octant] || fallbackDir;
+}
+
 function goblinGruntDirectionRow(e) {
-  let dx = Number.isFinite(e.goblinGruntFacingX) ? e.goblinGruntFacingX : 0;
-  let dy = Number.isFinite(e.goblinGruntFacingY) ? e.goblinGruntFacingY : 0;
+  const forcedRow = getForcedGoblinGruntRow();
+  if (forcedRow !== null) {
+    e.goblinGruntLastX = e.x;
+    e.goblinGruntLastY = e.y;
+    return { row: forcedRow, moving: true, forced: true };
+  }
+  let dx = 0;
+  let dy = 0;
+  if (Number.isFinite(e.vx) || Number.isFinite(e.vy)) {
+    const vx = Number.isFinite(e.vx) ? e.vx : 0;
+    const vy = Number.isFinite(e.vy) ? e.vy : 0;
+    if (Math.hypot(vx, vy) > 0.18) {
+      dx = vx;
+      dy = vy;
+    }
+  }
   if (Number.isFinite(e.goblinGruntLastX) && Number.isFinite(e.goblinGruntLastY)) {
     const moveX = e.x - e.goblinGruntLastX;
     const moveY = e.y - e.goblinGruntLastY;
-    if (Math.hypot(moveX, moveY) > 0.18) {
+    if (Math.hypot(dx, dy) <= 0.18 && Math.hypot(moveX, moveY) > 0.18) {
       dx = moveX;
       dy = moveY;
-      e.goblinGruntFacingX = dx;
-      e.goblinGruntFacingY = dy;
     }
   }
   e.goblinGruntLastX = e.x;
@@ -27570,9 +27615,9 @@ function goblinGruntDirectionRow(e) {
     row: Number.isFinite(e.goblinGruntFacingRow) ? e.goblinGruntFacingRow : defaultRow,
     moving: false,
   };
-  const octant = (Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) + 8) % 8;
-  const dir = GOBLIN_GRUNT_DIR_BY_OCTANT[octant] || GOBLIN_GRUNT_DEFAULT_DIR;
+  const dir = getEightWayDirFromVelocity(dx, dy, e.goblinGruntFacingDir || GOBLIN_GRUNT_DEFAULT_DIR);
   const row = GOBLIN_GRUNT_ROW_BY_DIR[dir] ?? defaultRow;
+  e.goblinGruntFacingDir = dir;
   e.goblinGruntFacingRow = row;
   return { row, moving: true };
 }
@@ -27617,6 +27662,72 @@ function drawGoblinGruntSprite(e) {
     ctx.fillRect(dx, dy, GOBLIN_GRUNT_DRAW_W, GOBLIN_GRUNT_DRAW_H);
     ctx.restore();
   }
+  if (facing.forced) {
+    ctx.save();
+    ctx.font = '8px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(0,0,0,.7)';
+    ctx.fillStyle = '#ffe7a3';
+    const label = `GOBLIN ROW ${row}`;
+    const labelY = dy - 8;
+    ctx.strokeText(label, 0, labelY);
+    ctx.fillText(label, 0, labelY);
+    ctx.restore();
+  }
+}
+
+function drawGoblinRowPreviewOverlay() {
+  if (!DEBUG_GOBLIN_ROW_PREVIEW) return;
+  const img = ENEMY_SPRITES.grunt;
+  if (!img) return;
+  const drawW = 38;
+  const drawH = 49;
+  const rowGap = Math.max(52, Math.min(64, (H - 92) / GOBLIN_GRUNT_SHEET_ROWS));
+  const panelW = 124;
+  const panelH = rowGap * GOBLIN_GRUNT_SHEET_ROWS + 22;
+  const x = Math.max(12, W - panelW - 14);
+  const y = 54;
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = .84;
+  ctx.fillStyle = 'rgba(10, 8, 6, .78)';
+  ctx.fillRect(x, y, panelW, panelH);
+  ctx.strokeStyle = 'rgba(255, 226, 156, .72)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x + .5, y + .5, panelW - 1, panelH - 1);
+  ctx.font = 'bold 10px system-ui, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#ffe29c';
+  ctx.fillText('GOBLIN ROWS', x + 10, y + 13);
+
+  for (let row = 0; row < GOBLIN_GRUNT_SHEET_ROWS; row++) {
+    const itemY = y + 29 + row * rowGap;
+    const sx = GOBLIN_GRUNT_CROP_X;
+    const sy = row * GOBLIN_GRUNT_FRAME_SIZE + GOBLIN_GRUNT_CROP_Y;
+    ctx.globalAlpha = .25;
+    ctx.fillStyle = row % 2 ? '#15110c' : '#20180f';
+    ctx.fillRect(x + 6, itemY - 8, panelW - 12, Math.min(rowGap - 4, 56));
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#fff3c7';
+    ctx.font = 'bold 10px system-ui, sans-serif';
+    ctx.fillText(`ROW ${row}`, x + 10, itemY + 17);
+    ctx.drawImage(
+      img,
+      sx,
+      sy,
+      GOBLIN_GRUNT_CROP_W,
+      GOBLIN_GRUNT_CROP_H,
+      x + 68,
+      itemY - 9,
+      drawW,
+      drawH,
+    );
+  }
+  ctx.restore();
 }
 
 function drawEnemyBody(e, base, blink) {
