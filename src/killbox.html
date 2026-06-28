@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Killbox 7.35.5 HeartTether</title>
+<title>Killbox 7.37.4 FaintStep</title>
 <style>
 /* ── Design tokens ─────────────────────────────────────────────── */
 :root {
@@ -5589,8 +5589,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.35.5</b>
-      <span id="warRoomBuildName">HeartTether</span>
+      <b id="warRoomVersion">v7.37.4</b>
+      <span id="warRoomBuildName">FaintStep</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -5678,7 +5678,7 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.35.5 HeartTether</div>
+            <div class="loadoutVersion" id="loadoutVersion">v7.37.4 FaintStep</div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -7319,11 +7319,23 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.35.5';
+const GAME_VERSION = '7.37.4';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'HeartTether';
+const BUILD_NAME = 'FaintStep';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Redesigned the carried Rift into a tethered floating heart while keeping the deployed anchor intact.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Moved the hero contact shadow lower and made it fainter.' },
+  { version: '7.37.3', name: 'SoftStep', changes: 'Removed the hero ground ring and replaced the hard offset oval with a larger soft contact shadow.' },
+  { version: '7.37.2', name: 'CoreLift', changes: 'Lifted the carried heart Core and increased its carried read without changing hero scale.' },
+  { version: '7.37.1', name: 'HatClear', changes: 'Matched idle Joel to the larger walk read and gave north-facing walk frames enough hat clearance.' },
+  { version: '7.37.0', name: 'JoelWalk', changes: 'Added first-pass Joel walking animation while keeping idle behavior for standing still.' },
+  { version: '7.36.5', name: 'CleanCrop', changes: 'Removed the white source-strip under the heart crop and stopped carried Core idle snap-up.' },
+  { version: '7.36.4', name: 'LiftHeart', changes: 'Lifted the carried heart Core off the ground and removed the carried underline/status bar.' },
+  { version: '7.36.3', name: 'TrailHeart', changes: 'Made the carried heart Core trail behind movement and softened the tether, aura, and deployed Core chrome.' },
+  { version: '7.36.2', name: 'ClearHeart', changes: 'Tuned the heart Core carry spacing, reduced tether noise, and lifted deployed status UI away from the sprite.' },
+  { version: '7.36.1', name: 'BlueRelay', changes: 'Cleaned up Shatter Convoy relay clutter and moved the relay charge timer into a bright blue top-layer ring.' },
+  { version: '7.36.0', name: 'HeartBalloon', changes: 'Turned the Expedition Core into a cropped heart-balloon sprite that floats on a tether while carried and expands when deployed.' },
+  { version: '7.35.6', name: 'QuietHeart', changes: 'Cleaned up tethered Core carry UI so the floating heart and tether read clearly without stacked labels or duplicate health bars.' },
+  { version: '7.35.5', name: 'HeartTether', changes: 'Redesigned the carried Rift into a tethered floating heart while keeping the deployed anchor intact.' },
   { version: '7.35.4', name: 'BigJoel', changes: 'Cropped the Joel hero sprite frames so the visible character renders much larger without scaling the transparent border.' },
   { version: '7.35.3', name: 'BigJoel', changes: 'Set the Joel hero sprite draw size to 175 for a much larger on-screen read.' },
   { version: '7.35.2', name: 'BigJoel', changes: 'Scaled the Joel hero sprite up to read near Rift scale in gameplay.' },
@@ -7886,16 +7898,36 @@ function expeditionRiftVisualState(t = 0) {
   };
 }
 
-const TETHERED_RIFT_FOLLOW_DISTANCE = 42;
-const TETHERED_RIFT_VERTICAL_OFFSET = -30;
-const TETHERED_RIFT_BOB_AMPLITUDE = 4;
-const TETHERED_RIFT_BOB_SPEED = 5.5;
-const TETHERED_RIFT_LERP = 10;
-const TETHER_LINE_WIDTH = 3.5;
-const TETHERED_RIFT_DRAW_SIZE = 46;
-const DEPLOYED_RIFT_DRAW_SIZE = 92;
-const RIFT_SETTLE_DURATION = 0.5;
-const RIFT_STATUS_BAR_GAP = 14;
+const CORE_HEART_SHEET_FRAME_SIZE = 256;
+const CORE_HEART_SHEET_FRAMES = 8;
+const CORE_HEART_CROP_X = 54;
+const CORE_HEART_CROP_Y = 36;
+const CORE_HEART_CROP_W = 148;
+const CORE_HEART_CROP_H = 128;
+const CORE_CARRY_TRAIL_DISTANCE = 58;
+const CORE_CARRY_IDLE_OFFSET_X = -34;
+const CORE_CARRY_IDLE_OFFSET_Y = -54;
+const CORE_CARRY_FLOAT_LIFT = 34;
+const CORE_CARRY_FLOAT_LIFT_Y = -20;
+const CORE_CARRY_FOLLOW_LERP = 0.12;
+const CORE_CARRY_BOB_PIXELS = 4;
+const CORE_CARRY_BOB_SPEED = 0.004;
+const CORE_CARRIED_DRAW_W = 48;
+const CORE_CARRIED_DRAW_H = 48;
+const CORE_DEPLOYED_DRAW_W = 76;
+const CORE_DEPLOYED_DRAW_H = 76;
+const CORE_DEPLOY_GROW_TIME = 350;
+const CORE_TETHER_END_Y_OFFSET = 22;
+const TETHERED_RIFT_BOB_AMPLITUDE = CORE_CARRY_BOB_PIXELS;
+const TETHER_LINE_WIDTH = 2;
+const TETHERED_RIFT_DRAW_SIZE = CORE_CARRIED_DRAW_H;
+const DEPLOYED_RIFT_DRAW_SIZE = CORE_DEPLOYED_DRAW_H;
+const RIFT_SETTLE_DURATION = CORE_DEPLOY_GROW_TIME / 1000;
+const RIFT_STATUS_BAR_GAP = 22;
+const PLAYER_HP_BAR_Y_OFFSET = 38;
+const TETHERED_CORE_HP_BAR_Y_OFFSET = 24;
+const SHOW_TETHERED_CORE_LABELS = false;
+const SHOW_TETHERED_CORE_HP_ONLY_WHEN_DAMAGED = true;
 
 function updateExpeditionRiftVisual(dt) {
   const ex = S.expedition;
@@ -7912,18 +7944,31 @@ function updateExpeditionRiftVisual(dt) {
   if (moveMag > .2) {
     ex.riftCarryFacingX = moveX / moveMag;
     ex.riftCarryFacingY = moveY / moveMag;
+    rift.lastCarryDirX = ex.riftCarryFacingX;
+    rift.lastCarryDirY = ex.riftCarryFacingY;
+    rift.carryIdleTime = 0;
+  } else {
+    rift.carryIdleTime = (rift.carryIdleTime || 0) + dt;
   }
   const facingX = Number.isFinite(ex.riftCarryFacingX) ? ex.riftCarryFacingX : 0;
   const facingY = Number.isFinite(ex.riftCarryFacingY) ? ex.riftCarryFacingY : -1;
-  ex.riftVisualBobPhase = (ex.riftVisualBobPhase || 0) + dt * TETHERED_RIFT_BOB_SPEED;
+  ex.riftVisualBobPhase = (ex.riftVisualBobPhase || 0) + dt * 1000 * CORE_CARRY_BOB_SPEED;
   if (ex.riftCarried) {
-    const perpX = -facingY;
-    const perpY = facingX;
-    const desiredX = hero.x - facingX * TETHERED_RIFT_FOLLOW_DISTANCE + perpX * 6;
-    const desiredY = hero.y + TETHERED_RIFT_VERTICAL_OFFSET - facingY * 8 + perpY * 2;
-    const lerp = 1 - Math.exp(-dt * TETHERED_RIFT_LERP);
-    ex.riftVisualX = Number.isFinite(ex.riftVisualX) ? ex.riftVisualX + (desiredX - ex.riftVisualX) * lerp : desiredX;
-    ex.riftVisualY = Number.isFinite(ex.riftVisualY) ? ex.riftVisualY + (desiredY - ex.riftVisualY) * lerp : desiredY;
+    const lastDirX = Number.isFinite(rift.lastCarryDirX) ? rift.lastCarryDirX : 0;
+    const lastDirY = Number.isFinite(rift.lastCarryDirY) ? rift.lastCarryDirY : 0;
+    const lastDirMag = Math.hypot(lastDirX, lastDirY);
+    const useTrail = lastDirMag > .2;
+    const desiredX = useTrail
+      ? hero.x - (lastDirX / lastDirMag) * CORE_CARRY_TRAIL_DISTANCE
+      : hero.x + CORE_CARRY_IDLE_OFFSET_X;
+    const desiredY = useTrail
+      ? hero.y - (lastDirY / lastDirMag) * CORE_CARRY_TRAIL_DISTANCE - CORE_CARRY_FLOAT_LIFT
+      : hero.y + CORE_CARRY_IDLE_OFFSET_Y - CORE_CARRY_FLOAT_LIFT;
+    const carriedTargetY = desiredY + CORE_CARRY_FLOAT_LIFT_Y;
+    ex.riftVisualX = Number.isFinite(ex.riftVisualX) ? ex.riftVisualX + (desiredX - ex.riftVisualX) * CORE_CARRY_FOLLOW_LERP : desiredX;
+    ex.riftVisualY = Number.isFinite(ex.riftVisualY) ? ex.riftVisualY + (carriedTargetY - ex.riftVisualY) * CORE_CARRY_FOLLOW_LERP : carriedTargetY;
+    rift.carryVisualX = ex.riftVisualX;
+    rift.carryVisualY = ex.riftVisualY;
     rift.x = ex.riftVisualX;
     rift.y = ex.riftVisualY + Math.sin(ex.riftVisualBobPhase) * TETHERED_RIFT_BOB_AMPLITUDE;
     ex.riftSettleTime = 0;
@@ -12677,12 +12722,42 @@ const HERO_SPRITE_SHEET = {
   frameH: 256,
   frameCount: 8,
 };
+const HERO_WALK_SPRITE_SHEET = {
+  src: 'assets/player/hero-joel-walk-8dir-4frame-3.png',
+  frameW: 256,
+  frameH: 256,
+  cols: 4,
+  rows: 8,
+};
+const CORE_HEART_SPRITE_SHEET = {
+  src: 'assets/player/glb-idle-8dir-256-2.png',
+  frameW: 256,
+  frameH: 256,
+  frameCount: 8,
+};
 const HERO_SPRITE_FRAME_BY_OCTANT = [3, 2, 1, 0, 7, 6, 5, 4];
 const HERO_SPRITE = new Image();
 let heroSpriteReady = false;
 HERO_SPRITE.onload = () => { heroSpriteReady = true; };
 HERO_SPRITE.onerror = () => { heroSpriteReady = false; };
 HERO_SPRITE.src = HERO_SPRITE_SHEET.src;
+const HERO_WALK_SPRITE = new Image();
+let heroWalkSpriteReady = false;
+let heroWalkSpriteCanvas = null;
+HERO_WALK_SPRITE.onload = () => {
+  heroWalkSpriteReady = true;
+  heroWalkSpriteCanvas = prepareHeroWalkSpriteCanvas(HERO_WALK_SPRITE);
+};
+HERO_WALK_SPRITE.onerror = () => {
+  heroWalkSpriteReady = false;
+  heroWalkSpriteCanvas = null;
+};
+HERO_WALK_SPRITE.src = HERO_WALK_SPRITE_SHEET.src;
+const CORE_HEART_SPRITE = new Image();
+let coreHeartSpriteReady = false;
+CORE_HEART_SPRITE.onload = () => { coreHeartSpriteReady = true; };
+CORE_HEART_SPRITE.onerror = () => { coreHeartSpriteReady = false; };
+CORE_HEART_SPRITE.src = CORE_HEART_SPRITE_SHEET.src;
 
 function preloadEnemySprites() {
   const jobs = Object.entries(ENEMY_SPRITE_FILES).map(([type, src]) => new Promise(res => {
@@ -22768,6 +22843,7 @@ function draw(t) {
     drawMutagenWorldEffects(t);
     drawSpawnIntros(t);
   });
+  drawExpeditionCarriedRiftTether(t);
   profileMeasure('render player actors', () => {
     drawEngineer(t);
     drawHero(t);
@@ -22983,6 +23059,7 @@ function draw(t) {
     }
     ctx.globalAlpha = 1;
   }
+  drawShatterConvoyRelayTimerOverlay(t);
 
   ctx.restore();
   profileMeasure('render overlays', () => {
@@ -23707,57 +23784,41 @@ function drawShatterConvoyRelay(room, visual, t) {
   if (!point) return;
   const charging = visual.holdActive && !visual.riftCarried;
   const carryingDuringHold = visual.holdActive && visual.riftCarried;
-  const progress = visual.holdProgress;
   const activeAlpha = visual.cleared || visual.escapeActive ? 1 : charging ? .95 : carryingDuringHold ? .42 : visual.riftNearPoint ? .55 : .2;
   ctx.save();
   ctx.translate(point.x, point.y);
   ctx.globalAlpha = .96;
-  ctx.fillStyle = activeAlpha > .5 ? '#243227' : '#2c2f30';
+  ctx.fillStyle = activeAlpha > .5 ? '#203040' : '#2c2f30';
   ctx.beginPath();
   ctx.ellipse(0, 0, 52, 68, -.18, 0, 7);
   ctx.fill();
-  ctx.strokeStyle = activeAlpha > .5 ? '#8ee6a8' : '#7a8085';
+  ctx.strokeStyle = activeAlpha > .5 ? '#8edcff' : '#7a8085';
   ctx.lineWidth = 4;
   ctx.beginPath();
   ctx.ellipse(0, 0, 44, 58, -.18, 0, 7);
   ctx.stroke();
-  ctx.fillStyle = activeAlpha > .5 ? '#16371f' : '#181a1b';
+  ctx.fillStyle = activeAlpha > .5 ? '#152c3a' : '#181a1b';
   ctx.beginPath();
   ctx.ellipse(0, 0, 24, 17, 0, 0, 7);
   ctx.fill();
   ctx.globalAlpha = .24 + activeAlpha * .22;
-  ctx.fillStyle = activeAlpha > .5 ? '#79ffae' : '#a5adb4';
+  ctx.fillStyle = activeAlpha > .5 ? '#30cfff' : '#a5adb4';
   ctx.beginPath();
   ctx.arc(0, 0, 84 + Math.sin(t * 4) * 4, 0, 7);
   ctx.fill();
   ctx.globalAlpha = .95;
-  if (charging || visual.cleared || visual.escapeActive) {
-    const start = -Math.PI / 2;
-    const end = start + Math.PI * 2 * progress;
-    ctx.strokeStyle = '#79ffae';
-    ctx.lineWidth = 8;
-    ctx.beginPath();
-    ctx.arc(0, 0, 92, start, end);
-    ctx.stroke();
-    ctx.strokeStyle = '#d8ffe4';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(0, 0, 92, end - .22, end + .14);
-    ctx.stroke();
-    drawShatterConvoyRouteLights(0, -86, 0, -86, '#79ffae', t, 1, 0);
-  }
   if (charging) {
     for (let i = 0; i < 4; i++) {
       const r = 42 + i * 18 + Math.sin(t * 5 + i) * 4;
       ctx.globalAlpha = .16 + i * .04;
-      ctx.strokeStyle = '#79ffae';
+      ctx.strokeStyle = '#18d8ff';
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.arc(0, 0, r, 0, 7);
       ctx.stroke();
     }
     ctx.globalAlpha = .86;
-    ctx.strokeStyle = '#79ffae';
+    ctx.strokeStyle = '#18d8ff';
     ctx.lineWidth = 3;
     for (let i = 0; i < 6; i++) {
       const a = t * 1.5 + i * Math.PI / 3;
@@ -23769,7 +23830,7 @@ function drawShatterConvoyRelay(room, visual, t) {
   }
   if (carryingDuringHold) {
     ctx.globalAlpha = .34;
-    ctx.strokeStyle = '#79ffae';
+    ctx.strokeStyle = '#18d8ff';
     ctx.lineWidth = 5;
     ctx.setLineDash([12, 12]);
     ctx.beginPath();
@@ -23789,6 +23850,47 @@ function drawShatterConvoyRelay(room, visual, t) {
       ctx.stroke();
     }
   }
+  ctx.restore();
+}
+
+function drawShatterConvoyRelayTimerOverlay(t) {
+  const ex = S.expedition;
+  if (!isShatterConvoyExpedition() || !ex?.roomObjective || ex.roomObjective.type !== 'shatterHold' || ex.roomObjective.roomId !== 'deadRelay' || ex.riftCarried) return;
+  const room = expeditionRoomById('deadRelay');
+  const point = shatterConvoyRoomPoint(room);
+  if (!point) return;
+  const duration = Math.max(1, ex.roomObjective.duration || room?.holdSeconds || 1);
+  const progress = clamp(1 - (ex.roomObjective.timer || 0) / duration, 0, 1);
+  const start = -Math.PI / 2;
+  const end = start + Math.PI * 2 * progress;
+  ctx.save();
+  ctx.translate(point.x, point.y);
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.lineCap = 'round';
+  ctx.globalAlpha = .98;
+  ctx.strokeStyle = 'rgba(5, 23, 38, .86)';
+  ctx.lineWidth = 14;
+  ctx.beginPath();
+  ctx.arc(0, 0, 94, 0, 7);
+  ctx.stroke();
+  ctx.globalCompositeOperation = 'screen';
+  ctx.globalAlpha = .42 + Math.sin(t * 9) * .08;
+  ctx.strokeStyle = '#18d8ff';
+  ctx.lineWidth = 18;
+  ctx.beginPath();
+  ctx.arc(0, 0, 94, start, end);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = '#5eeaff';
+  ctx.lineWidth = 9;
+  ctx.beginPath();
+  ctx.arc(0, 0, 94, start, end);
+  ctx.stroke();
+  ctx.strokeStyle = '#e8fbff';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(0, 0, 94, Math.max(start, end - .24), end + .08);
+  ctx.stroke();
   ctx.restore();
 }
 
@@ -23842,7 +23944,7 @@ function drawShatterConvoyEnvironmentalCue(room, t) {
   }
   if (room.id === 'deadRelay') {
     drawShatterConvoyRelay(room, visual, t);
-    const routeColor = visual.cleared || visual.escapeActive ? '#8edcff' : '#79ffae';
+    const routeColor = '#8edcff';
     drawShatterConvoyRouteLights(cx(room.rect[0] + 1), cy(8), shatterConvoyRoomPoint(room).x - 48, shatterConvoyRoomPoint(room).y, routeColor, t, 6, t * .14 % 1);
     if (visual.cleared || visual.escapeActive) {
       drawShatterConvoyRouteLights(shatterConvoyRoomPoint(room).x - 14, shatterConvoyRoomPoint(room).y - 36, cx(25), cy(10), '#8edcff', t, 8, t * .16 % 1);
@@ -23970,59 +24072,110 @@ function drawExpeditionRiftTether(heroX, heroY, riftX, riftY, t) {
   const distLen = Math.max(1, Math.hypot(dx, dy));
   const nx = dx / distLen;
   const ny = dy / distLen;
-  const px = -ny;
-  const py = nx;
-  const sway = Math.sin(t * 5.4 + distLen * .012) * 11;
-  const pull = Math.min(1, distLen / 260);
-  const startX = heroX + nx * 16;
-  const startY = heroY - 8 + ny * 16;
-  const endX = riftX - nx * 20;
-  const endY = riftY - ny * 18;
-  const c1x = startX + nx * distLen * .26 + px * sway;
-  const c1y = startY + ny * distLen * .26 + py * sway;
-  const c2x = startX + nx * distLen * .72 - px * sway * .55;
-  const c2y = startY + ny * distLen * .72 - py * sway * .55;
+  const startX = heroX + nx * 12;
+  const startY = heroY - 14 + ny * 10;
+  const endX = riftX - nx * (CORE_CARRIED_DRAW_W * .12);
+  const endY = riftY + CORE_TETHER_END_Y_OFFSET;
+  const midX = (startX + endX) / 2;
+  const midY = (startY + endY) / 2 + Math.min(18, Math.max(8, distLen * .12));
   ctx.save();
+  ctx.globalCompositeOperation = 'source-over';
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-  ctx.globalCompositeOperation = 'screen';
-  ctx.globalAlpha = .16 + pull * .18;
-  ctx.strokeStyle = '#ffb4d2';
-  ctx.lineWidth = TETHER_LINE_WIDTH + 6;
-  ctx.beginPath();
-  ctx.moveTo(startX, startY);
-  ctx.bezierCurveTo(c1x, c1y, c2x, c2y, endX, endY);
-  ctx.stroke();
-  ctx.globalAlpha = .55 + pull * .22;
-  ctx.strokeStyle = '#ff5f8d';
+  ctx.globalAlpha = .42;
+  ctx.strokeStyle = 'rgba(42, 24, 16, 0.55)';
   ctx.lineWidth = TETHER_LINE_WIDTH + 1.5;
   ctx.beginPath();
   ctx.moveTo(startX, startY);
-  ctx.bezierCurveTo(c1x, c1y, c2x, c2y, endX, endY);
+  ctx.quadraticCurveTo(midX, midY, endX, endY);
   ctx.stroke();
-  ctx.globalAlpha = .9;
-  ctx.strokeStyle = '#fff2f7';
-  ctx.lineWidth = TETHER_LINE_WIDTH * .55;
-  ctx.setLineDash([12, 16]);
+  ctx.globalAlpha = .85;
+  ctx.strokeStyle = 'rgba(120, 74, 44, 0.85)';
+  ctx.lineWidth = TETHER_LINE_WIDTH;
   ctx.beginPath();
   ctx.moveTo(startX, startY);
-  ctx.bezierCurveTo(c1x, c1y, c2x, c2y, endX, endY);
+  ctx.quadraticCurveTo(midX, midY, endX, endY);
   ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.globalAlpha = .45;
-  ctx.fillStyle = '#fff1a8';
-  for (let i = 0; i < 4; i++) {
-    const u = .2 + i * .18 + Math.sin(t * 2.4 + i) * .02;
-    const sx = startX + (endX - startX) * u + px * Math.sin(t * 8 + i * 2.4) * (9 - i);
-    const sy = startY + (endY - startY) * u + py * Math.cos(t * 6 + i * 1.7) * (6 - i);
-    ctx.beginPath();
-    ctx.arc(sx, sy, 2.2 - i * .2, 0, 7);
-    ctx.fill();
-  }
   ctx.restore();
 }
 
+function drawExpeditionCarriedRiftTether(t) {
+  const ex = S.expedition;
+  const cfg = expeditionConfig();
+  if (!isExpeditionRun() || !ex?.riftActivated || !ex.riftCarried || !ex.rift || !cfg) return;
+  const carriedRiftX = Number.isFinite(ex.riftVisualX) ? ex.riftVisualX : ex.rift.x;
+  const carriedRiftY = Number.isFinite(ex.riftVisualY) ? ex.riftVisualY : ex.rift.y;
+  const carriedRiftBob = Math.sin((ex.riftVisualBobPhase || 0)) * TETHERED_RIFT_BOB_AMPLITUDE;
+  drawExpeditionRiftTether(S.hero.x, S.hero.y, carriedRiftX, carriedRiftY + carriedRiftBob, t);
+}
+
+function expeditionCoreHeartFrameIndex() {
+  const ex = S.expedition;
+  const fx = Number.isFinite(ex?.riftCarryFacingX) ? ex.riftCarryFacingX : 0;
+  const fy = Number.isFinite(ex?.riftCarryFacingY) ? ex.riftCarryFacingY : -1;
+  if (Math.hypot(fx, fy) <= .2) return 0;
+  return heroSpriteFrameIndex(Math.atan2(fy, fx)) % CORE_HEART_SHEET_FRAMES;
+}
+
+function drawExpeditionCoreHeartSprite(x, y, t, activated = false, carried = false) {
+  if (!coreHeartSpriteReady || !CORE_HEART_SPRITE.complete || !CORE_HEART_SPRITE.naturalWidth) return false;
+  const ex = S.expedition;
+  const warnState = ex?.riftWarnState || 0;
+  const pct = Math.max(0, Math.min(1, (ex?.rift?.hp || 0) / Math.max(1, ex?.rift?.max || 1)));
+  const frame = carried ? expeditionCoreHeartFrameIndex() : 0;
+  const settle = carried ? 0 : Math.max(0, Math.min(1, (ex?.riftSettleTime || 0) / RIFT_SETTLE_DURATION));
+  const grow = carried ? 1 : 1 - settle;
+  const drawW = carried
+    ? CORE_CARRIED_DRAW_W
+    : CORE_CARRIED_DRAW_W + (CORE_DEPLOYED_DRAW_W - CORE_CARRIED_DRAW_W) * grow;
+  const drawH = carried
+    ? CORE_CARRIED_DRAW_H
+    : CORE_CARRIED_DRAW_H + (CORE_DEPLOYED_DRAW_H - CORE_CARRIED_DRAW_H) * grow;
+  const pulse = 1 + Math.sin(t * (carried ? 5.8 : 4.2)) * (carried ? .035 : .045);
+  const wobble = carried ? Math.sin(t * 6.5 + x * .012) * 1.8 : Math.sin(t * 1.7) * 1.2;
+  const weak = pct <= .45;
+  ctx.save();
+  ctx.translate(x + wobble, y + Math.sin(t * (carried ? 4.4 : 2.2) + y * .013) * (carried ? 1.6 : 1.1));
+  ctx.globalCompositeOperation = 'screen';
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = warnState >= 3
+    ? 'rgba(255, 47, 79, 0.26)'
+    : weak
+      ? 'rgba(255, 123, 123, 0.18)'
+      : carried
+        ? 'rgba(255, 80, 220, 0.18)'
+        : 'rgba(255, 80, 220, 0.16)';
+  ctx.beginPath();
+  ctx.ellipse(0, 3, drawW * (carried ? .45 : .58) * pulse, drawH * (carried ? .42 : .54) * pulse, 0, 0, 7);
+  ctx.fill();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = 1;
+  ctx.drawImage(
+    CORE_HEART_SPRITE,
+    frame * CORE_HEART_SHEET_FRAME_SIZE + CORE_HEART_CROP_X,
+    CORE_HEART_CROP_Y,
+    CORE_HEART_CROP_W,
+    CORE_HEART_CROP_H,
+    -drawW / 2,
+    -drawH / 2,
+    drawW,
+    drawH
+  );
+  if (activated && !carried) {
+    ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = warnState >= 2 ? .36 : .22;
+    ctx.strokeStyle = warnState >= 2 ? 'rgba(255, 90, 58, 0.32)' : 'rgba(255, 120, 230, 0.22)';
+    ctx.lineWidth = warnState >= 2 ? 3 : 2;
+    ctx.beginPath();
+    ctx.arc(0, 2, drawW * .62 + Math.sin(t * 5.2) * 3, 0, 7);
+    ctx.stroke();
+  }
+  ctx.restore();
+  return true;
+}
+
 function drawExpeditionRiftCore(x, y, t, activated = false, carried = false) {
+  if (drawExpeditionCoreHeartSprite(x, y, t, activated, carried)) return;
   if (carried) {
     const ex = S.expedition;
     const warnState = ex?.riftWarnState || 0;
@@ -24059,14 +24212,6 @@ function drawExpeditionRiftCore(x, y, t, activated = false, carried = false) {
     ctx.strokeStyle = warnState >= 3 ? '#7b0615' : '#ffeff5';
     ctx.lineWidth = 3.5;
     ctx.stroke();
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = '#fff7fb';
-    ctx.strokeStyle = '#18081f';
-    ctx.lineWidth = 3;
-    ctx.font = 'bold 10px Georgia';
-    ctx.textAlign = 'center';
-    ctx.strokeText('CARRIED', 0, -40);
-    ctx.fillText('CARRIED', 0, -40);
     ctx.restore();
     return;
   }
@@ -24157,14 +24302,6 @@ function drawExpeditionRiftCore(x, y, t, activated = false, carried = false) {
       ctx.lineTo(Math.cos(a) * 40, Math.sin(a) * 34);
       ctx.stroke();
     }
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = '#fff4ff';
-    ctx.strokeStyle = '#18081f';
-    ctx.lineWidth = 3;
-    ctx.font = 'bold 10px Georgia';
-    ctx.textAlign = 'center';
-    ctx.strokeText('CARRIED', 0, -78);
-    ctx.fillText('CARRIED', 0, -78);
     ctx.restore();
     return;
   }
@@ -24353,16 +24490,6 @@ function drawExpeditionRiftCore(x, y, t, activated = false, carried = false) {
     ctx.lineTo(Math.cos(a) * (72 + Math.sin(vt * 4 + i) * (weak ? 4 : 8)), Math.sin(a) * (82 + Math.cos(vt * 5 + i) * (weak ? 4 : 8)));
     ctx.stroke();
   }
-  if (carried) {
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = '#fff4ff';
-    ctx.strokeStyle = '#18081f';
-    ctx.lineWidth = 3;
-    ctx.font = 'bold 10px Georgia';
-    ctx.textAlign = 'center';
-    ctx.strokeText('CARRIED', 0, -78);
-    ctx.fillText('CARRIED', 0, -78);
-  }
   ctx.restore();
 }
 
@@ -24544,22 +24671,7 @@ function drawExpeditionLockedRiftDoor(t) {
 }
 
 function drawCarriedRiftHeroHealth() {
-  if (!isCarryingExpeditionRift()) return;
-  const h = S.hero;
-  const pct = clamp(h.hp / Math.max(1, h.max), 0, 1);
-  const x = h.x - 28;
-  const y = h.y - 34;
-  ctx.fillStyle = '#120805';
-  ctx.fillRect(x - 2, y - 2, 60, 10);
-  ctx.fillStyle = '#4b2412';
-  ctx.fillRect(x, y, 56, 6);
-  ctx.fillStyle = pct > .5 ? '#4f8d3b' : pct > .25 ? '#a88d28' : '#c03020';
-  ctx.fillRect(x, y, 56 * pct, 6);
-  ctx.fillStyle = '#fff4dc';
-  ctx.font = 'bold 10px Arial';
-  ctx.textAlign = 'center';
-  ctx.fillText(`${Math.max(0, Math.ceil(h.hp))} HP`, h.x, y - 5);
-  ctx.textAlign = 'left';
+  return;
 }
 
 function drawExpeditionKeyContainer(container, t) {
@@ -24604,7 +24716,6 @@ function drawExpeditionObjects(t) {
   const riftRenderX = ex.riftCarried ? carriedRiftX : ex.rift?.x;
   const riftRenderY = ex.riftCarried ? carriedRiftY + carriedRiftBob : ex.rift?.y;
   const nearRift = ex.riftActivated || ex.riftFound || dist(S.hero.x, S.hero.y, staticX, staticY) < 360;
-  if (nearRift && ex.riftCarried) drawExpeditionRiftTether(S.hero.x, S.hero.y, riftRenderX, riftRenderY, t);
   if (nearRift) drawExpeditionRiftCore(ex.riftActivated ? riftRenderX : staticX, ex.riftActivated ? riftRenderY : staticY, t, ex.riftActivated, !!ex.riftCarried);
   if (ex.escapeActive && ex.riftCarried) {
     ctx.save();
@@ -24659,6 +24770,7 @@ function drawExpeditionObjects(t) {
     ctx.save();
     const pct = Math.max(0, ex.rift.hp / ex.rift.max);
     const warnState = ex.riftWarnState || 0;
+    const showTetheredCoreHp = !ex.riftCarried && (!SHOW_TETHERED_CORE_HP_ONLY_WHEN_DAMAGED || pct < .999);
     if ((ex.rift.flash || 0) > 0) {
       if (abstractGouacheEnabled()) {
         drawGouacheArc(ex.rift.x, ex.rift.y, 78 + Math.sin(t * 18) * 4, 58, t * .4, .25, Math.PI * 1.68, ABSTRACT_GOUACHE_PALETTE.red, 12, Math.min(.8, ex.rift.flash));
@@ -24676,18 +24788,24 @@ function drawExpeditionObjects(t) {
       }
       ex.rift.flash = Math.max(0, (ex.rift.flash || 0) - .08);
     }
-    const barW = ex.riftCarried ? 84 : 116;
-    const barH = 8;
-    const barX = riftRenderX - barW / 2;
-    const barY = riftRenderY - (ex.riftCarried ? TETHERED_RIFT_DRAW_SIZE : DEPLOYED_RIFT_DRAW_SIZE) * .72 - RIFT_STATUS_BAR_GAP;
-    ctx.fillStyle = '#1a070f';
-    ctx.fillRect(barX, barY, barW, barH);
-    ctx.fillStyle = ex.riftCarried ? '#8edcff' : warnState >= 3 ? '#ff1f1f' : warnState >= 2 ? '#ff5a3a' : pct > .45 ? '#e6b8ff' : '#ff7b7b';
-    ctx.fillRect(barX, barY, barW * pct, barH);
-    ctx.fillStyle = '#fff4ff';
-    ctx.font = 'bold 11px Georgia';
-    ctx.textAlign = 'center';
-    ctx.fillText(ex.riftCarried ? 'CARRYING RIFT' : warnState >= 2 ? 'RIFT CRITICAL' : warnState === 1 ? 'RIFT DAMAGED' : 'RIFT', riftRenderX, barY - 6);
+    if (showTetheredCoreHp) {
+      const barW = ex.riftCarried ? 44 : 116;
+      const barH = ex.riftCarried ? 5 : 8;
+      const barX = riftRenderX - barW / 2;
+      const barY = ex.riftCarried
+        ? riftRenderY - TETHERED_CORE_HP_BAR_Y_OFFSET
+        : riftRenderY - DEPLOYED_RIFT_DRAW_SIZE * .72 - RIFT_STATUS_BAR_GAP;
+      ctx.fillStyle = '#1a070f';
+      ctx.fillRect(barX, barY, barW, barH);
+      ctx.fillStyle = ex.riftCarried ? '#8edcff' : warnState >= 3 ? '#ff1f1f' : warnState >= 2 ? '#ff5a3a' : pct > .45 ? '#e6b8ff' : '#ff7b7b';
+      ctx.fillRect(barX, barY, barW * pct, barH);
+      if (!ex.riftCarried || SHOW_TETHERED_CORE_LABELS) {
+        ctx.fillStyle = '#fff4ff';
+        ctx.font = 'bold 11px Georgia';
+        ctx.textAlign = 'center';
+        ctx.fillText(warnState >= 2 ? 'RIFT CRITICAL' : warnState === 1 ? 'RIFT DAMAGED' : 'RIFT', riftRenderX, barY - 6);
+      }
+    }
     ctx.restore();
 
     const relay = expeditionRelayPadCenter();
@@ -24698,13 +24816,15 @@ function drawExpeditionObjects(t) {
     const unlocked = shatterConvoy || expeditionExtractionUnlocked();
     const riftReturned = expeditionRiftAtRelay();
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
-    ctx.fillStyle = ex.escapeActive ? '#ff3b6166' : unlocked ? (riftReturned ? '#9fffc866' : '#8a8f9644') : '#ffd45a33';
-    ctx.beginPath(); ctx.arc(exX, exY, 46 + keyPct * 42 + Math.sin(t * 6) * 5, 0, 7); ctx.fill();
-    ctx.strokeStyle = ex.escapeActive ? (Math.sin(t * 18) > 0 ? '#fff1a8' : '#ff3b61') : unlocked ? (riftReturned ? '#d8ffd8' : '#c4c8cc') : '#ffd45a';
-    ctx.lineWidth = ex.escapeActive ? 8 : unlocked ? 5 : 3;
-    ctx.beginPath(); ctx.arc(exX, exY, 58 + keyPct * 24, 0, 7); ctx.stroke();
-    ctx.globalCompositeOperation = 'source-over';
+    if (!shatterConvoy) {
+      ctx.globalCompositeOperation = 'screen';
+      ctx.fillStyle = ex.escapeActive ? '#ff3b6166' : unlocked ? (riftReturned ? '#9fffc866' : '#8a8f9644') : '#ffd45a33';
+      ctx.beginPath(); ctx.arc(exX, exY, 46 + keyPct * 42 + Math.sin(t * 6) * 5, 0, 7); ctx.fill();
+      ctx.strokeStyle = ex.escapeActive ? (Math.sin(t * 18) > 0 ? '#fff1a8' : '#ff3b61') : unlocked ? (riftReturned ? '#d8ffd8' : '#c4c8cc') : '#ffd45a';
+      ctx.lineWidth = ex.escapeActive ? 8 : unlocked ? 5 : 3;
+      ctx.beginPath(); ctx.arc(exX, exY, 58 + keyPct * 24, 0, 7); ctx.stroke();
+      ctx.globalCompositeOperation = 'source-over';
+    }
     if (!shatterConvoy) drawExpeditionRiftSocket(exX, exY, riftReturned);
     if (!unlocked) {
       ctx.strokeStyle = '#ffcf6a';
@@ -24733,17 +24853,19 @@ function drawExpeditionObjects(t) {
       relayLine1 = 'RETURN RIFT';
       relayLine2 = 'TO RELAY';
     }
-    ctx.fillStyle = unlocked && !riftReturned ? '#e4e8ec' : unlocked ? '#f0ffe8' : '#fff1c0';
-    ctx.strokeStyle = '#120805';
-    ctx.lineWidth = 5;
-    ctx.font = '900 14px Georgia';
-    ctx.textAlign = 'center';
-    ctx.strokeText(relayLine1, exX, exY - 5);
-    ctx.fillText(relayLine1, exX, exY - 5);
-    if (relayLine2) {
-      ctx.font = '900 12px Georgia';
-      ctx.strokeText(relayLine2, exX, exY + 14);
-      ctx.fillText(relayLine2, exX, exY + 14);
+    if (!shatterConvoy) {
+      ctx.fillStyle = unlocked && !riftReturned ? '#e4e8ec' : unlocked ? '#f0ffe8' : '#fff1c0';
+      ctx.strokeStyle = '#120805';
+      ctx.lineWidth = 5;
+      ctx.font = '900 14px Georgia';
+      ctx.textAlign = 'center';
+      ctx.strokeText(relayLine1, exX, exY - 5);
+      ctx.fillText(relayLine1, exX, exY - 5);
+      if (relayLine2) {
+        ctx.font = '900 12px Georgia';
+        ctx.strokeText(relayLine2, exX, exY + 14);
+        ctx.fillText(relayLine2, exX, exY + 14);
+      }
     }
     ctx.restore();
   }
@@ -26373,8 +26495,7 @@ function drawEngineer(t) {
 }
 
 function heroSpriteFacingAngle(h, aimAngle) {
-  const dx = ((keys.d || keys.ArrowRight) ? 1 : 0) - ((keys.a || keys.ArrowLeft) ? 1 : 0);
-  const dy = ((keys.s || keys.ArrowDown) ? 1 : 0) - ((keys.w || keys.ArrowUp) ? 1 : 0);
+  const { dx, dy } = heroMovementVector();
   if (mouse.down || h.charging) {
     h.visualFacingAngle = aimAngle;
     return aimAngle;
@@ -26391,6 +26512,18 @@ function heroSpriteFacingAngle(h, aimAngle) {
 function heroSpriteFrameIndex(angle) {
   const octant = ((Math.round(angle / (Math.PI / 4)) % 8) + 8) % 8;
   return HERO_SPRITE_FRAME_BY_OCTANT[octant] || 0;
+}
+
+function heroMovementVector() {
+  return {
+    dx: ((keys.d || keys.ArrowRight) ? 1 : 0) - ((keys.a || keys.ArrowLeft) ? 1 : 0),
+    dy: ((keys.s || keys.ArrowDown) ? 1 : 0) - ((keys.w || keys.ArrowUp) ? 1 : 0),
+  };
+}
+
+function heroWalkRowIndex(angle) {
+  const octant = ((Math.round(angle / (Math.PI / 4)) % 8) + 8) % 8;
+  return PLAYER_WALK_ROW_BY_OCTANT[octant] || 0;
 }
 
 function drawHeroCoreWarning(lowWarn) {
@@ -26412,19 +26545,104 @@ function drawHeroCoreWarning(lowWarn) {
 }
 
 const PLAYER_SPRITE_FRAME_SIZE = 256;
-const PLAYER_SPRITE_SOURCE_CROP_X = 64;
-const PLAYER_SPRITE_SOURCE_CROP_Y = 28;
-const PLAYER_SPRITE_SOURCE_CROP_W = 128;
-const PLAYER_SPRITE_SOURCE_CROP_H = 190;
+const PLAYER_SPRITE_SOURCE_CROP_X = 86;
+const PLAYER_SPRITE_SOURCE_CROP_Y = 54;
+const PLAYER_SPRITE_SOURCE_CROP_W = 88;
+const PLAYER_SPRITE_SOURCE_CROP_H = 146;
 const PLAYER_SPRITE_DRAW_W = 70;
-const PLAYER_SPRITE_DRAW_H = 96;
+const PLAYER_SPRITE_DRAW_H = 112;
 const PLAYER_SPRITE_DRAW_Y_OFFSET = -18;
 const PLAYER_HEALTH_BAR_OFFSET = 18;
+const PLAYER_SHADOW_OFFSET_Y = 22;
+const PLAYER_SHADOW_W = 48;
+const PLAYER_SHADOW_H = 20;
+const PLAYER_SHADOW_ALPHA = 0.11;
+const PLAYER_SHADOW_FEATHER_STEPS = 4;
+const PLAYER_WALK_FRAME_SIZE = 256;
+const PLAYER_WALK_SHEET_COLS = 4;
+const PLAYER_WALK_SHEET_ROWS = 8;
+const PLAYER_WALK_FRAME_MS = 120;
+const PLAYER_WALK_CROP_X = 58;
+const PLAYER_WALK_CROP_Y = 0;
+const PLAYER_WALK_CROP_W = 140;
+const PLAYER_WALK_CROP_H = 232;
+// Octants are east, southeast, south, southwest, west, northwest, north, northeast.
+// Sheet rows are east, northeast, north, northwest, west, southwest, south, southeast.
+const PLAYER_WALK_ROW_BY_OCTANT = [0, 7, 6, 5, 4, 3, 2, 1];
+const PLAYER_WALK_BACKGROUND_THRESHOLD = 3;
+
+function isHeroWalkBackgroundPixel(data, index) {
+  return data[index + 3] > 0
+    && data[index] <= PLAYER_WALK_BACKGROUND_THRESHOLD
+    && data[index + 1] <= PLAYER_WALK_BACKGROUND_THRESHOLD
+    && data[index + 2] <= PLAYER_WALK_BACKGROUND_THRESHOLD;
+}
+
+function clearHeroWalkFrameBackground(data, width, height, offsetX, offsetY) {
+  const stack = [];
+  const pushIfBackground = (x, y) => {
+    const index = ((offsetY + y) * width + offsetX + x) * 4;
+    if (!isHeroWalkBackgroundPixel(data, index)) return;
+    data[index + 3] = 0;
+    stack.push([x, y]);
+  };
+  for (let x = 0; x < PLAYER_WALK_FRAME_SIZE; x++) {
+    pushIfBackground(x, 0);
+    pushIfBackground(x, PLAYER_WALK_FRAME_SIZE - 1);
+  }
+  for (let y = 1; y < PLAYER_WALK_FRAME_SIZE - 1; y++) {
+    pushIfBackground(0, y);
+    pushIfBackground(PLAYER_WALK_FRAME_SIZE - 1, y);
+  }
+  while (stack.length) {
+    const [x, y] = stack.pop();
+    if (x > 0) pushIfBackground(x - 1, y);
+    if (x < PLAYER_WALK_FRAME_SIZE - 1) pushIfBackground(x + 1, y);
+    if (y > 0) pushIfBackground(x, y - 1);
+    if (y < PLAYER_WALK_FRAME_SIZE - 1) pushIfBackground(x, y + 1);
+  }
+}
+
+function prepareHeroWalkSpriteCanvas(img) {
+  if (!img || !img.naturalWidth || !img.naturalHeight) return null;
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const walkCtx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!walkCtx) return null;
+    walkCtx.drawImage(img, 0, 0);
+    const sheet = walkCtx.getImageData(0, 0, canvas.width, canvas.height);
+    for (let row = 0; row < PLAYER_WALK_SHEET_ROWS; row++) {
+      for (let col = 0; col < PLAYER_WALK_SHEET_COLS; col++) {
+        clearHeroWalkFrameBackground(
+          sheet.data,
+          canvas.width,
+          canvas.height,
+          col * PLAYER_WALK_FRAME_SIZE,
+          row * PLAYER_WALK_FRAME_SIZE
+        );
+      }
+    }
+    walkCtx.putImageData(sheet, 0, 0);
+    return canvas;
+  } catch (err) {
+    console.warn('Using raw Joel walk sprite sheet; transparent export may be needed.', err);
+    return null;
+  }
+}
+
+function heroWalkSpriteSource() {
+  return heroWalkSpriteCanvas || HERO_WALK_SPRITE;
+}
 
 function drawHeroSpriteBody(t, h, aimAngle, recoil, heroScale, lowWarn) {
   if (!heroSpriteReady || !HERO_SPRITE.complete || !HERO_SPRITE.naturalWidth) return false;
-  const angle = heroSpriteFacingAngle(h, aimAngle);
-  const frame = heroSpriteFrameIndex(angle);
+  const move = heroMovementVector();
+  const isWalking = (move.dx || move.dy)
+    && heroWalkSpriteReady
+    && HERO_WALK_SPRITE.complete
+    && HERO_WALK_SPRITE.naturalWidth;
   const drawW = PLAYER_SPRITE_DRAW_W * heroScale;
   const drawH = PLAYER_SPRITE_DRAW_H * heroScale;
   const x = h.x - Math.cos(aimAngle) * recoil * 10;
@@ -26432,20 +26650,76 @@ function drawHeroSpriteBody(t, h, aimAngle, recoil, heroScale, lowWarn) {
   ctx.save();
   ctx.translate(x, y);
   ctx.globalAlpha = h.inv > 0 && Math.floor(t * 18) % 2 ? .45 : 1;
-  ctx.drawImage(
-    HERO_SPRITE,
-    frame * PLAYER_SPRITE_FRAME_SIZE + PLAYER_SPRITE_SOURCE_CROP_X,
-    PLAYER_SPRITE_SOURCE_CROP_Y,
-    PLAYER_SPRITE_SOURCE_CROP_W,
-    PLAYER_SPRITE_SOURCE_CROP_H,
-    -drawW / 2,
-    -drawH / 2 + PLAYER_SPRITE_DRAW_Y_OFFSET,
-    drawW,
-    drawH
-  );
+  if (isWalking) {
+    const walkAngle = Math.atan2(move.dy, move.dx);
+    h.visualFacingAngle = walkAngle;
+    const walkRow = heroWalkRowIndex(walkAngle);
+    const walkFrame = Math.floor(performance.now() / PLAYER_WALK_FRAME_MS) % PLAYER_WALK_SHEET_COLS;
+    ctx.drawImage(
+      heroWalkSpriteSource(),
+      walkFrame * PLAYER_WALK_FRAME_SIZE + PLAYER_WALK_CROP_X,
+      walkRow * PLAYER_WALK_FRAME_SIZE + PLAYER_WALK_CROP_Y,
+      PLAYER_WALK_CROP_W,
+      PLAYER_WALK_CROP_H,
+      -drawW / 2,
+      -drawH / 2 + PLAYER_SPRITE_DRAW_Y_OFFSET,
+      drawW,
+      drawH
+    );
+  } else {
+    const angle = heroSpriteFacingAngle(h, aimAngle);
+    const frame = heroSpriteFrameIndex(angle);
+    ctx.drawImage(
+      HERO_SPRITE,
+      frame * PLAYER_SPRITE_FRAME_SIZE + PLAYER_SPRITE_SOURCE_CROP_X,
+      PLAYER_SPRITE_SOURCE_CROP_Y,
+      PLAYER_SPRITE_SOURCE_CROP_W,
+      PLAYER_SPRITE_SOURCE_CROP_H,
+      -drawW / 2,
+      -drawH / 2 + PLAYER_SPRITE_DRAW_Y_OFFSET,
+      drawW,
+      drawH
+    );
+  }
   drawHeroCoreWarning(lowWarn);
   ctx.restore();
   return true;
+}
+
+function drawHeroGroundShadow(h, heroScale) {
+  const centerX = h.x;
+  const centerY = h.y + PLAYER_SHADOW_OFFSET_Y * heroScale;
+  ctx.save();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = '#11100d';
+  for (let i = PLAYER_SHADOW_FEATHER_STEPS; i >= 1; i--) {
+    const p = i / PLAYER_SHADOW_FEATHER_STEPS;
+    ctx.globalAlpha = PLAYER_SHADOW_ALPHA * (1 - p * .78);
+    ctx.beginPath();
+    ctx.ellipse(
+      centerX,
+      centerY,
+      (PLAYER_SHADOW_W * heroScale * (1 + p * .42)) / 2,
+      (PLAYER_SHADOW_H * heroScale * (1 + p * .55)) / 2,
+      0,
+      0,
+      7
+    );
+    ctx.fill();
+  }
+  ctx.globalAlpha = PLAYER_SHADOW_ALPHA;
+  ctx.beginPath();
+  ctx.ellipse(
+    centerX,
+    centerY,
+    (PLAYER_SHADOW_W * heroScale) / 2,
+    (PLAYER_SHADOW_H * heroScale) / 2,
+    0,
+    0,
+    7
+  );
+  ctx.fill();
+  ctx.restore();
 }
 
 function drawHeroFallbackBody(t, h, a, recoil, heroScale, slimeActive, lowWarn) {
@@ -26536,33 +26810,7 @@ function drawHero(t) {
   const heroScale = S.activeWaveMutagen === 'giantism' ? 1.55 : (h.heroScale || 1);
   const lowWarn = S.lowHealthState || 0;
 
-  // ── Ground shadow (always drawn, before translation) ──────────────
-  ctx.save();
-  ctx.globalAlpha = .32;
-  ctx.fillStyle = '#0a0806';
-  ctx.beginPath();
-  ctx.ellipse(h.x + 4, h.y + 6, 18 * heroScale, 10 * heroScale, 0, 0, 7);
-  ctx.fill();
-  ctx.restore();
-
-  // ── Persistent white locator outline ─────────────────────────────
-  const weaponHaloColors = { ranger:'#a4d067', crossbow:'#d6b26b', storm:'#8edcff', freeze:'#c8f4ff', blunderbuss:'#ffd27a', riftblade:'#b98cff' };
-  const haloColor = weaponHaloColors[h.weapon] || '#f0c96b';
-  ctx.save();
-  ctx.globalAlpha = h.inv > 0 && Math.floor(t * 18) % 2 ? .2 : .88;
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 2.5;
-  ctx.beginPath();
-  ctx.arc(h.x, h.y, 16 * heroScale, 0, 7);
-  ctx.stroke();
-  // Weapon-colored inner halo pulse
-  ctx.strokeStyle = haloColor;
-  ctx.lineWidth = 1.5;
-  ctx.globalAlpha = h.inv > 0 && Math.floor(t * 18) % 2 ? .1 : (.42 + Math.sin(t * 4) * .12);
-  ctx.beginPath();
-  ctx.arc(h.x, h.y, 20 * heroScale, 0, 7);
-  ctx.stroke();
-  ctx.restore();
+  drawHeroGroundShadow(h, heroScale);
 
   if (!drawHeroSpriteBody(t, h, a, recoil, heroScale, lowWarn)) {
     drawHeroFallbackBody(t, h, a, recoil, heroScale, slimeActive, lowWarn);
@@ -26612,7 +26860,8 @@ function drawHero(t) {
   const barH = lowWarn >= 2 ? 12 : lowWarn === 1 ? 9 : 6;
   const barX = h.x - barW / 2;
   const spriteTop = h.y - (PLAYER_SPRITE_DRAW_H * heroScale / 2) + PLAYER_SPRITE_DRAW_Y_OFFSET;
-  const barY = spriteTop - barH - PLAYER_HEALTH_BAR_OFFSET;
+  const playerHpOffset = isCarryingExpeditionRift() ? PLAYER_HP_BAR_Y_OFFSET : PLAYER_HEALTH_BAR_OFFSET;
+  const barY = spriteTop - barH - playerHpOffset;
   ctx.fillStyle = '#2b120b';
   ctx.fillRect(barX - 2, barY - 2, barW + 4, barH + 4);
   ctx.fillStyle = lowWarn >= 2 ? 'rgba(110, 10, 6, 0.96)' : 'rgba(75, 36, 18, 0.92)';
