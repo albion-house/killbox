@@ -6277,7 +6277,7 @@ body.expeditionGameplay #combatHud {
 #start .loadoutBody {
   min-height: 0;
   overflow: visible;
-  align-items: stretch;
+  align-items: start;
 }
 
 #start .missionLaunchPanel,
@@ -6287,7 +6287,8 @@ body.expeditionGameplay #combatHud {
 }
 
 #start .expeditionDetailsPanel {
-  grid-template-rows: auto clamp(140px, 22vh, 210px) auto;
+  grid-template-rows: auto auto auto;
+  align-self: start;
   overflow: visible;
 }
 
@@ -6305,9 +6306,15 @@ body.expeditionGameplay #combatHud {
   min-height: 0;
 }
 
+#start .expeditionDetailsThumb {
+  height: clamp(136px, 22vh, 210px);
+  contain: paint;
+  isolation: isolate;
+}
+
 #start .loadoutRailWrap {
   position: relative;
-  z-index: 1;
+  z-index: auto;
 }
 
 @media (max-height: 820px) and (min-width: 1221px) {
@@ -6346,9 +6353,13 @@ body.expeditionGameplay #combatHud {
   }
 
   #start .expeditionDetailsPanel {
-    grid-template-rows: auto 136px auto;
+    grid-template-rows: auto auto auto;
     gap: 9px;
     padding: 11px;
+  }
+
+  #start .expeditionDetailsThumb {
+    height: 136px;
   }
 
   #start .expeditionDetailsCopy h2 {
@@ -6620,8 +6631,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.39.9</b>
-      <span id="warRoomBuildName">FlowFix</span>
+      <b id="warRoomVersion">v7.39.10</b>
+      <span id="warRoomBuildName">StackFix</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -6691,7 +6702,7 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion"><span>v7.39.9</span><span>FlowFix</span></div>
+            <div class="loadoutVersion" id="loadoutVersion"><span>v7.39.10</span><span>StackFix</span></div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -8420,11 +8431,12 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.39.9';
+const GAME_VERSION = '7.39.10';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'FlowFix';
+const BUILD_NAME = 'StackFix';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Made Mission Launch responsive so the loadout strip stays below expedition content on shorter screens.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Hardened Mission Launch section flow and image containment so details and loadout do not stack over each other.' },
+  { version: '7.39.9', name: 'FlowFix', changes: 'Made Mission Launch responsive so the loadout strip stays below expedition content on shorter screens.' },
   { version: '7.39.8', name: 'OpenDeck', changes: 'Cleaned Mission Launch spacing, removed the Play Last Run button, and improved loadout readability.' },
   { version: '7.39.6', name: 'ModeCards', changes: 'Rebuilt Mission Launch mode selection as larger image-led mode cards.' },
   { version: '7.39.5', name: 'BrightArt', changes: 'Updated Mission Launch artwork and brightened menu image presentation.' },
