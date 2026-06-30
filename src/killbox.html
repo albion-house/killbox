@@ -5248,11 +5248,15 @@ body.expeditionGameplay #combatHud {
   min-height: 0;
   padding: 10px;
   gap: 8px;
+  grid-template-rows: auto auto;
+  align-items: start;
+  align-content: start;
 }
 
 #start .loadoutRailSlot {
-  min-height: 108px;
-  grid-template-rows: minmax(0, 1fr) auto auto;
+  min-height: 98px;
+  grid-template-rows: 16px 1fr auto auto auto;
+  align-self: start;
   border-color: rgba(255,255,255,.14);
   background: linear-gradient(180deg, rgba(15,17,17,.96), rgba(5,6,6,.98));
 }
@@ -5263,9 +5267,12 @@ body.expeditionGameplay #combatHud {
 }
 
 #start .railIcon {
-  width: min(62px, 68%);
-  margin-top: 12px;
-  font-size: 39px;
+  width: min(66px, 72%);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  margin-top: 8px;
+  font-size: 40px;
 }
 
 #start .loadoutRailSlot.empty .railIcon {
@@ -5275,12 +5282,24 @@ body.expeditionGameplay #combatHud {
 }
 
 #start .railName {
-  padding: 0 4px 2px;
+  padding: 0 4px 1px;
   font-size: 9px;
+  line-height: 1.05;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+#start .railRole {
+  padding: 0 4px 1px;
+  color: #6dcddd;
+  font: 900 8px/1.05 Arial, Helvetica, sans-serif;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  text-align: center;
 }
 
 #start .railStatus {
-  padding-bottom: 5px;
+  padding-bottom: 4px;
   color: #817763;
   font: 900 8px/1 Arial, Helvetica, sans-serif;
   text-transform: uppercase;
@@ -6120,24 +6139,113 @@ body.expeditionGameplay #combatHud {
 
 #start .loadoutRailWrap .loadoutRailHeading {
   padding: 14px 13px;
+  gap: 10px;
+  align-content: stretch;
 }
 
 #start .loadoutRailWrap .loadoutRailHeading b {
   font-size: 16px;
 }
 
+#start .loadoutRailCopy {
+  display: grid;
+  gap: 5px;
+}
+
+#start .loadoutBadge {
+  width: max-content;
+  padding: 3px 6px;
+  color: #201000;
+  border-radius: 3px;
+  background: #f0c96b;
+  font: 900 9px/1 Arial, Helvetica, sans-serif;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+#start .loadoutLead {
+  margin: 0;
+  color: #e5d0a7;
+  font: 700 12px/1.2 Arial, Helvetica, sans-serif;
+}
+
+#start .loadoutRolePills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+#start .loadoutRolePills span {
+  padding: 3px 5px;
+  color: #d6a649;
+  border: 1px solid rgba(214,166,73,.24);
+  border-radius: 3px;
+  font: 900 8px/1 Arial, Helvetica, sans-serif;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 #start .loadoutPreviewRail {
   grid-template-columns: repeat(8, minmax(76px, 1fr));
-  padding: 9px;
+  grid-template-rows: auto minmax(0, 1fr);
+  padding: 8px 9px;
+  gap: 6px 8px;
+  align-items: stretch;
+}
+
+#start .loadoutRailGroup {
+  display: flex;
+  align-items: center;
+  grid-row: 1;
+  padding: 0 2px;
+  color: #8c826f;
+  font: 900 8px/1 Arial, Helvetica, sans-serif;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+#start .loadoutRailGroup::after {
+  content: '';
+  display: block;
+  flex: 1 1 auto;
+  height: 1px;
+  margin-left: 6px;
+  background: linear-gradient(90deg, rgba(214,166,73,.42), rgba(214,166,73,0));
+  opacity: .7;
+}
+
+#start .loadoutRailGroup.weapons {
+  grid-column: 1 / span 2;
+  color: #d86f6a;
+}
+
+#start .loadoutRailGroup.defenses {
+  grid-column: 3 / span 3;
+  color: #7db9e8;
+}
+
+#start .loadoutRailGroup.gear {
+  grid-column: 6 / span 3;
+  color: #c39bf1;
 }
 
 #start .loadoutRailSlot {
-  min-height: 100px;
+  grid-row: 2;
+  min-height: 98px;
+  grid-template-rows: 16px 1fr auto auto auto;
 }
 
 #start .editLoadoutButton {
   margin: 0 12px;
   align-self: center;
+  min-width: 132px;
+  height: 40px;
+  color: #f0c96b;
+  border: 1px solid rgba(205,146,57,.34);
+  background: linear-gradient(180deg, rgba(20,17,13,.92), rgba(8,7,6,.98));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
 }
 
 @media (max-width: 1220px) {
@@ -6397,8 +6505,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.39.6</b>
-      <span id="warRoomBuildName">ModeCards</span>
+      <b id="warRoomVersion">v7.39.7</b>
+      <span id="warRoomBuildName">LoadoutPack</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -6468,7 +6576,7 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion"><span>v7.39.6</span><span>ModeCards</span></div>
+            <div class="loadoutVersion" id="loadoutVersion"><span>v7.39.7</span><span>LoadoutPack</span></div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -6544,7 +6652,19 @@ body.expeditionGameplay #combatHud {
         </div>
         <section class="loadoutRailWrap" aria-label="Your Loadout">
           <div class="loadoutRailHeading">
-            <div><b class="sectionKicker">3. Your Loadout</b><span>Recommended starter loadout. Reliable weapons, Core defense, crowd control, recovery, and build support.</span></div>
+            <div class="loadoutRailCopy">
+              <b class="sectionKicker">3. YOUR LOADOUT</b>
+              <span class="loadoutBadge">RECOMMENDED STARTER PACK</span>
+              <p class="loadoutLead">Balanced for your first Expedition.</p>
+              <div class="loadoutRolePills" aria-label="Loadout role tags">
+                <span>SHOOTING</span>
+                <span>SLOW</span>
+                <span>CORE DEFENSE</span>
+                <span>AREA CONTROL</span>
+                <span>RECOVERY</span>
+                <span>BUILD SUPPORT</span>
+              </div>
+            </div>
             <span id="loadoutReadiness" class="loadoutReadiness">Weapon required</span>
           </div>
           <div id="loadoutPreviewRail" class="loadoutPreviewRail" data-loadout-rail></div>
@@ -8194,11 +8314,12 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.39.6';
+const GAME_VERSION = '7.39.7';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'ModeCards';
+const BUILD_NAME = 'LoadoutPack';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Rebuilt Mission Launch mode selection as larger image-led mode cards.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Improved Mission Launch loadout readability with grouping and role subtitles.' },
+  { version: '7.39.6', name: 'ModeCards', changes: 'Rebuilt Mission Launch mode selection as larger image-led mode cards.' },
   { version: '7.39.5', name: 'BrightArt', changes: 'Updated Mission Launch artwork and brightened menu image presentation.' },
   { version: '7.39.4', name: 'MenuArt', changes: 'Added Mission Launch artwork images to mode cards, expedition cards, and details panels.' },
   { version: '7.39.3', name: 'LaunchPanel', changes: 'Polished Mission Launch into a three-step premium layout with expedition thumbnails and details.' },
@@ -14656,17 +14777,55 @@ function loadoutItemIcon(k) {
   return '✦';
 }
 
+const LOADOUT_ROLE_SUBTITLES = {
+  ranger: 'BASIC DAMAGE',
+  freeze: 'SLOW ENEMIES',
+  archer: 'CORE DEFENSE',
+  cauldron: 'AREA CONTROL',
+  ballista: 'LONG RANGE',
+  healingFlask: 'RECOVERY',
+  lastStandBeacon: 'UTILITY',
+  goblinCoinPurse: 'BUILD SUPPORT',
+};
+
+function loadoutRoleSubtitle(k) {
+  if (LOADOUT_ROLE_SUBTITLES[k]) return LOADOUT_ROLE_SUBTITLES[k];
+  if (WEAPONS[k]) return 'BASIC DAMAGE';
+  if (TOWERS[k]) return 'DEFENSE';
+  if (TRINKETS[k]) return 'GEAR';
+  return 'ITEM';
+}
+
+function loadoutRailGroupLabel(index) {
+  if (index < 2) return 'Weapons';
+  if (index < 5) return 'Defenses';
+  return 'Gear';
+}
+
 function updateLoadoutPreviewRail() {
   const rails = document.querySelectorAll('[data-loadout-rail]');
   if (!rails.length) return;
   const renderSlot = (i) => {
     const k = LOADOUT_STATE.selectedIds[i] || '';
     return k
-      ? `<span class="railIndex">${i + 1}</span><span class="loadoutRemoveBtn" data-remove-loadout role="button" tabindex="0" aria-label="Remove ${loadoutItemLabel(k)} from loadout">×</span><span class="railIcon">${loadoutItemIcon(k)}</span><span class="railName">${loadoutItemLabel(k)}</span><span class="railStatus">${TOWERS[k] ? `${TOWERS[k].c}g` : WEAPONS[k] ? 'Weapon' : 'Gear'}</span>`
+      ? `<span class="railIndex">${i + 1}</span><span class="loadoutRemoveBtn" data-remove-loadout role="button" tabindex="0" aria-label="Remove ${loadoutItemLabel(k)} from loadout">×</span><span class="railIcon">${loadoutItemIcon(k)}</span><span class="railName">${loadoutItemLabel(k)}</span><span class="railRole">${loadoutRoleSubtitle(k)}</span><span class="railStatus">${WEAPONS[k] ? 'WEAPON' : TOWERS[k] ? 'DEFENSE' : 'GEAR'}</span>`
       : `<span class="railIndex">${i + 1}</span><span class="railIcon">＋</span>`;
   };
   rails.forEach((rail) => {
     rail.innerHTML = '';
+    const groups = [
+      { label: 'Weapons', start: 0, span: 2, cls: 'weapons' },
+      { label: 'Defenses', start: 2, span: 3, cls: 'defenses' },
+      { label: 'Gear', start: 5, span: 3, cls: 'gear' },
+    ];
+    for (const group of groups) {
+      const el = document.createElement('div');
+      el.className = `loadoutRailGroup ${group.cls}`;
+      el.textContent = group.label.toUpperCase();
+      el.style.gridColumn = `${group.start + 1} / span ${group.span}`;
+      el.style.gridRow = '1';
+      rail.appendChild(el);
+    }
     for (let i = 0; i < LOADOUT_MAX_SLOTS; i++) {
       const k = LOADOUT_STATE.selectedIds[i] || '';
       const slot = document.createElement('button');
@@ -14676,6 +14835,7 @@ function updateLoadoutPreviewRail() {
       slot.dataset.index = String(i);
       slot.draggable = !!k;
       slot.innerHTML = renderSlot(i);
+      slot.style.gridRow = '2';
       rail.appendChild(slot);
     }
   });
