@@ -4865,20 +4865,8 @@ body.expeditionGameplay #combatHud {
   align-items: center;
 }
 
-#start .mastheadActions #playLastRun {
-  order: 1;
-  min-width: 138px;
-  height: 44px;
-  padding: 0 16px;
-  color: #ab9d7f;
-  font-size: 13px;
-  border-color: rgba(255,255,255,.14);
-  background: rgba(15, 16, 16, .9);
-  box-shadow: none;
-}
-
 #start .mastheadActions #begin {
-  order: 2;
+  order: 1;
   min-width: 180px;
   height: 62px;
   padding: 0 26px;
@@ -5255,6 +5243,7 @@ body.expeditionGameplay #combatHud {
 
 #start .loadoutRailSlot {
   min-height: 98px;
+  padding: 4px 4px 4px;
   grid-template-rows: 16px 1fr auto auto auto;
   align-self: start;
   border-color: rgba(255,255,255,.14);
@@ -5271,8 +5260,8 @@ body.expeditionGameplay #combatHud {
   aspect-ratio: 1;
   display: grid;
   place-items: center;
-  margin-top: 8px;
-  font-size: 40px;
+  margin-top: 6px;
+  font-size: 38px;
 }
 
 #start .loadoutRailSlot.empty .railIcon {
@@ -5283,7 +5272,7 @@ body.expeditionGameplay #combatHud {
 
 #start .railName {
   padding: 0 4px 1px;
-  font-size: 9px;
+  font-size: 8.5px;
   line-height: 1.05;
   text-align: center;
   text-transform: uppercase;
@@ -5292,7 +5281,7 @@ body.expeditionGameplay #combatHud {
 #start .railRole {
   padding: 0 4px 1px;
   color: #6dcddd;
-  font: 900 8px/1.05 Arial, Helvetica, sans-serif;
+  font: 900 7px/1.05 Arial, Helvetica, sans-serif;
   letter-spacing: .08em;
   text-transform: uppercase;
   text-align: center;
@@ -6133,13 +6122,13 @@ body.expeditionGameplay #combatHud {
 
 #start .loadoutRailWrap {
   grid-template-columns: 245px minmax(0, 1fr) 145px;
-  min-height: 132px;
+  min-height: 108px;
   margin: 0;
 }
 
 #start .loadoutRailWrap .loadoutRailHeading {
-  padding: 14px 13px;
-  gap: 10px;
+  padding: 11px 13px;
+  gap: 7px;
   align-content: stretch;
 }
 
@@ -6149,7 +6138,8 @@ body.expeditionGameplay #combatHud {
 
 #start .loadoutRailCopy {
   display: grid;
-  gap: 5px;
+  gap: 2px;
+  text-transform: none;
 }
 
 #start .loadoutBadge {
@@ -6166,32 +6156,17 @@ body.expeditionGameplay #combatHud {
 #start .loadoutLead {
   margin: 0;
   color: #e5d0a7;
-  font: 700 12px/1.2 Arial, Helvetica, sans-serif;
-}
-
-#start .loadoutRolePills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-#start .loadoutRolePills span {
-  padding: 3px 5px;
-  color: #d6a649;
-  border: 1px solid rgba(214,166,73,.24);
-  border-radius: 3px;
-  font: 900 8px/1 Arial, Helvetica, sans-serif;
-  letter-spacing: .05em;
-  text-transform: uppercase;
-  white-space: nowrap;
+  font: 700 10px/1.2 Arial, Helvetica, sans-serif;
+  text-transform: none;
 }
 
 #start .loadoutPreviewRail {
   grid-template-columns: repeat(8, minmax(76px, 1fr));
   grid-template-rows: auto minmax(0, 1fr);
-  padding: 8px 9px;
-  gap: 6px 8px;
-  align-items: stretch;
+  padding: 5px 9px 7px;
+  gap: 4px 8px;
+  align-items: start;
+  align-content: start;
 }
 
 #start .loadoutRailGroup {
@@ -6505,8 +6480,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.39.7</b>
-      <span id="warRoomBuildName">LoadoutPack</span>
+      <b id="warRoomVersion">v7.39.8</b>
+      <span id="warRoomBuildName">OpenDeck</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -6576,11 +6551,10 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion"><span>v7.39.7</span><span>LoadoutPack</span></div>
+            <div class="loadoutVersion" id="loadoutVersion"><span>v7.39.8</span><span>OpenDeck</span></div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
-            <button id="playLastRun" class="secondary wide">Play Last Run</button>
             <button id="begin" class="primary wide"><span class="startButtonPrimary">START EXPEDITION</span><span class="startButtonSub">Expedition 1: The Tunnel</span></button>
           </div>
         </div>
@@ -6656,14 +6630,6 @@ body.expeditionGameplay #combatHud {
               <b class="sectionKicker">3. YOUR LOADOUT</b>
               <span class="loadoutBadge">RECOMMENDED STARTER PACK</span>
               <p class="loadoutLead">Balanced for your first Expedition.</p>
-              <div class="loadoutRolePills" aria-label="Loadout role tags">
-                <span>SHOOTING</span>
-                <span>SLOW</span>
-                <span>CORE DEFENSE</span>
-                <span>AREA CONTROL</span>
-                <span>RECOVERY</span>
-                <span>BUILD SUPPORT</span>
-              </div>
             </div>
             <span id="loadoutReadiness" class="loadoutReadiness">Weapon required</span>
           </div>
@@ -8314,11 +8280,11 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.39.7';
+const GAME_VERSION = '7.39.8';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'LoadoutPack';
+const BUILD_NAME = 'OpenDeck';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Improved Mission Launch loadout readability with grouping and role subtitles.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Cleaned Mission Launch spacing, removed the Play Last Run button, and improved loadout readability.' },
   { version: '7.39.6', name: 'ModeCards', changes: 'Rebuilt Mission Launch mode selection as larger image-led mode cards.' },
   { version: '7.39.5', name: 'BrightArt', changes: 'Updated Mission Launch artwork and brightened menu image presentation.' },
   { version: '7.39.4', name: 'MenuArt', changes: 'Added Mission Launch artwork images to mode cards, expedition cards, and details panels.' },
@@ -14382,12 +14348,6 @@ function updateLoadoutSummary() {
     beginBtn.innerHTML = missionType === 'expedition'
       ? `<span class="startButtonPrimary">START EXPEDITION</span><span class="startButtonSub">${expeditionName}</span>`
       : `<span class="startButtonPrimary">START ARENA</span><span class="startButtonSub">Quick Survival</span>`;
-  }
-  const lastBtn = $('playLastRun');
-  if (lastBtn) {
-    const enabled = canStartRun();
-    lastBtn.disabled = !enabled;
-    lastBtn.classList.toggle('disabled', !enabled);
   }
   const selectedByKind = { all: LOADOUT_STATE.selectedIds.length, weapon: 0, defense: 0, tower: 0, trap: 0, trinket: 0 };
   LOADOUT_STATE.selectedIds.forEach(k => {
@@ -29959,7 +29919,6 @@ $('devTeleportRelay').onclick = () => {
 };
 populateDevDropDowns();
 $('begin').onclick   = startGameFromLoadout;
-$('playLastRun').onclick = playLastRun;
 function isLoadoutEditorOpen() {
   return !!$('loadoutEditor') && !$('loadoutEditor').hidden;
 }
