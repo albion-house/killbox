@@ -6209,7 +6209,19 @@ body.expeditionGameplay #combatHud {
 #start .loadoutRailSlot {
   grid-row: 2;
   min-height: 98px;
-  grid-template-rows: 16px 1fr auto auto auto;
+  grid-template-rows: 16px 50px auto auto auto;
+}
+
+#start .loadoutRailSlot.filled {
+  gap: 1px;
+}
+
+#start .railIcon {
+  width: min(54px, 66%);
+  height: 46px;
+  max-height: 46px;
+  align-self: center;
+  margin: 0 auto;
 }
 
 #start .editLoadoutButton {
@@ -6239,6 +6251,134 @@ body.expeditionGameplay #combatHud {
   }
   #start .loadoutRailWrap .loadoutRailHeading {
     display: grid;
+  }
+}
+
+/* Mission Launch responsive flow: keep the loadout strip below mission content. */
+#start .card:not(.deathCard):not(.clearCard):not(.breachCard) {
+  height: min(900px, calc(100vh - 20px));
+  max-height: calc(100vh - 20px);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+#start .startLayout,
+#start .startMain {
+  height: auto;
+  min-height: 100%;
+}
+
+#start .startMain {
+  grid-template-rows: auto auto auto;
+  align-content: start;
+  gap: clamp(8px, 1.2vh, 12px);
+}
+
+#start .loadoutBody {
+  min-height: 0;
+  overflow: visible;
+  align-items: stretch;
+}
+
+#start .missionLaunchPanel,
+#start .expeditionDetailsPanel,
+#start .loadoutRailWrap {
+  min-height: 0;
+}
+
+#start .expeditionDetailsPanel {
+  grid-template-rows: auto clamp(140px, 22vh, 210px) auto;
+  overflow: visible;
+}
+
+#start .expeditionDetailsCopy {
+  min-height: 0;
+}
+
+#start .expeditionCard {
+  min-height: clamp(232px, 32vh, 300px);
+  grid-template-rows: clamp(92px, 16vh, 132px) auto auto minmax(0, auto) auto;
+}
+
+#start .expeditionThumb,
+#start .expeditionDetailsThumb {
+  min-height: 0;
+}
+
+#start .loadoutRailWrap {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-height: 820px) and (min-width: 1221px) {
+  #start .card:not(.deathCard):not(.clearCard):not(.breachCard) {
+    height: calc(100vh - 16px);
+    max-height: calc(100vh - 16px);
+  }
+
+  #start .loadoutMasthead {
+    min-height: 0;
+    padding: 7px 10px;
+  }
+
+  #start .missionChoice {
+    min-height: 184px;
+    grid-template-rows: 92px auto auto minmax(0, 1fr);
+  }
+
+  #start .missionChoice .modeArt {
+    height: 92px;
+    min-height: 92px;
+  }
+
+  #start .missionChoice strong {
+    font-size: 23px;
+  }
+
+  #start .missionChoice .modeDesc {
+    font-size: 11px;
+    line-height: 1.24;
+  }
+
+  #start .expeditionCard {
+    min-height: 226px;
+    grid-template-rows: 88px auto auto minmax(0, auto) auto;
+  }
+
+  #start .expeditionDetailsPanel {
+    grid-template-rows: auto 136px auto;
+    gap: 9px;
+    padding: 11px;
+  }
+
+  #start .expeditionDetailsCopy h2 {
+    font-size: 22px;
+    margin-bottom: 5px;
+  }
+
+  #start .expeditionDetailsCopy > p {
+    margin-bottom: 9px;
+  }
+
+  #start .expeditionDetailsCopy p,
+  #start .expeditionDetailsCopy li {
+    font-size: 12px;
+    line-height: 1.28;
+  }
+
+  #start .loadoutRailWrap {
+    min-height: 106px;
+  }
+
+  #start .loadoutRailSlot {
+    min-height: 94px;
+    grid-template-rows: 16px 46px auto auto auto;
+  }
+
+  #start .railIcon {
+    width: min(50px, 64%);
+    height: 42px;
+    max-height: 42px;
   }
 }
 
@@ -6480,8 +6620,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.39.8</b>
-      <span id="warRoomBuildName">OpenDeck</span>
+      <b id="warRoomVersion">v7.39.9</b>
+      <span id="warRoomBuildName">FlowFix</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -6551,7 +6691,7 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion"><span>v7.39.8</span><span>OpenDeck</span></div>
+            <div class="loadoutVersion" id="loadoutVersion"><span>v7.39.9</span><span>FlowFix</span></div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -8280,11 +8420,12 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.39.8';
+const GAME_VERSION = '7.39.9';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'OpenDeck';
+const BUILD_NAME = 'FlowFix';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Cleaned Mission Launch spacing, removed the Play Last Run button, and improved loadout readability.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Made Mission Launch responsive so the loadout strip stays below expedition content on shorter screens.' },
+  { version: '7.39.8', name: 'OpenDeck', changes: 'Cleaned Mission Launch spacing, removed the Play Last Run button, and improved loadout readability.' },
   { version: '7.39.6', name: 'ModeCards', changes: 'Rebuilt Mission Launch mode selection as larger image-led mode cards.' },
   { version: '7.39.5', name: 'BrightArt', changes: 'Updated Mission Launch artwork and brightened menu image presentation.' },
   { version: '7.39.4', name: 'MenuArt', changes: 'Added Mission Launch artwork images to mode cards, expedition cards, and details panels.' },
