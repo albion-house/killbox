@@ -6631,8 +6631,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.39.10</b>
-      <span id="warRoomBuildName">StackFix</span>
+      <b id="warRoomVersion">v7.39.11</b>
+      <span id="warRoomBuildName">RaygunJoel</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -6702,7 +6702,7 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion"><span>v7.39.10</span><span>StackFix</span></div>
+            <div class="loadoutVersion" id="loadoutVersion"><span>v7.39.11</span><span>RaygunJoel</span></div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -7801,6 +7801,15 @@ function isCoreTowerType(type) { return CORE_TOWER_TYPES.has(type); }
 function towerHasDurability(t) { return !!t && !!TOWERS[t.type] && !isCoreTowerType(t.type); }
 function towerDisabledUntil(t) { return t && t.disabledUntil ? t.disabledUntil : 0; }
 function towerIsDisabled(t) { return isCoreTowerType(t?.type) && towerDisabledUntil(t) > performance.now() / 1000; }
+
+function heroMuzzlePoint(h, aim, forward = 24) {
+  // Simple upper-body muzzle offset for the raygun sprite; refine per weapon later if needed.
+  return {
+    x: h.x + Math.cos(aim) * forward,
+    y: h.y - 24 + Math.sin(aim) * Math.max(8, forward * 0.35),
+  };
+}
+
 const WEAPONS = {
   ranger: {
     name: 'Repeater', shortName: 'Repeater', icon: '➹', desc: 'Fires a stream of armor-piercing micro bolts.',
@@ -7809,10 +7818,11 @@ const WEAPONS = {
       const speed = 980;
       const range = 330;
       let dmg = 16 + h.level * 3;
-      const shot = { x:h.x, y:h.y, vx:Math.cos(aim)*speed, vy:Math.sin(aim)*speed, dmg, life: range/speed, range, travel:0, type:'arrow', weapon:'ranger' };
+      const muzzle = heroMuzzlePoint(h, aim);
+      const shot = { x:muzzle.x, y:muzzle.y, vx:Math.cos(aim)*speed, vy:Math.sin(aim)*speed, dmg, life: range/speed, range, travel:0, type:'arrow', weapon:'ranger' };
       S.heroShots.push(shot);
-      const mx = h.x + Math.cos(aim) * 16;
-      const my = h.y + Math.sin(aim) * 16;
+      const mx = muzzle.x;
+      const my = muzzle.y;
       S.parts.push({ kind:'bolt', x:mx, y:my, x2:mx + Math.cos(aim) * 54, y2:my + Math.sin(aim) * 54, life:.1, c:'#a4d067', w:6 });
       S.parts.push({ kind:'bolt', x:mx, y:my, x2:mx + Math.cos(aim) * 44, y2:my + Math.sin(aim) * 44, life:.08, c:'#f2ffe8', w:3 });
       S.parts.push({ kind:'spark', x:mx, y:my, vx:Math.cos(aim) * 110, vy:Math.sin(aim) * 110, life:.08, c:'#ffe56b', r:3 });
@@ -7827,9 +7837,10 @@ const WEAPONS = {
     primaryCooldown: 0.58, secondaryCooldown: 6.0,
     primaryFire(h, aim) {
       const speed = 720, range = 720, dmg = 46 + h.level * 5;
-      S.heroShots.push({ x:h.x, y:h.y, vx:Math.cos(aim)*speed, vy:Math.sin(aim)*speed, dmg, life: range/speed, range, travel:0, type:'bolt', weapon:'crossbow', armorPierce:0.5, pin:true, thunk:true });
-      const mx = h.x + Math.cos(aim) * 16;
-      const my = h.y + Math.sin(aim) * 16;
+      const muzzle = heroMuzzlePoint(h, aim);
+      S.heroShots.push({ x:muzzle.x, y:muzzle.y, vx:Math.cos(aim)*speed, vy:Math.sin(aim)*speed, dmg, life: range/speed, range, travel:0, type:'bolt', weapon:'crossbow', armorPierce:0.5, pin:true, thunk:true });
+      const mx = muzzle.x;
+      const my = muzzle.y;
       S.parts.push({ kind:'bolt', x:mx, y:my, x2:mx + Math.cos(aim) * 68, y2:my + Math.sin(aim) * 68, life:.14, c:'#b78f63', w:9 });
       S.parts.push({ kind:'bolt', x:mx, y:my, x2:mx + Math.cos(aim) * 52, y2:my + Math.sin(aim) * 52, life:.12, c:'#fff5df', w:3 });
       S.parts.push({ kind:'spark', x:mx, y:my, vx:Math.cos(aim) * 120, vy:Math.sin(aim) * 120, life:.08, c:'#f6efe0', r:3 });
@@ -7838,10 +7849,11 @@ const WEAPONS = {
     secondaryFire(h, aim) {
       if (h.secondaryCd > 0) return;
       const speed = 820, range = 680, dmg = 20 + h.level * 2;
-      S.heroShots.push({ x:h.x, y:h.y, vx:Math.cos(aim)*speed, vy:Math.sin(aim)*speed, dmg: dmg + 10, life: range/speed, range, travel:0, type:'stunBolt', weapon:'crossbow', stunBolt:true, electric:true, thunk:true });
+      const muzzle = heroMuzzlePoint(h, aim);
+      S.heroShots.push({ x:muzzle.x, y:muzzle.y, vx:Math.cos(aim)*speed, vy:Math.sin(aim)*speed, dmg: dmg + 10, life: range/speed, range, travel:0, type:'stunBolt', weapon:'crossbow', stunBolt:true, electric:true, thunk:true });
       h.secondaryCd = this.secondaryCooldown;
-      const mx = h.x + Math.cos(aim) * 18;
-      const my = h.y + Math.sin(aim) * 18;
+      const mx = muzzle.x;
+      const my = muzzle.y;
       shockwave(h.x, h.y, '#ffd07a', 128, .34);
       shockwave(h.x, h.y, '#b9ecff', 82, .22);
       boom(mx, my, '#ffe56b', 20);
@@ -7869,15 +7881,16 @@ const WEAPONS = {
     name: 'Blunderbuss', shortName: 'Blunderbuss', icon: '🡒', desc: 'Scavenged breaching gun with a wide close blast.',
     primaryCooldown: 0.34, secondaryCooldown: 6.0,
     primaryFire(h, aim) {
-      const muzzleX = h.x + Math.cos(aim) * 26;
-      const muzzleY = h.y + Math.sin(aim) * 26;
+      const muzzle = heroMuzzlePoint(h, aim, 26);
+      const muzzleX = muzzle.x;
+      const muzzleY = muzzle.y;
       S.parts.push({ kind: 'blunderCone', x: muzzleX, y: muzzleY, a: aim, life: .14, maxLife: .14, c: '#ffe2a3' });
       S.parts.push({ kind:'shockwave', x:muzzleX, y:muzzleY, r:8, maxR:58, life:.11, maxLife:.11, c:'#fff1c0' });
       h.weaponRecoil = .22;
       for (let i = 0; i < 8; i++) {
         const a = aim + (i - 3.5) * 0.12;
         const v = 220 + Math.random() * 140;
-        S.parts.push({ kind: 'spark', x: h.x + Math.cos(aim) * 18, y: h.y + Math.sin(aim) * 18, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: .22, c: '#fff3b2', r: 4 });
+        S.parts.push({ kind: 'spark', x: muzzleX, y: muzzleY, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: .22, c: '#fff3b2', r: 4 });
       }
       for (const e of S.enemies) {
         if (e.dead) continue;
@@ -7901,8 +7914,8 @@ const WEAPONS = {
         const diff = Math.abs(Math.atan2(Math.sin(a - aim), Math.cos(a - aim)));
         if (diff <= .52) damageExpeditionNest(nest, (26 + h.level * 4) * Math.max(.2, 1 - d / 190));
       }
-      shockwave(h.x + Math.cos(aim) * 24, h.y + Math.sin(aim) * 24, '#ffd27a', 86, .22);
-      boom(h.x + Math.cos(aim) * 28, h.y + Math.sin(aim) * 28, '#f0c96b', 12);
+      shockwave(muzzleX, muzzleY, '#ffd27a', 86, .22);
+      boom(muzzleX, muzzleY, '#f0c96b', 12);
       h.weaponCd = this.primaryCooldown;
     },
     secondaryFire(h, aim) {
@@ -7955,8 +7968,9 @@ const WEAPONS = {
     secondaryFire(h, aim) {
       if (h.secondaryCd > 0 || S.heroShots.some(s => s.riftBoomerang && !s.dead)) return;
       const speed = 520;
+      const muzzle = heroMuzzlePoint(h, aim, 18);
       S.heroShots.push({
-        x:h.x, y:h.y, vx:Math.cos(aim)*speed, vy:Math.sin(aim)*speed,
+        x:muzzle.x, y:muzzle.y, vx:Math.cos(aim)*speed, vy:Math.sin(aim)*speed,
         dmg:(14 + h.level * 2) * (h.riftbladeDamageMult || 1), life:1.65, range:360, travel:0,
         type:'riftBoomerang', weapon:'riftblade', riftBoomerang:true,
         returning:false, speed, maxDistance:360, spin:0, hitEnemies:new Set(),
@@ -7969,13 +7983,14 @@ const WEAPONS = {
     name: 'Arc Emitter', shortName: 'Arc Emitter', icon: '⚡', desc: 'Arcane-tech lightning machinery that chains through crowds.',
     primaryCooldown: 0.38, secondaryCooldown: 8.0,
     primaryFire(h, aim) {
+      const muzzle = heroMuzzlePoint(h, aim, 26);
       const tx = h.x + Math.cos(aim) * 260, ty = h.y + Math.sin(aim) * 260;
       const first = S.enemies.filter(e => !e.dead).sort((a,b) => dist(a.x,a.y,tx,ty)-dist(b.x,b.y,tx,ty))[0];
       if (!first || dist(first.x, first.y, h.x, h.y) > 270) {
         h.weaponCd = .12;
         h.weaponRecoil = .08;
-        const mx = h.x + Math.cos(aim) * 26;
-        const my = h.y + Math.sin(aim) * 26;
+        const mx = muzzle.x;
+        const my = muzzle.y;
         S.parts.push({ kind:'bolt', x:mx, y:my, x2:mx + Math.cos(aim) * 54, y2:my + Math.sin(aim) * 54, life:.12, maxLife:.12, c:'#fff34d', w:7 });
         S.parts.push({ kind:'bolt', x:mx, y:my, x2:mx + Math.cos(aim) * 38, y2:my + Math.sin(aim) * 38, life:.1, maxLife:.1, c:'#8edcff', w:10 });
         S.parts.push({ kind:'shockwave', x:mx, y:my, r:10, maxR:30, life:.1, maxLife:.1, c:'#fff34d' });
@@ -7995,7 +8010,7 @@ const WEAPONS = {
         const mul = Math.pow(.72, i);
         hit(e, (18 + h.level * 2) * mul, null, true);
         if (e.type !== 'slimeking' && e.type !== 'ogre' && e.type !== 'siege') e.stun = Math.max(e.stun || 0, .06);
-        const from = i ? hitList[i - 1] : h;
+        const from = i ? hitList[i - 1] : muzzle;
         S.parts.push({ kind:'bolt', x: from.x, y: from.y, x2:e.x, y2:e.y, life:.34, maxLife:.34, c:i === 0 ? '#fff34d' : '#ffe56b', w: i === 0 ? 7 : 5 });
         S.parts.push({ kind:'spark', x:e.x, y:e.y, vx:(Math.random()-.5)*320, vy:(Math.random()-.5)*320, life:.16, c:i === 0 ? '#fff34d' : '#e2d4ff', r:5 });
         shockwave(e.x, e.y, i === 0 ? '#ffe56b' : '#b8a8ff', i === 0 ? 36 : 24, .14);
@@ -8027,23 +8042,25 @@ const WEAPONS = {
       const speed = 700, range = 250;
       for (let i = -1; i <= 1; i++) {
         const a = aim + i * .09;
-        S.heroShots.push({ x:h.x, y:h.y, vx:Math.cos(a)*speed, vy:Math.sin(a)*speed, dmg:7 + h.level, life: range/speed, range, travel:0, type:'iceShard', weapon:'freeze', chill:1 });
-        S.parts.push({ kind:'spark', x:h.x + Math.cos(a) * 18, y:h.y + Math.sin(a) * 18, vx:Math.cos(a) * 190, vy:Math.sin(a) * 190, life:.12, c:'#c8f4ff', r:4 });
-        S.parts.push({ kind:'spark', x:h.x + Math.cos(a) * 12, y:h.y + Math.sin(a) * 12, vx:Math.cos(a) * 120, vy:Math.sin(a) * 120, life:.1, c:'#ffffff', r:3 });
+        const muzzle = heroMuzzlePoint(h, a);
+        S.heroShots.push({ x:muzzle.x, y:muzzle.y, vx:Math.cos(a)*speed, vy:Math.sin(a)*speed, dmg:7 + h.level, life: range/speed, range, travel:0, type:'iceShard', weapon:'freeze', chill:1 });
+        S.parts.push({ kind:'spark', x:muzzle.x, y:muzzle.y, vx:Math.cos(a) * 190, vy:Math.sin(a) * 190, life:.12, c:'#c8f4ff', r:4 });
+        S.parts.push({ kind:'spark', x:muzzle.x, y:muzzle.y, vx:Math.cos(a) * 120, vy:Math.sin(a) * 120, life:.1, c:'#ffffff', r:3 });
       }
       h.weaponCd = this.primaryCooldown;
     },
     secondaryFire(h, aim) {
       if (h.secondaryCd > 0) return;
       const speed = 820, range = 460;
+      const muzzle = heroMuzzlePoint(h, aim);
       S.heroShots.push({
-        x:h.x, y:h.y,
+        x:muzzle.x, y:muzzle.y,
         vx:Math.cos(aim)*speed, vy:Math.sin(aim)*speed,
         dmg:18 + h.level * 2,
         life:range/speed, range, travel:0,
         type:'shatterBolt', weapon:'freeze', shatterBolt:true,
       });
-      burst(h.x + Math.cos(aim) * 16, h.y + Math.sin(aim) * 16, '#ffffff', 8, 'spark', 150);
+      burst(muzzle.x, muzzle.y, '#ffffff', 8, 'spark', 150);
       h.secondaryCd = this.secondaryCooldown;
     },
   },
@@ -8431,11 +8448,12 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.39.10';
+const GAME_VERSION = '7.39.11';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'StackFix';
+const BUILD_NAME = 'RaygunJoel';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Hardened Mission Launch section flow and image containment so details and loadout do not stack over each other.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Replaced the hero walk source with the raygun sprite sheet and moved hero projectile origins to the upper body.' },
+  { version: '7.39.10', name: 'StackFix', changes: 'Hardened Mission Launch section flow and image containment so details and loadout do not stack over each other.' },
   { version: '7.39.9', name: 'FlowFix', changes: 'Made Mission Launch responsive so the loadout strip stays below expedition content on shorter screens.' },
   { version: '7.39.8', name: 'OpenDeck', changes: 'Cleaned Mission Launch spacing, removed the Play Last Run button, and improved loadout readability.' },
   { version: '7.39.6', name: 'ModeCards', changes: 'Rebuilt Mission Launch mode selection as larger image-led mode cards.' },
@@ -13905,15 +13923,16 @@ const GOBLIN_GRUNT_DIR_BY_OCTANT = ['e', 'se', 's', 'sw', 'w', 'nw', 'n', 'ne'];
 const NORMAL_ENEMY_TYPES_WITHOUT_RIFT_DIAMOND = new Set(['grunt', 'slinger', 'runner', 'bomber', 'hunter', 'shield', 'healer']);
 // TODO: Replace goblin-grunt-green-walk.png with a transparent export if this first-pass sheet still shows its black backing in play.
 const HERO_SPRITE_SHEET = {
-  src: 'assets/player/hero-joel-sprites.png',
-  frameW: 256,
-  frameH: 256,
-  frameCount: 8,
+  src: 'assets/player/character_sprite_sheet_with_raygun_transparent.jpg',
+  frameW: 160,
+  frameH: 160,
+  cols: 4,
+  rows: 8,
 };
 const HERO_WALK_SPRITE_SHEET = {
-  src: 'assets/player/hero-joel-walk-8dir-4frame-3.png',
-  frameW: 256,
-  frameH: 256,
+  src: 'assets/player/character_sprite_sheet_with_raygun_transparent.jpg',
+  frameW: 160,
+  frameH: 160,
   cols: 4,
   rows: 8,
 };
@@ -13923,7 +13942,6 @@ const CORE_HEART_SPRITE_SHEET = {
   frameH: 256,
   frameCount: 8,
 };
-const HERO_SPRITE_FRAME_BY_OCTANT = [3, 2, 1, 0, 7, 6, 5, 4];
 const HERO_SPRITE = new Image();
 let heroSpriteReady = false;
 HERO_SPRITE.onload = () => { heroSpriteReady = true; };
@@ -18989,7 +19007,9 @@ function shootHero() {
     const spawned = S.heroShots.slice(before);
     for (const s of spawned) {
       if (!s || s.dead) continue;
-      const mirroredShot = { ...s, x: h.x, y: h.y, vx: -(s.vx || 0), vy: -(s.vy || 0), mirrored: true };
+      const mirrorAim = Math.atan2(-(s.vy || 0), -(s.vx || 0));
+      const mirrorMuzzle = heroMuzzlePoint(h, mirrorAim);
+      const mirroredShot = { ...s, x: mirrorMuzzle.x, y: mirrorMuzzle.y, vx: -(s.vx || 0), vy: -(s.vy || 0), mirrored: true };
       S.heroShots.push(mirroredShot);
     }
   }
@@ -19074,8 +19094,9 @@ function weaponSecondaryUp() {
   const speed = 1020;
   const range = 300 + chargePower * 160 + (fullCharge ? 80 : 0);
   const dmg = 30 + h.level * 7 + chargePower * 84 + (fullCharge ? 82 : 0);
+  const muzzle = heroMuzzlePoint(h, aim, 28);
   S.heroShots.push({
-    x: h.x, y: h.y,
+    x: muzzle.x, y: muzzle.y,
     vx: Math.cos(aim) * speed, vy: Math.sin(aim) * speed,
     dmg, life: range / speed, range, travel: 0, type: 'chargedArrow', weapon: 'ranger', pierce: true,
     hits: fullCharge ? 5 : 2,
@@ -19084,8 +19105,8 @@ function weaponSecondaryUp() {
     fullCharge,
   });
   if (fullCharge) {
-    const fxX = h.x + Math.cos(aim) * 50;
-    const fxY = h.y + Math.sin(aim) * 50;
+    const fxX = muzzle.x + Math.cos(aim) * 24;
+    const fxY = muzzle.y + Math.sin(aim) * 24;
     shockwave(fxX, fxY, '#8fd6ff', 122, .42);
     shockwave(fxX, fxY, '#f4cf6f', 82, .32);
     shockwave(fxX, fxY, '#ffffff', 46, .18);
@@ -19107,8 +19128,8 @@ function weaponSecondaryUp() {
     shake(4.5, .22);
     playSfx('threatDown');
   } else if (charge > .45) {
-    shockwave(h.x + Math.cos(aim) * 46, h.y + Math.sin(aim) * 46, '#8fd6ff', 72, .24);
-    burst(h.x + Math.cos(aim) * 46, h.y + Math.sin(aim) * 46, '#bfe7ff', 8, 'spark', 120);
+    shockwave(muzzle.x + Math.cos(aim) * 18, muzzle.y + Math.sin(aim) * 18, '#8fd6ff', 72, .24);
+    burst(muzzle.x + Math.cos(aim) * 18, muzzle.y + Math.sin(aim) * 18, '#bfe7ff', 8, 'spark', 120);
   }
   h.secondaryCd = secondaryNoCooldownActive() ? 0 : 0.25;
   h.charging = false;
@@ -27830,8 +27851,7 @@ function heroSpriteFacingAngle(h, aimAngle) {
 }
 
 function heroSpriteFrameIndex(angle) {
-  const octant = ((Math.round(angle / (Math.PI / 4)) % 8) + 8) % 8;
-  return HERO_SPRITE_FRAME_BY_OCTANT[octant] || 0;
+  return heroWalkRowIndex(angle);
 }
 
 function heroMovementVector() {
@@ -27864,12 +27884,12 @@ function drawHeroCoreWarning(lowWarn) {
   ctx.restore();
 }
 
-const PLAYER_SPRITE_FRAME_SIZE = 256;
-const PLAYER_SPRITE_SOURCE_CROP_X = 86;
-const PLAYER_SPRITE_SOURCE_CROP_Y = 54;
-const PLAYER_SPRITE_SOURCE_CROP_W = 88;
-const PLAYER_SPRITE_SOURCE_CROP_H = 146;
-const PLAYER_SPRITE_DRAW_W = 70;
+const PLAYER_SPRITE_FRAME_SIZE = 160;
+const PLAYER_SPRITE_SOURCE_CROP_X = 14;
+const PLAYER_SPRITE_SOURCE_CROP_Y = 0;
+const PLAYER_SPRITE_SOURCE_CROP_W = 132;
+const PLAYER_SPRITE_SOURCE_CROP_H = 160;
+const PLAYER_SPRITE_DRAW_W = 92;
 const PLAYER_SPRITE_DRAW_H = 112;
 const PLAYER_SPRITE_DRAW_Y_OFFSET = -18;
 const PLAYER_HEALTH_BAR_OFFSET = 18;
@@ -27878,24 +27898,24 @@ const PLAYER_SHADOW_W = 48;
 const PLAYER_SHADOW_H = 20;
 const PLAYER_SHADOW_ALPHA = 0.11;
 const PLAYER_SHADOW_FEATHER_STEPS = 4;
-const PLAYER_WALK_FRAME_SIZE = 256;
+const PLAYER_WALK_FRAME_SIZE = 160;
 const PLAYER_WALK_SHEET_COLS = 4;
 const PLAYER_WALK_SHEET_ROWS = 8;
 const PLAYER_WALK_FRAME_MS = 120;
-const PLAYER_WALK_CROP_X = 58;
+const PLAYER_WALK_CROP_X = 14;
 const PLAYER_WALK_CROP_Y = 0;
-const PLAYER_WALK_CROP_W = 140;
-const PLAYER_WALK_CROP_H = 232;
+const PLAYER_WALK_CROP_W = 132;
+const PLAYER_WALK_CROP_H = 160;
 // Octants are east, southeast, south, southwest, west, northwest, north, northeast.
 // Sheet rows are east, northeast, north, northwest, west, southwest, south, southeast.
 const PLAYER_WALK_ROW_BY_OCTANT = [0, 7, 6, 5, 4, 3, 2, 1];
-const PLAYER_WALK_BACKGROUND_THRESHOLD = 3;
+const PLAYER_WALK_BACKGROUND_THRESHOLD = 242;
 
 function isHeroWalkBackgroundPixel(data, index) {
   return data[index + 3] > 0
-    && data[index] <= PLAYER_WALK_BACKGROUND_THRESHOLD
-    && data[index + 1] <= PLAYER_WALK_BACKGROUND_THRESHOLD
-    && data[index + 2] <= PLAYER_WALK_BACKGROUND_THRESHOLD;
+    && data[index] >= PLAYER_WALK_BACKGROUND_THRESHOLD
+    && data[index + 1] >= PLAYER_WALK_BACKGROUND_THRESHOLD
+    && data[index + 2] >= PLAYER_WALK_BACKGROUND_THRESHOLD;
 }
 
 function clearHeroWalkFrameBackground(data, width, height, offsetX, offsetY) {
@@ -27988,11 +28008,11 @@ function drawHeroSpriteBody(t, h, aimAngle, recoil, heroScale, lowWarn) {
     );
   } else {
     const angle = heroSpriteFacingAngle(h, aimAngle);
-    const frame = heroSpriteFrameIndex(angle);
+    const row = heroSpriteFrameIndex(angle);
     ctx.drawImage(
-      HERO_SPRITE,
-      frame * PLAYER_SPRITE_FRAME_SIZE + PLAYER_SPRITE_SOURCE_CROP_X,
-      PLAYER_SPRITE_SOURCE_CROP_Y,
+      heroWalkSpriteCanvas || HERO_SPRITE,
+      PLAYER_SPRITE_SOURCE_CROP_X,
+      row * PLAYER_SPRITE_FRAME_SIZE + PLAYER_SPRITE_SOURCE_CROP_Y,
       PLAYER_SPRITE_SOURCE_CROP_W,
       PLAYER_SPRITE_SOURCE_CROP_H,
       -drawW / 2,
