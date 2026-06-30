@@ -5367,6 +5367,798 @@ body.expeditionGameplay #combatHud {
   }
 }
 
+#start .loadoutMasthead {
+  grid-template-columns: minmax(260px, 1fr) auto;
+}
+
+#start .arenaPick {
+  grid-template-columns: 1fr;
+}
+
+#start .loadoutTitle {
+  display: block;
+  grid-column: auto;
+  justify-self: end;
+}
+
+#start .loadoutVersion {
+  display: grid;
+  gap: 2px;
+}
+
+#start .missionChoices {
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+#start .missionChoice {
+  min-height: 154px;
+  padding: 16px;
+  align-content: start;
+  gap: 8px;
+}
+
+#start .missionChoice .modeBadge {
+  justify-self: start;
+  padding: 3px 7px;
+  color: #11100b;
+  background: #f0bd54;
+  border-radius: 3px;
+  font: 900 9px/1 Arial, Helvetica, sans-serif;
+  letter-spacing: .1em;
+}
+
+#start .missionChoice strong {
+  font-size: 24px;
+}
+
+#start .missionChoice .modeSubtitle {
+  color: #d6a649;
+  font: 900 12px/1 Arial, Helvetica, sans-serif;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+#start .missionChoice .modeDesc {
+  color: #bfb39a;
+  font: 700 13px/1.35 Arial, Helvetica, sans-serif;
+}
+
+#start .loadoutBody {
+  grid-template-columns: minmax(360px, .72fr) minmax(0, 1fr);
+  grid-template-areas:
+    "mission preview";
+  align-items: start;
+}
+
+#start .missionLaunchPanel {
+  border: 1px solid rgba(205, 146, 57, .28);
+  border-radius: 9px;
+  background: rgba(5, 7, 7, .76);
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, .42);
+}
+
+#start .missionLaunchPanel {
+  grid-area: mission;
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+}
+
+#start .sectionKicker {
+  color: #d6a649;
+  font: 900 15px/1 Arial, Helvetica, sans-serif;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+#start .expeditionCardGrid {
+  display: grid;
+  gap: 10px;
+}
+
+#start .expeditionCard {
+  min-height: 118px;
+  padding: 13px;
+  display: grid;
+  gap: 7px;
+  text-align: left;
+  color: #d7cbb0;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 7px;
+  background: linear-gradient(180deg, rgba(16, 18, 18, .96), rgba(6, 7, 7, .98));
+}
+
+#start .expeditionCard:hover {
+  border-color: rgba(224, 169, 52, .55);
+}
+
+#start .expeditionCard.active {
+  color: #fff0c5;
+  border-color: #d7a33e;
+  box-shadow: inset 4px 0 #d7a33e, 0 0 18px rgba(222, 162, 51, .14);
+}
+
+#start .expeditionCard strong {
+  color: inherit;
+  font: 900 20px/1 Arial, Helvetica, sans-serif;
+}
+
+#start .expeditionCard .routeNote {
+  color: #6dcddd;
+  font: 900 11px/1 Arial, Helvetica, sans-serif;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+#start .expeditionCard p {
+  margin: 0;
+  color: #aaa08b;
+  font: 700 12px/1.35 Arial, Helvetica, sans-serif;
+}
+
+#start .expeditionMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+#start .expeditionMeta span {
+  padding: 3px 6px;
+  color: #d6a649;
+  border: 1px solid rgba(214,166,73,.35);
+  border-radius: 3px;
+  font: 900 10px/1 Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+#start .arenaMissionPanel[hidden],
+#start .expeditionMissionPanel[hidden],
+#start .loadoutCatalogShell[hidden] {
+  display: none;
+}
+
+#start .loadoutRailWrap {
+  grid-area: preview;
+  grid-template-columns: 150px minmax(0, 1fr) 150px;
+}
+
+#start .loadoutRailHeading span {
+  font-size: 10px;
+}
+
+#start .editLoadoutButton {
+  align-self: center;
+  justify-self: center;
+  min-width: 126px;
+  height: 42px;
+  color: #0c0b07;
+  border: 1px solid #ffe7a1;
+  border-radius: 5px;
+  background: linear-gradient(180deg, #f3d573, #bd7b12);
+  font: 900 13px/1 Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+#start .loadoutCatalogShell {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: clamp(16px, 3vw, 34px);
+  background: rgba(0, 0, 0, .68);
+  backdrop-filter: blur(2px);
+  pointer-events: auto;
+}
+
+#start .loadoutEditorModal {
+  width: min(1500px, 96vw);
+  height: min(880px, 92vh);
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(205, 146, 57, .72);
+  border-radius: 9px;
+  background: linear-gradient(180deg, rgba(14, 16, 16, .98), rgba(4, 6, 6, .99));
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .72), inset 0 0 0 1px rgba(255, 232, 157, .07);
+}
+
+#start .loadoutEditorHeader {
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 5px 6px 10px;
+  border-bottom: 1px solid rgba(255,255,255,.09);
+}
+
+#start .loadoutEditorTitle {
+  color: #e8c784;
+  font: 900 24px/1 Arial, Helvetica, sans-serif;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+#start .loadoutEditorSub {
+  margin-top: 5px;
+  color: #6dcddd;
+  font: 800 11px/1.25 Arial, Helvetica, sans-serif;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+#start .loadoutEditorDone {
+  min-width: 142px;
+  height: 42px;
+  color: #0c0b07;
+  border: 1px solid #ffe7a1;
+  border-radius: 5px;
+  background: linear-gradient(180deg, #f3d573, #bd7b12);
+  font: 900 13px/1 Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+#start .loadoutEditorRailWrap {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  align-items: stretch;
+  min-height: 118px;
+  border: 1px solid rgba(205, 146, 57, .28);
+  border-radius: 9px;
+  background: rgba(5, 7, 7, .78);
+  overflow: hidden;
+}
+
+#start .loadoutEditorRailWrap .loadoutRailHeading {
+  padding: 13px 12px;
+}
+
+#start .loadoutEditorBody {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 126px minmax(0, 1fr) minmax(330px, 390px);
+  gap: 10px;
+}
+
+#start .loadoutCatalogShell .loadoutCatalog,
+#start .loadoutCatalogShell .loadoutInspectorPanel {
+  min-height: 0;
+}
+
+#start .mastheadActions #begin {
+  min-width: 210px;
+  height: 70px;
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  line-height: 1;
+  white-space: normal;
+}
+
+#start .startButtonPrimary {
+  display: block;
+  font-size: 24px;
+}
+
+#start .startButtonSub {
+  display: block;
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1220px) {
+  #start .loadoutTitle {
+    display: none;
+  }
+  #start .loadoutMasthead {
+    grid-template-columns: 1fr;
+  }
+  #start .mastheadActions {
+    grid-column: 1;
+  }
+  #start .loadoutBody {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "mission"
+      "preview";
+  }
+  #start .loadoutEditorBody {
+    grid-template-columns: 105px minmax(0, 1fr) 310px;
+  }
+}
+
+@media (max-width: 900px) {
+  #start .missionChoices {
+    grid-template-columns: 1fr;
+  }
+  #start .loadoutEditorBody {
+    grid-template-columns: 88px minmax(0, 1fr);
+  }
+  #start .loadoutCatalogShell .loadoutInspectorPanel {
+    grid-column: 1 / -1;
+  }
+  #start .loadoutEditorRailWrap {
+    grid-template-columns: 1fr;
+  }
+  #start .loadoutEditorRailWrap .loadoutRailHeading {
+    display: none;
+  }
+}
+
+#start .card {
+  height: min(900px, calc(100vh - 20px));
+  max-height: calc(100vh - 20px);
+}
+
+#start .startLayout,
+#start .startMain {
+  min-height: 0;
+}
+
+#start .startMain {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(238px, auto) minmax(0, 1fr) minmax(132px, auto);
+  grid-auto-flow: row;
+}
+
+#start .startMain > .loadoutMasthead,
+#start .startMain > .loadoutBody,
+#start .startMain > .loadoutRailWrap {
+  grid-column: 1;
+  grid-area: auto;
+}
+
+#start .loadoutMasthead {
+  grid-template-columns: minmax(760px, 1fr) minmax(240px, .32fr) minmax(250px, .36fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+#start .arenaPick {
+  align-content: start;
+  gap: 8px;
+}
+
+#start .modeStep {
+  padding-left: 2px;
+}
+
+#start .missionChoices {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+#start .missionChoice {
+  min-height: 214px;
+  grid-template-columns: 1fr;
+  grid-template-rows: 118px auto auto minmax(0, 1fr);
+  gap: 7px;
+  padding: 10px;
+  overflow: hidden;
+  align-content: start;
+  border-color: rgba(215, 163, 62, .52);
+  border-radius: 9px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(215, 163, 62, .08), transparent 55%),
+    linear-gradient(180deg, rgba(15, 16, 15, .98), rgba(5, 6, 6, .99));
+  box-shadow: inset 0 0 0 1px rgba(255, 232, 157, .05), 0 8px 22px rgba(0,0,0,.28);
+  position: relative;
+  isolation: isolate;
+}
+
+#start .missionChoice::before {
+  content: '';
+  position: absolute;
+  inset: 9px auto 9px 9px;
+  width: 4px;
+  border-radius: 99px;
+  background: rgba(240, 201, 107, .44);
+  box-shadow: 0 0 14px rgba(240, 201, 107, .18);
+  z-index: 4;
+  pointer-events: none;
+}
+
+#start .missionChoice[data-mission-type="expedition"]::before {
+  background: linear-gradient(180deg, #f0c96b, #a67aff 50%, #64f2c9);
+  box-shadow: 0 0 16px rgba(166, 122, 255, .35);
+}
+
+#start .missionChoice[data-mission-type="arena"]::before {
+  background: linear-gradient(180deg, #ffe07c, #ff7a29 55%, #8d3213);
+  box-shadow: 0 0 16px rgba(255, 122, 41, .34);
+}
+
+#start .missionChoice .modeArt {
+  grid-row: 1;
+  grid-column: 1;
+  width: 100%;
+  height: 118px;
+  min-height: 118px;
+  border-radius: 7px;
+  border: 1px solid rgba(215, 163, 62, .32);
+  background: rgba(0,0,0,.2);
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.08), inset 0 -18px 26px rgba(0,0,0,.2);
+}
+
+#start .missionChoice .modeArt::before,
+#start .missionChoice .modeArt::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+#start .missionChoice .expeditionArt {
+  background:
+    radial-gradient(circle at 50% 45%, rgba(166, 122, 255, .88) 0 13%, rgba(93, 46, 150, .42) 14% 27%, transparent 28%),
+    radial-gradient(circle at 50% 48%, rgba(100, 242, 201, .18), transparent 58%),
+    linear-gradient(180deg, rgba(32, 21, 49, .96), rgba(6, 8, 12, .98));
+}
+
+#start .missionChoice .expeditionArt::after {
+  inset: 20px 25px;
+  border: 2px solid rgba(190, 150, 255, .62);
+  transform: rotate(45deg);
+  box-shadow: 0 0 18px rgba(164, 103, 255, .45);
+}
+
+#start .missionChoice .arenaArt {
+  background:
+    radial-gradient(circle at 50% 72%, rgba(255, 190, 58, .5), transparent 42%),
+    linear-gradient(135deg, transparent 45%, rgba(255, 134, 44, .5) 46% 52%, transparent 53%),
+    linear-gradient(45deg, transparent 45%, rgba(255, 210, 92, .44) 46% 52%, transparent 53%),
+    linear-gradient(180deg, rgba(61, 28, 10, .96), rgba(8, 8, 7, .98));
+}
+
+#start .missionChoice .arenaArt::after {
+  inset: 24px 18px;
+  border-top: 3px solid rgba(255, 224, 124, .7);
+  border-bottom: 3px solid rgba(255, 122, 41, .54);
+  transform: rotate(-28deg);
+}
+
+#start .missionChoice strong,
+#start .missionChoice .modeSubtitle,
+#start .missionChoice .modeDesc,
+#start .missionChoice .modeBadge {
+  grid-column: 1;
+  position: relative;
+  z-index: 4;
+}
+
+#start .missionChoice .modeBadge {
+  width: max-content;
+  margin-top: 1px;
+}
+
+#start .missionChoice strong {
+  margin-top: 1px;
+  font-size: 26px;
+  letter-spacing: .03em;
+}
+
+#start .missionChoice .modeSubtitle {
+  font-size: 11px;
+}
+
+#start .missionChoice .modeDesc {
+  max-width: 31em;
+  font-size: 12px;
+  line-height: 1.28;
+}
+
+#start .missionChoice:not(.active) {
+  opacity: .82;
+  filter: saturate(.88);
+  border-color: rgba(255,255,255,.16);
+}
+
+#start .missionChoice.active {
+  opacity: 1;
+  filter: none;
+  border-color: #f0c96b;
+  box-shadow: inset 0 0 0 2px rgba(240, 201, 107, .72), 0 0 28px rgba(222, 162, 51, .28), inset 0 0 28px rgba(255,255,255,.05);
+}
+
+#start .missionChoice[data-mission-type="expedition"].active {
+  box-shadow: inset 0 0 0 2px rgba(240, 201, 107, .72), 0 0 28px rgba(222, 162, 51, .26), 0 0 34px rgba(166, 122, 255, .12), inset 0 0 28px rgba(255,255,255,.05);
+}
+
+#start .missionChoice[data-mission-type="arena"].active {
+  box-shadow: inset 0 0 0 2px rgba(240, 201, 107, .72), 0 0 28px rgba(222, 162, 51, .26), 0 0 34px rgba(255, 122, 41, .14), inset 0 0 28px rgba(255,255,255,.05);
+}
+
+#start .loadoutTitle {
+  align-self: stretch;
+  justify-self: stretch;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(205, 146, 57, .22);
+  border-radius: 9px;
+  background: radial-gradient(circle at 50% 20%, rgba(214,166,73,.12), transparent 55%), rgba(5, 7, 7, .66);
+}
+
+#start .mastheadActions {
+  justify-content: stretch;
+  align-content: center;
+}
+
+#start .mastheadActions #begin {
+  width: 100%;
+  height: 82px;
+}
+
+#start .loadoutBody {
+  grid-template-columns: minmax(430px, .76fr) minmax(560px, 1fr);
+  gap: 12px;
+  min-height: 0;
+}
+
+#start .missionLaunchPanel,
+#start .expeditionDetailsPanel,
+#start .loadoutRailWrap {
+  border: 1px solid rgba(205, 146, 57, .36);
+  border-radius: 9px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(109, 205, 221, .08), transparent 42%),
+    linear-gradient(180deg, rgba(12, 14, 14, .94), rgba(4, 6, 6, .98));
+  box-shadow: inset 0 0 0 1px rgba(255, 232, 157, .05), 0 8px 24px rgba(0,0,0,.22);
+}
+
+#start .missionLaunchPanel {
+  padding: 13px;
+  min-height: 0;
+}
+
+#start .expeditionCardGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+#start .expeditionCard {
+  min-height: 300px;
+  grid-template-rows: 132px auto auto minmax(0, 1fr) auto;
+  padding: 10px;
+}
+
+#start .expeditionThumb,
+#start .expeditionDetailsThumb {
+  display: block;
+  min-height: 120px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 7px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 28px rgba(0,0,0,.5);
+}
+
+#start .expeditionThumb::before,
+#start .expeditionThumb::after,
+#start .expeditionDetailsThumb::before,
+#start .expeditionDetailsThumb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+#start .thumbTunnel {
+  background:
+    radial-gradient(circle at 50% 54%, rgba(23, 40, 34, .25) 0 23%, rgba(5, 7, 6, .92) 24% 38%, transparent 39%),
+    radial-gradient(circle at 50% 54%, rgba(112, 255, 168, .58) 0 7%, rgba(60, 134, 83, .24) 8% 18%, transparent 19%),
+    linear-gradient(90deg, rgba(27, 26, 22, .9) 0 16%, rgba(9, 11, 10, .98) 17% 83%, rgba(31, 29, 24, .9) 84%),
+    linear-gradient(180deg, #141512, #050706);
+}
+
+#start .thumbTunnel::before {
+  background:
+    linear-gradient(90deg, transparent 0 18%, rgba(85, 88, 74, .32) 19% 22%, transparent 23% 76%, rgba(78, 80, 69, .24) 77% 80%, transparent 81%),
+    repeating-linear-gradient(90deg, transparent 0 18px, rgba(111, 126, 99, .08) 19px 21px);
+}
+
+#start .thumbTunnel::after {
+  inset: auto 16% 0;
+  height: 34%;
+  background: linear-gradient(180deg, transparent, rgba(87, 110, 77, .28));
+  clip-path: polygon(16% 0, 84% 0, 100% 100%, 0 100%);
+}
+
+#start .thumbChemical {
+  background:
+    radial-gradient(circle at 26% 65%, rgba(146, 255, 84, .48), transparent 24%),
+    radial-gradient(circle at 74% 34%, rgba(255, 122, 36, .4), transparent 30%),
+    linear-gradient(90deg, rgba(28, 44, 31, .94), rgba(10, 12, 10, .98)),
+    linear-gradient(180deg, #1b1f16, #060706);
+}
+
+#start .thumbChemical::before {
+  background:
+    linear-gradient(90deg, transparent 8%, rgba(143, 157, 117, .38) 9% 14%, transparent 15% 47%, rgba(181, 128, 58, .42) 48% 55%, transparent 56%),
+    linear-gradient(0deg, transparent 57%, rgba(87, 104, 76, .55) 58% 63%, transparent 64%),
+    repeating-linear-gradient(90deg, transparent 0 36px, rgba(255,255,255,.08) 37px 39px);
+}
+
+#start .thumbChemical::after {
+  inset: auto 9% 9%;
+  height: 26%;
+  background: linear-gradient(180deg, rgba(166, 255, 79, .48), rgba(236, 112, 30, .16));
+  clip-path: polygon(0 34%, 22% 12%, 48% 44%, 72% 14%, 100% 35%, 100% 100%, 0 100%);
+}
+
+#start .expeditionDetailsPanel {
+  display: grid;
+  grid-template-rows: auto 210px minmax(0, 1fr);
+  gap: 11px;
+  min-height: 0;
+  padding: 13px;
+}
+
+#start .expeditionDetailsThumb {
+  min-height: 210px;
+}
+
+#start .modeArt img,
+#start .expeditionThumb img,
+#start .expeditionDetailsThumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+  z-index: 1;
+  filter: brightness(1.02) saturate(1.08);
+}
+
+#start .modeArt::before {
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(0,0,0,.04), rgba(0,0,0,.26));
+  pointer-events: none;
+}
+
+#start .modeArt::after {
+  z-index: 3;
+  inset: 0;
+  border: 0;
+  border-radius: 7px;
+  background: linear-gradient(135deg, rgba(255,255,255,.06), transparent 50%, rgba(0,0,0,.08));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.12), inset 0 -18px 24px rgba(0,0,0,.18);
+  pointer-events: none;
+  transform: none;
+}
+
+#start .expeditionThumb::before,
+#start .expeditionDetailsThumb::before {
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(0,0,0,.03), rgba(0,0,0,.22));
+  pointer-events: none;
+}
+
+#start .expeditionThumb::after,
+#start .expeditionDetailsThumb::after {
+  z-index: 3;
+  inset: 0;
+  height: auto;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(0,0,0,.18), transparent 42%, rgba(0,0,0,.1));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.1), inset 0 -18px 24px rgba(0,0,0,.18);
+  clip-path: none;
+  pointer-events: none;
+}
+
+#start .expeditionCard.active .expeditionThumb {
+  border-color: #d7a33e;
+  box-shadow: 0 0 0 1px #d7a33e inset, 0 0 18px rgba(215,163,62,.32), inset 0 0 28px rgba(0,0,0,.5);
+}
+
+#start .expeditionCard:not(.active) .expeditionThumb img {
+  filter: brightness(.88) saturate(.96);
+}
+
+#start .expeditionDetailsThumb {
+  border-color: rgba(215,163,62,.72);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.08), 0 0 18px rgba(215,163,62,.14);
+}
+
+#start .arenaDetails {
+  background:
+    radial-gradient(circle at 50% 70%, rgba(255, 172, 53, .4), transparent 45%),
+    linear-gradient(180deg, rgba(67, 29, 10, .96), rgba(8, 8, 7, .98));
+}
+
+#start .expeditionDetailsCopy h2 {
+  margin: 0 0 7px;
+  color: #fff0c5;
+  font: 900 26px/1 Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+#start .expeditionDetailsCopy p,
+#start .expeditionDetailsCopy li {
+  color: #bfb39a;
+  font: 700 13px/1.35 Arial, Helvetica, sans-serif;
+}
+
+#start .expeditionDetailsCopy > p {
+  margin: 0 0 12px;
+  color: #d9c9aa;
+}
+
+#start .detailsColumns {
+  display: grid;
+  grid-template-columns: minmax(0, .95fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+#start .detailsColumns h3 {
+  margin: 0 0 7px;
+  color: #6dcddd;
+  font: 900 11px/1 Arial, Helvetica, sans-serif;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+#start .detailsColumns ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+#start .detailsColumns p {
+  margin: 0;
+}
+
+#start .loadoutRailWrap {
+  grid-template-columns: 245px minmax(0, 1fr) 145px;
+  min-height: 132px;
+  margin: 0;
+}
+
+#start .loadoutRailWrap .loadoutRailHeading {
+  padding: 14px 13px;
+}
+
+#start .loadoutRailWrap .loadoutRailHeading b {
+  font-size: 16px;
+}
+
+#start .loadoutPreviewRail {
+  grid-template-columns: repeat(8, minmax(76px, 1fr));
+  padding: 9px;
+}
+
+#start .loadoutRailSlot {
+  min-height: 100px;
+}
+
+#start .editLoadoutButton {
+  margin: 0 12px;
+  align-self: center;
+}
+
+@media (max-width: 1220px) {
+  #start .card {
+    height: auto;
+    max-height: none;
+  }
+  #start .loadoutMasthead {
+    grid-template-columns: 1fr;
+  }
+  #start .loadoutBody {
+    grid-template-columns: 1fr;
+  }
+  #start .loadoutRailWrap {
+    grid-template-columns: 1fr;
+  }
+  #start .loadoutRailWrap .loadoutRailHeading {
+    display: grid;
+  }
+}
+
 </style>
 </head>
 <body class="hideGameplayHud">
@@ -5605,8 +6397,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.37.4</b>
-      <span id="warRoomBuildName">FaintStep</span>
+      <b id="warRoomVersion">v7.39.6</b>
+      <span id="warRoomBuildName">ModeCards</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -5657,79 +6449,146 @@ body.expeditionGameplay #combatHud {
       <div class="startMain">
         <div class="loadoutMasthead">
           <div class="arenaPick">
+            <div class="sectionKicker modeStep">1. Choose Mode</div>
             <div class="missionChoices" role="group" aria-label="Mission type">
-              <button class="missionChoice active" data-mission-type="arena" type="button" aria-pressed="true">
-                <strong>ARENA</strong>
-                <span>Classic survival.<br>Build. Upgrade. Endure.</span>
-              </button>
-              <button class="missionChoice" data-mission-type="expedition" type="button" aria-pressed="false">
+              <button class="missionChoice active" data-mission-type="expedition" type="button" aria-pressed="true">
+                <span class="modeArt expeditionArt" aria-hidden="true"><img src="assets/menu/expedition.jpg" alt="" draggable="false" onerror="this.hidden=true"></span>
+                <span class="modeBadge">RECOMMENDED</span>
                 <strong>EXPEDITION</strong>
-                <span>Find keys.<br>Unlock extraction.<br>Escape.</span>
+                <span class="modeSubtitle">Main Adventure</span>
+                <span class="modeDesc">Carry the Core into hostile rooms. Build defenses. Activate Relays. Push deeper.</span>
               </button>
-            </div>
-            <div class="missionOptions">
-            <div class="arenaPickRow">
-              <label for="startArenaSelect">Arena</label>
-              <select id="startArenaSelect" class="arenaSelect" aria-label="Select arena before starting">
-                <option value="field">Field</option>
-                <option value="choke">Choke</option>
-                <option value="ring">Ring</option>
-                <option value="split">Split</option>
-                <option value="proto">Prototype</option>
-                <option value="vertical">Long Fortress</option>
-                <option value="doubledeck">Double Deck</option>
-                <option value="eastwest">East / West</option>
-                <option value="spiral">Spiral Keep</option>
-                <option value="citadel">Outer Loops</option>
-              </select>
-            </div>
-            <div class="arenaPickRow missionOption" id="expeditionMissionOptions" hidden>
-              <label for="startExpeditionSelect">Expedition</label>
-              <select id="startExpeditionSelect" class="arenaSelect" aria-label="Select expedition before starting">
-                <option value="expedition01">Expedition 01</option>
-                <option value="expedition02">Expedition 02: Shatter Convoy</option>
-              </select>
-            </div>
+              <button class="missionChoice" data-mission-type="arena" type="button" aria-pressed="false">
+                <span class="modeArt arenaArt" aria-hidden="true"><img src="assets/menu/arena.jpg" alt="" draggable="false" onerror="this.hidden=true"></span>
+                <strong>ARENA</strong>
+                <span class="modeSubtitle">Quick Survival</span>
+                <span class="modeDesc">Fight waves, earn Boons, and chase your best run.</span>
+              </button>
             </div>
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion">v7.37.4 FaintStep</div>
+            <div class="loadoutVersion" id="loadoutVersion"><span>v7.39.6</span><span>ModeCards</span></div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
             <button id="playLastRun" class="secondary wide">Play Last Run</button>
-            <button id="begin" class="primary wide">Start!</button>
+            <button id="begin" class="primary wide"><span class="startButtonPrimary">START EXPEDITION</span><span class="startButtonSub">Expedition 1: The Tunnel</span></button>
           </div>
         </div>
         <div class="loadoutBody">
-          <nav class="loadoutTabs" id="loadoutTabs" aria-label="Loadout categories">
-            <button class="loadoutTab active" data-loadout-tab="all" type="button"><span class="tabIcon" aria-hidden="true">▦</span><span>All</span></button>
-            <button class="loadoutTab" data-loadout-tab="weapon" type="button"><span class="tabIcon" aria-hidden="true">⌁</span><span>Weapons</span></button>
-            <button class="loadoutTab" data-loadout-tab="defense" type="button"><span class="tabIcon" aria-hidden="true">▥</span><span>Defenses</span></button>
-            <button class="loadoutTab" data-loadout-tab="trinket" type="button"><span class="tabIcon" aria-hidden="true">✦</span><span>Gear</span></button>
-          </nav>
-          <section class="loadoutCatalog" aria-label="Loadout catalog">
-            <div class="loadoutCatalogHeader">
-              <div>
-                <b id="loadoutCatalogTitle">All Items</b>
-                <span id="loadoutCatalogCount">0 available</span>
+          <section class="missionLaunchPanel" aria-label="Mission launch options">
+            <div class="expeditionMissionPanel" id="expeditionMissionOptions">
+              <div class="sectionKicker">2. Choose Expedition</div>
+              <div class="expeditionCardGrid" role="group" aria-label="Choose expedition">
+                <button class="expeditionCard active" data-expedition-id="expedition01" type="button" aria-pressed="true">
+                  <span class="expeditionThumb thumbTunnel" aria-hidden="true"><img src="assets/menu/the-tunnel.jpg" alt="" draggable="false" onerror="this.hidden=true"></span>
+                  <strong>1. The Tunnel</strong>
+                  <span class="routeNote">Recommended First Run</span>
+                  <p>The route begins underground. Explore, survive, and find your first Relay.</p>
+                  <span class="expeditionMeta"><span>Difficulty: Easy</span><span>Players: 1-2 Players</span></span>
+                </button>
+                <button class="expeditionCard" data-expedition-id="expedition02" type="button" aria-pressed="false">
+                  <span class="expeditionThumb thumbChemical" aria-hidden="true"><img src="assets/menu/chemical-plant.jpg" alt="" draggable="false" onerror="this.hidden=true"></span>
+                  <strong>2. Chemical Plant</strong>
+                  <p>Toxic spills, volatile machines, and heavier resistance.</p>
+                  <span class="expeditionMeta"><span>Difficulty: Medium</span><span>Players: 1-2 Players</span></span>
+                </button>
               </div>
-              <span class="riftLoadoutNote">Defenses usable after Rift acquired in Expedition</span>
+              <select id="startExpeditionSelect" class="arenaSelect" aria-label="Select expedition before starting" hidden>
+                <option value="expedition01">1. The Tunnel</option>
+                <option value="expedition02">2. Chemical Plant</option>
+              </select>
             </div>
-            <div id="loadoutPicker" class="pickerGrid loadoutGrid"></div>
+            <div class="arenaMissionPanel" id="arenaMissionOptions" hidden>
+              <div class="sectionKicker">Arena Map</div>
+              <div class="arenaPickRow">
+                <label for="startArenaSelect">Quick Survival</label>
+                <select id="startArenaSelect" class="arenaSelect" aria-label="Select arena before starting">
+                  <option value="field">Field</option>
+                  <option value="choke">Choke</option>
+                  <option value="ring">Ring</option>
+                  <option value="split">Split</option>
+                  <option value="proto">Prototype</option>
+                  <option value="vertical">Long Fortress</option>
+                  <option value="doubledeck">Double Deck</option>
+                  <option value="eastwest">East / West</option>
+                  <option value="spiral">Spiral Keep</option>
+                  <option value="citadel">Outer Loops</option>
+                </select>
+              </div>
+            </div>
           </section>
-          <aside class="loadoutInspectorPanel" aria-label="Loadout inspector">
-            <div id="startSelectedInfo" class="selectedInfoCard" aria-live="polite"></div>
+          <aside class="expeditionDetailsPanel" id="expeditionDetailsPanel" aria-label="Expedition details">
+            <div class="sectionKicker" id="expeditionDetailsKicker">Expedition Details</div>
+            <div class="expeditionDetailsThumb thumbTunnel" id="expeditionDetailsThumb" aria-hidden="true"><img id="expeditionDetailsImage" src="assets/menu/the-tunnel.jpg" alt="" draggable="false" onerror="this.hidden=true"></div>
+            <div class="expeditionDetailsCopy">
+              <h2 id="expeditionDetailsTitle">1. The Tunnel</h2>
+              <p id="expeditionDetailsBody">The first step into hostile ground. Establish your Core. Find the first Relay.</p>
+              <div class="detailsColumns">
+                <div>
+                  <h3>Objectives</h3>
+                  <ul id="expeditionDetailsObjectives">
+                    <li>Carry the Core forward.</li>
+                    <li>Build defenses inside the Core radius.</li>
+                    <li>Activate Relays to expand your route.</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3>What to Expect</h3>
+                  <p id="expeditionDetailsExpect">Small rooms, early enemies, and simple threats. Built for learning the basics.</p>
+                </div>
+              </div>
+            </div>
           </aside>
         </div>
-        <div class="loadoutRailWrap" aria-label="Selected loadout preview">
+        <section class="loadoutRailWrap" aria-label="Your Loadout">
           <div class="loadoutRailHeading">
-            <div><b>Loadout</b><span>Drag to reorder for quick access in-game</span></div>
+            <div><b class="sectionKicker">3. Your Loadout</b><span>Recommended starter loadout. Reliable weapons, Core defense, crowd control, recovery, and build support.</span></div>
             <span id="loadoutReadiness" class="loadoutReadiness">Weapon required</span>
           </div>
-          <div id="loadoutPreviewRail" class="loadoutPreviewRail"></div>
-          <div class="loadoutAttribution" aria-label="Project attribution"><b>ALBION HOUSE</b><span>albionhouse.games</span></div>
+          <div id="loadoutPreviewRail" class="loadoutPreviewRail" data-loadout-rail></div>
+          <button id="editLoadout" class="editLoadoutButton" type="button" aria-expanded="false" aria-controls="loadoutEditor">Edit Loadout</button>
+        </section>
+          <section class="loadoutCatalogShell" id="loadoutEditor" aria-label="Edit loadout" hidden>
+            <div class="loadoutEditorModal" role="dialog" aria-modal="true" aria-labelledby="loadoutEditorTitle">
+              <div class="loadoutEditorHeader">
+                <div>
+                  <div class="loadoutEditorTitle" id="loadoutEditorTitle">LOADOUT EDITOR</div>
+                  <div class="loadoutEditorSub">Pick slots, reorder, then return to mission launch.</div>
+                </div>
+                <button id="closeLoadoutEditor" class="loadoutEditorDone" type="button">DONE</button>
+              </div>
+              <div class="loadoutEditorRailWrap" aria-label="Selected loadout slots">
+                <div class="loadoutRailHeading">
+                  <div><b>Slots</b><span>Drag to reorder quick access</span></div>
+                  <span class="loadoutReadiness ready">8 slots max</span>
+                </div>
+                <div id="loadoutEditorPreviewRail" class="loadoutPreviewRail" data-loadout-rail></div>
+              </div>
+              <div class="loadoutEditorBody">
+                <nav class="loadoutTabs" id="loadoutTabs" aria-label="Loadout categories">
+                  <button class="loadoutTab active" data-loadout-tab="all" type="button"><span class="tabIcon" aria-hidden="true">▦</span><span>All</span></button>
+                  <button class="loadoutTab" data-loadout-tab="weapon" type="button"><span class="tabIcon" aria-hidden="true">⌁</span><span>Weapons</span></button>
+                  <button class="loadoutTab" data-loadout-tab="defense" type="button"><span class="tabIcon" aria-hidden="true">▥</span><span>Defenses</span></button>
+                  <button class="loadoutTab" data-loadout-tab="trinket" type="button"><span class="tabIcon" aria-hidden="true">✦</span><span>Gear</span></button>
+                </nav>
+                <section class="loadoutCatalog" aria-label="Loadout catalog">
+                  <div class="loadoutCatalogHeader">
+                    <div>
+                      <b id="loadoutCatalogTitle">All Items</b>
+                      <span id="loadoutCatalogCount">0 available</span>
+                    </div>
+                    <span class="riftLoadoutNote">Defenses usable after Core is active in Expedition</span>
+                  </div>
+                  <div id="loadoutPicker" class="pickerGrid loadoutGrid"></div>
+                </section>
+                <aside class="loadoutInspectorPanel" aria-label="Loadout inspector">
+                  <div id="startSelectedInfo" class="selectedInfoCard" aria-live="polite"></div>
+                </aside>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
       <div class="startFooter">
@@ -6133,7 +6992,7 @@ const LEVELS = {
     heroSpawn: { c: 24, r: 18 },
   },
   expedition01: {
-    label: 'Expedition 01',
+    label: '1. The Tunnel',
     mode: 'expedition',
     cols: 64,
     rows: 42,
@@ -6455,8 +7314,8 @@ const LEVELS = {
     },
   },
   expedition02: {
-    label: 'Expedition 02: Shatter Convoy',
-    description: 'Move the unstable Rift through a collapsing route. Build fast, abandon defenses, escape alive.',
+    label: '2. Chemical Plant',
+    description: 'Toxic spills, volatile machines, and heavier resistance.',
     mode: 'expedition',
     cols: 46,
     rows: 18,
@@ -7335,11 +8194,18 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.38.8';
+const GAME_VERSION = '7.39.6';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'GoblinTurn';
+const BUILD_NAME = 'ModeCards';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Reversed Goblin Grunt facing vector so sprites face their screen movement.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Rebuilt Mission Launch mode selection as larger image-led mode cards.' },
+  { version: '7.39.5', name: 'BrightArt', changes: 'Updated Mission Launch artwork and brightened menu image presentation.' },
+  { version: '7.39.4', name: 'MenuArt', changes: 'Added Mission Launch artwork images to mode cards, expedition cards, and details panels.' },
+  { version: '7.39.3', name: 'LaunchPanel', changes: 'Polished Mission Launch into a three-step premium layout with expedition thumbnails and details.' },
+  { version: '7.39.2', name: 'StarterPack', changes: 'Updated the recommended Mission Launch starter loadout to a full eight-slot kit.' },
+  { version: '7.39.1', name: 'LoadoutModal', changes: 'Moved Mission Launch loadout editing into a centered modal overlay with synchronized slot rows.' },
+  { version: '7.39.0', name: 'MissionLaunch', changes: 'Rebuilt the loadout screen as a clearer mission launch flow with mode cards, expedition cards, and a collapsed item catalog.' },
+  { version: '7.38.8', name: 'GoblinTurn', changes: 'Reversed Goblin Grunt facing vector so sprites face their screen movement.' },
   { version: '7.38.7', name: 'GoblinRows', changes: 'Applied observed Goblin Grunt sprite-sheet row order and disabled the row preview.' },
   { version: '7.38.6', name: 'RowPreview', changes: 'Added an all-row Goblin Grunt sprite-sheet preview for row-order debugging.' },
   { version: '7.38.5', name: 'RowCal', changes: 'Added Goblin Grunt row calibration and removed normal-enemy Rift hunter diamonds.' },
@@ -7684,13 +8550,14 @@ function profileReport() {
   };
 }
 const LOADOUT_STATE = {
-  selectedIds: [],
-  inspectedId: null,
-  missionType: 'arena',
+  selectedIds: ['ranger', 'freeze', 'archer', 'cauldron', 'ballista', 'healingFlask', 'lastStandBeacon', 'goblinCoinPurse'],
+  inspectedId: 'ranger',
+  missionType: 'expedition',
   arenaId: 'field',
   expeditionId: 'expedition01'
 };
-const LOADOUT_STORAGE_KEY = 'killbox.lastLoadout.v1';
+const LOADOUT_STORAGE_KEY = 'killbox.lastLoadout.v2';
+const DEFAULT_LOADOUT_IDS = ['ranger', 'freeze', 'archer', 'cauldron', 'ballista', 'healingFlask', 'lastStandBeacon', 'goblinCoinPurse'];
 const MISSION_BRIEFING_STORAGE_KEY = 'killbox.onboard.missionBriefing.v1';
 const MISSION_HINT_STORAGE_KEY = 'killbox.onboard.missionHints.v1';
 let missionHintHideTimer = 0;
@@ -12980,7 +13847,7 @@ function ui(force = false) {
   if ($('devAudioState')) $('devAudioState').textContent = AUDIO.muted ? 'OFF' : 'ON';
   if ($('devVolumeState')) $('devVolumeState').textContent = `${Math.round(AUDIO.volume * 100)}%`;
   if ($('devVolume') && document.activeElement !== $('devVolume')) $('devVolume').value = Math.round(AUDIO.volume * 100);
-  if ($('loadoutVersion')) $('loadoutVersion').textContent = `v${S.version} ${S.buildName || BUILD_NAME}`;
+  if ($('loadoutVersion')) $('loadoutVersion').innerHTML = `<span>v${S.version}</span><span>${S.buildName || BUILD_NAME}</span>`;
   if ($('sidebarVersion')) $('sidebarVersion').textContent = S.version;
   if ($('warRoomVersion')) $('warRoomVersion').textContent = `v${S.version}`;
   if ($('warRoomBuildName')) $('warRoomBuildName').textContent = S.buildName || BUILD_NAME;
@@ -13067,7 +13934,7 @@ function renderSetupPickers() {
     if (['tar', 'mace'].includes(k)) return 'Wall';
     if (['spikes', 'spring', 'barrel', 'barrier'].includes(k)) return 'Floor';
     if (k === 'cauldron') return 'Ceiling';
-    return 'Core / Rift';
+    return 'Core';
   };
   const tileMarkup = (k, kind) => {
     if (kind === 'weapon') {
@@ -13077,11 +13944,11 @@ function renderSetupPickers() {
     }
     if (kind === 'tower') {
       const t = TOWERS[k];
-      return `${orderBadge(k)}<span class="icon">${miniTowerIcon(k)}</span><span class="name">${shortTowerName(k)}</span><span class="itemTag defense">Defense</span><span class="fireCopy"><span>${LOADOUT_TILE_ROLE[k] || t.role || 'Defense'}</span><span>${placementLabel(k)} · ${t.c}g</span></span><span class="riftRequirement">Requires Rift</span>`;
+      return `${orderBadge(k)}<span class="icon">${miniTowerIcon(k)}</span><span class="name">${shortTowerName(k)}</span><span class="itemTag defense">Defense</span><span class="fireCopy"><span>${LOADOUT_TILE_ROLE[k] || t.role || 'Defense'}</span><span>${placementLabel(k)} · ${t.c}g</span></span><span class="riftRequirement">Requires Core</span>`;
     }
     if (kind === 'trap') {
       const t = TOWERS[k];
-      return `${orderBadge(k)}<span class="icon">${miniTowerIcon(k)}</span><span class="name">${shortTowerName(k)}</span><span class="itemTag defense">Defense</span><span class="fireCopy"><span>${LOADOUT_TILE_ROLE[k] || t.role || 'Defense'}</span><span>${placementLabel(k)} · ${t.c}g</span></span><span class="riftRequirement">Requires Rift</span>`;
+      return `${orderBadge(k)}<span class="icon">${miniTowerIcon(k)}</span><span class="name">${shortTowerName(k)}</span><span class="itemTag defense">Defense</span><span class="fireCopy"><span>${LOADOUT_TILE_ROLE[k] || t.role || 'Defense'}</span><span>${placementLabel(k)} · ${t.c}g</span></span><span class="riftRequirement">Requires Core</span>`;
     }
     const t = TRINKETS[k];
     return `${orderBadge(k)}<span class="icon">${t.icon}</span><span class="name">${t.shortName || t.name}</span><span class="itemTag gear">Gear</span><span class="fireCopy"><span>${LOADOUT_TRINKET_COPY[k]?.[0] || 'Utility'}</span><span>${LOADOUT_TRINKET_COPY[k]?.[1] || ''}</span></span>`;
@@ -13184,7 +14051,8 @@ function persistLoadoutState() {
   }
 }
 
-function restoreLoadoutState() {
+function restoreLoadoutState(options = {}) {
+  const restoreMission = options.restoreMission !== false;
   let data = null;
   try {
     data = JSON.parse(localStorage.getItem(LOADOUT_STORAGE_KEY) || 'null');
@@ -13192,7 +14060,7 @@ function restoreLoadoutState() {
     console.warn('[loadout] restore failed', err);
   }
   if (!data || typeof data !== 'object') return false;
-  LOADOUT_STATE.missionType = data.missionType === 'expedition' ? 'expedition' : 'arena';
+  if (restoreMission) LOADOUT_STATE.missionType = data.missionType === 'arena' ? 'arena' : 'expedition';
   if (LEVELS[data.arenaId] && !isExpeditionLevel(data.arenaId)) LOADOUT_STATE.arenaId = data.arenaId;
   if (isExpeditionLevel(data.expeditionId)) LOADOUT_STATE.expeditionId = data.expeditionId;
   LOADOUT_STATE.selectedIds = Array.isArray(data.selectedIds)
@@ -13203,10 +14071,83 @@ function restoreLoadoutState() {
   return true;
 }
 
+function applyDefaultLoadoutState() {
+  LOADOUT_STATE.selectedIds = DEFAULT_LOADOUT_IDS
+    .filter(k => WEAPONS[k] || TOWERS[k] || TRINKETS[k])
+    .slice(0, LOADOUT_MAX_SLOTS);
+  LOADOUT_STATE.inspectedId = LOADOUT_STATE.selectedIds[0] || null;
+}
+
 function getSelectedMissionLevel() {
   return LOADOUT_STATE.missionType === 'expedition'
     ? (LOADOUT_STATE.expeditionId || 'expedition01')
     : (LOADOUT_STATE.arenaId || 'field');
+}
+
+const EXPEDITION_MENU_DETAILS = {
+  expedition01: {
+    kicker: 'Expedition Details',
+    title: '1. The Tunnel',
+    body: 'The first step into hostile ground. Establish your Core. Find the first Relay.',
+    thumbClass: 'thumbTunnel',
+    image: 'assets/menu/the-tunnel.jpg',
+    objectives: [
+      'Carry the Core forward.',
+      'Build defenses inside the Core radius.',
+      'Activate Relays to expand your route.',
+    ],
+    expect: 'Small rooms, early enemies, and simple threats. Built for learning the basics.',
+  },
+  expedition02: {
+    kicker: 'Expedition Details',
+    title: '2. Chemical Plant',
+    body: 'Toxic spills, volatile machines, and heavier resistance. Push the Core through industrial danger.',
+    thumbClass: 'thumbChemical',
+    image: 'assets/menu/chemical-plant.jpg',
+    objectives: [
+      'Protect the Core.',
+      'Control lanes with defenses.',
+      'Activate the next Relay.',
+    ],
+    expect: 'More hazards, stronger enemy pressure, and more demanding Core placement.',
+  },
+};
+
+const ARENA_MENU_DETAILS = {
+  kicker: 'Arena Details',
+  title: 'Arena',
+  body: 'Quick survival against escalating waves. Bring your kit, earn Boons, and chase the cleanest run.',
+  thumbClass: 'arenaDetails',
+  image: 'assets/menu/arena.jpg',
+  objectives: [
+    'Hold the line through enemy waves.',
+    'Earn Boons to shape the run.',
+    'Survive as long as you can.',
+  ],
+  expect: 'Fast combat, immediate pressure, and a clean route to test your loadout.',
+};
+
+function updateExpeditionDetailsPanel() {
+  const details = LOADOUT_STATE.missionType === 'arena'
+    ? ARENA_MENU_DETAILS
+    : (EXPEDITION_MENU_DETAILS[LOADOUT_STATE.expeditionId] || EXPEDITION_MENU_DETAILS.expedition01);
+  const kicker = $('expeditionDetailsKicker');
+  const title = $('expeditionDetailsTitle');
+  const body = $('expeditionDetailsBody');
+  const objectives = $('expeditionDetailsObjectives');
+  const expect = $('expeditionDetailsExpect');
+  const thumb = $('expeditionDetailsThumb');
+  const image = $('expeditionDetailsImage');
+  if (kicker) kicker.textContent = details.kicker;
+  if (title) title.textContent = details.title;
+  if (body) body.textContent = details.body;
+  if (objectives) objectives.innerHTML = details.objectives.map(item => `<li>${item}</li>`).join('');
+  if (expect) expect.textContent = details.expect;
+  if (thumb) thumb.className = `expeditionDetailsThumb ${details.thumbClass}`;
+  if (image && details.image) {
+    image.hidden = false;
+    if (!image.src.endsWith(details.image)) image.src = details.image;
+  }
 }
 
 function updateMissionSelectionUI() {
@@ -13221,8 +14162,10 @@ function updateMissionSelectionUI() {
   const expeditionSelect = $('startExpeditionSelect');
   const arenaRow = arenaSelect?.closest('.arenaPickRow');
   const expeditionRow = $('expeditionMissionOptions');
+  const arenaPanel = $('arenaMissionOptions');
   if (arenaRow) arenaRow.hidden = missionType !== 'arena';
   if (expeditionRow) expeditionRow.hidden = missionType !== 'expedition';
+  if (arenaPanel) arenaPanel.hidden = missionType !== 'arena';
   if (arenaSelect && document.activeElement !== arenaSelect) {
     const want = LOADOUT_STATE.arenaId || 'field';
     if (arenaSelect.value !== want) arenaSelect.value = want;
@@ -13231,6 +14174,13 @@ function updateMissionSelectionUI() {
     const want = LOADOUT_STATE.expeditionId || 'expedition01';
     if (expeditionSelect.value !== want) expeditionSelect.value = want;
   }
+  document.querySelectorAll('#start [data-expedition-id]').forEach(btn => {
+    const active = btn.dataset.expeditionId === (LOADOUT_STATE.expeditionId || 'expedition01');
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
+  updateExpeditionDetailsPanel();
+  updateLoadoutSummary();
 }
 
 function setLoadoutMissionType(type) {
@@ -13270,13 +14220,13 @@ function updateLoadoutInspector() {
   const abilityNames = isWeapon
     ? (copy.abilities || Object.values(weaponAbilityNames(k))).slice(0, 2)
     : isDefense
-      ? [LOADOUT_TILE_ROLE[k] || TOWERS[k].role, `Placement: ${['tar', 'mace'].includes(k) ? 'Wall' : ['spikes', 'spring', 'barrel', 'barrier'].includes(k) ? 'Floor' : k === 'cauldron' ? 'Ceiling' : 'Core / Rift'}`]
+      ? [LOADOUT_TILE_ROLE[k] || TOWERS[k].role, `Placement: ${['tar', 'mace'].includes(k) ? 'Wall' : ['spikes', 'spring', 'barrel', 'barrier'].includes(k) ? 'Floor' : k === 'cauldron' ? 'Ceiling' : 'Core'}`]
       : [TRINKETS[k]?.passiveDescription, TRINKETS[k]?.activeDescription].filter(Boolean);
   const abilities = abilityNames.map(name => `<span class="weaponAbility"><b>${name}</b></span>`).join('');
   const mechanicsLines = (copy.mechanics || [copy.desc]).slice(0, 2);
   const mechanics = mechanicsLines.map(line => `<div>${line}</div>`).join('');
-  const flavor = copy.flavor || (isDefense ? 'Built for the Rift line. Equip now; deploy after the Rift is acquired.' : TRINKETS[k]?.description || copy.desc);
-  panel.innerHTML = `<div class="selGrid weaponInspector"><div><div class="selTitle">${copy.name}</div><div class="selRole">${role}</div></div><div class="selIcon"><span class="icon">${loadoutFeatureIcon(k)}</span></div>${quickStats ? `<div class="weaponQuickStats">${quickStats}</div>` : ''}<div class="selFlavor"><b>Origin</b><br>${flavor}</div>${abilities ? `<div class="weaponSectionLabel">Abilities</div><div class="weaponAbilities">${abilities}</div>` : ''}<div class="selMeta"><b>Mechanics</b>${isDefense ? '<span class="inspectorRiftTag">Requires Rift</span>' : ''}<br>${mechanics}</div></div>`;
+  const flavor = copy.flavor || (isDefense ? 'Built for the Core line. Equip now; deploy after the Core is active.' : TRINKETS[k]?.description || copy.desc);
+  panel.innerHTML = `<div class="selGrid weaponInspector"><div><div class="selTitle">${copy.name}</div><div class="selRole">${role}</div></div><div class="selIcon"><span class="icon">${loadoutFeatureIcon(k)}</span></div>${quickStats ? `<div class="weaponQuickStats">${quickStats}</div>` : ''}<div class="selFlavor"><b>Origin</b><br>${flavor}</div>${abilities ? `<div class="weaponSectionLabel">Abilities</div><div class="weaponAbilities">${abilities}</div>` : ''}<div class="selMeta"><b>Mechanics</b>${isDefense ? '<span class="inspectorRiftTag">Requires Core</span>' : ''}<br>${mechanics}</div></div>`;
 }
 
 function updateLoadoutCards() {
@@ -13306,6 +14256,11 @@ function updateLoadoutSummary() {
     const enabled = canStartRun();
     beginBtn.disabled = !enabled;
     beginBtn.classList.toggle('disabled', !enabled);
+    const missionType = LOADOUT_STATE.missionType === 'expedition' ? 'expedition' : 'arena';
+    const expeditionName = LOADOUT_STATE.expeditionId === 'expedition02' ? 'Expedition 2: Chemical Plant' : 'Expedition 1: The Tunnel';
+    beginBtn.innerHTML = missionType === 'expedition'
+      ? `<span class="startButtonPrimary">START EXPEDITION</span><span class="startButtonSub">${expeditionName}</span>`
+      : `<span class="startButtonPrimary">START ARENA</span><span class="startButtonSub">Quick Survival</span>`;
   }
   const lastBtn = $('playLastRun');
   if (lastBtn) {
@@ -13702,22 +14657,28 @@ function loadoutItemIcon(k) {
 }
 
 function updateLoadoutPreviewRail() {
-  const rail = $('loadoutPreviewRail');
-  if (!rail) return;
-  rail.innerHTML = '';
-  for (let i = 0; i < LOADOUT_MAX_SLOTS; i++) {
+  const rails = document.querySelectorAll('[data-loadout-rail]');
+  if (!rails.length) return;
+  const renderSlot = (i) => {
     const k = LOADOUT_STATE.selectedIds[i] || '';
-    const slot = document.createElement('button');
-    slot.type = 'button';
-    slot.className = `loadoutRailSlot ${k ? 'filled' : 'empty'}`;
-    slot.dataset.k = k;
-    slot.dataset.index = String(i);
-    slot.draggable = !!k;
-    slot.innerHTML = k
+    return k
       ? `<span class="railIndex">${i + 1}</span><span class="loadoutRemoveBtn" data-remove-loadout role="button" tabindex="0" aria-label="Remove ${loadoutItemLabel(k)} from loadout">×</span><span class="railIcon">${loadoutItemIcon(k)}</span><span class="railName">${loadoutItemLabel(k)}</span><span class="railStatus">${TOWERS[k] ? `${TOWERS[k].c}g` : WEAPONS[k] ? 'Weapon' : 'Gear'}</span>`
       : `<span class="railIndex">${i + 1}</span><span class="railIcon">＋</span>`;
-    rail.appendChild(slot);
-  }
+  };
+  rails.forEach((rail) => {
+    rail.innerHTML = '';
+    for (let i = 0; i < LOADOUT_MAX_SLOTS; i++) {
+      const k = LOADOUT_STATE.selectedIds[i] || '';
+      const slot = document.createElement('button');
+      slot.type = 'button';
+      slot.className = `loadoutRailSlot ${k ? 'filled' : 'empty'}`;
+      slot.dataset.k = k;
+      slot.dataset.index = String(i);
+      slot.draggable = !!k;
+      slot.innerHTML = renderSlot(i);
+      rail.appendChild(slot);
+    }
+  });
 }
 
 function removeLoadoutItemAt(index) {
@@ -28798,6 +29759,17 @@ if ($('startExpeditionSelect')) $('startExpeditionSelect').onchange = e => {
 document.querySelectorAll('#start [data-mission-type]').forEach(btn => {
   btn.addEventListener('click', () => setLoadoutMissionType(btn.dataset.missionType));
 });
+document.querySelectorAll('#start [data-expedition-id]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    LOADOUT_STATE.expeditionId = isExpeditionLevel(btn.dataset.expeditionId) ? btn.dataset.expeditionId : 'expedition01';
+    LOADOUT_STATE.missionType = 'expedition';
+    S.devArenaChoice = getSelectedMissionLevel();
+    persistLoadoutState();
+    updateMissionSelectionUI();
+    updateLoadoutSummary();
+    renderPreview();
+  });
+});
 $('devSpawnBoss').onclick = () => devSpawnSlimeKing();
 $('devKillBoss').onclick = () => devKillSlimeKing();
 $('devClearEnemies').onclick = () => devClearEnemies();
@@ -28828,6 +29800,33 @@ $('devTeleportRelay').onclick = () => {
 populateDevDropDowns();
 $('begin').onclick   = startGameFromLoadout;
 $('playLastRun').onclick = playLastRun;
+function isLoadoutEditorOpen() {
+  return !!$('loadoutEditor') && !$('loadoutEditor').hidden;
+}
+function openLoadoutEditor() {
+  const editor = $('loadoutEditor');
+  if (!editor) return;
+  editor.hidden = false;
+  $('editLoadout')?.setAttribute('aria-expanded', 'true');
+  renderSetupPickers();
+  updateLoadoutCards();
+  updateLoadoutInspector();
+  updateLoadoutPreviewRail();
+  $('closeLoadoutEditor')?.focus();
+}
+function closeLoadoutEditor() {
+  const editor = $('loadoutEditor');
+  if (!editor) return;
+  editor.hidden = true;
+  $('editLoadout')?.setAttribute('aria-expanded', 'false');
+  updateLoadoutCards();
+  updateLoadoutInspector();
+  updateLoadoutSummary();
+  updateLoadoutPreviewRail();
+  $('editLoadout')?.focus();
+}
+if ($('editLoadout')) $('editLoadout').onclick = () => openLoadoutEditor();
+if ($('closeLoadoutEditor')) $('closeLoadoutEditor').onclick = () => closeLoadoutEditor();
 $('clearBtn').onclick = () => {
   if (S.expedition?.completed) {
     $('clear').classList.add('hidden');
@@ -28891,12 +29890,13 @@ if ($('buildHotbar')) {
     setHotbarTooltip(k, e.clientX, e.clientY);
   });
 }
-if ($('loadoutPreviewRail')) {
+function bindLoadoutRailEvents(rail) {
+  if (!rail) return;
   let dragIndex = -1;
   let dropIndex = -1;
-  $('loadoutPreviewRail').addEventListener('click', e => {
+  rail.addEventListener('click', e => {
     const remove = e.target.closest('[data-remove-loadout]');
-    if (remove && $('loadoutPreviewRail').contains(remove)) {
+    if (remove && rail.contains(remove)) {
       e.preventDefault();
       e.stopPropagation();
       const slotForRemove = remove.closest('[data-index]');
@@ -28904,18 +29904,18 @@ if ($('loadoutPreviewRail')) {
       return;
     }
     const slot = e.target.closest('[data-k]');
-    if (!slot || !$('loadoutPreviewRail').contains(slot) || !slot.dataset.k) return;
+    if (!slot || !rail.contains(slot) || !slot.dataset.k) return;
     setLoadoutInspector(slot.dataset.k);
   });
-  $('loadoutPreviewRail').addEventListener('keydown', e => {
+  rail.addEventListener('keydown', e => {
     if (!['Enter', ' '].includes(e.key)) return;
     const remove = e.target.closest('[data-remove-loadout]');
-    if (!remove || !$('loadoutPreviewRail').contains(remove)) return;
+    if (!remove || !rail.contains(remove)) return;
     e.preventDefault();
     const slotForRemove = remove.closest('[data-index]');
     removeLoadoutItemAt(Number(slotForRemove?.dataset.index));
   });
-  $('loadoutPreviewRail').addEventListener('dragstart', e => {
+  rail.addEventListener('dragstart', e => {
     const slot = e.target.closest('[data-index]');
     if (!slot || !slot.dataset.k) return;
     dragIndex = Number(slot.dataset.index);
@@ -28924,37 +29924,38 @@ if ($('loadoutPreviewRail')) {
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', slot.dataset.k);
   });
-  $('loadoutPreviewRail').addEventListener('dragover', e => {
+  rail.addEventListener('dragover', e => {
     if (dragIndex < 0) return;
     e.preventDefault();
     const slot = e.target.closest('[data-index]');
     if (!slot) return;
     dropIndex = Number(slot.dataset.index);
-    [...$('loadoutPreviewRail').querySelectorAll('.dragOver')].forEach(el => el.classList.remove('dragOver'));
+    [...rail.querySelectorAll('.dragOver')].forEach(el => el.classList.remove('dragOver'));
     slot.classList.add('dragOver');
   });
-  $('loadoutPreviewRail').addEventListener('dragleave', e => {
+  rail.addEventListener('dragleave', e => {
     const slot = e.target.closest('[data-index]');
     if (slot) slot.classList.remove('dragOver');
   });
-  $('loadoutPreviewRail').addEventListener('drop', e => {
+  rail.addEventListener('drop', e => {
     if (dragIndex < 0) return;
     e.preventDefault();
     const slot = e.target.closest('[data-index]');
     const targetIndex = slot ? Number(slot.dataset.index) : dropIndex;
-    [...$('loadoutPreviewRail').querySelectorAll('.dragOver')].forEach(el => el.classList.remove('dragOver'));
-    [...$('loadoutPreviewRail').querySelectorAll('.dragging')].forEach(el => el.classList.remove('dragging'));
+    [...rail.querySelectorAll('.dragOver')].forEach(el => el.classList.remove('dragOver'));
+    [...rail.querySelectorAll('.dragging')].forEach(el => el.classList.remove('dragging'));
     if (Number.isInteger(targetIndex)) reorderLoadoutItem(dragIndex, targetIndex);
     dragIndex = -1;
     dropIndex = -1;
   });
-  $('loadoutPreviewRail').addEventListener('dragend', () => {
-    [...$('loadoutPreviewRail').querySelectorAll('.dragOver')].forEach(el => el.classList.remove('dragOver'));
-    [...$('loadoutPreviewRail').querySelectorAll('.dragging')].forEach(el => el.classList.remove('dragging'));
+  rail.addEventListener('dragend', () => {
+    [...rail.querySelectorAll('.dragOver')].forEach(el => el.classList.remove('dragOver'));
+    [...rail.querySelectorAll('.dragging')].forEach(el => el.classList.remove('dragging'));
     dragIndex = -1;
     dropIndex = -1;
   });
 }
+document.querySelectorAll('[data-loadout-rail]').forEach(bindLoadoutRailEvents);
 if ($('guideButton')) $('guideButton').onclick = () => toggleGuide();
 if ($('guideClose')) $('guideClose').onclick = () => closeGuide();
 if ($('missionBriefingClose')) $('missionBriefingClose').onclick = () => dismissMissionBriefing();
@@ -28978,6 +29979,13 @@ function canStartRun() {
   return selectedByKind.weapon > 0 && selectedByKind.tower > 0;
 }
 addEventListener('keydown', e => {
+  if (isLoadoutEditorOpen()) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeLoadoutEditor();
+    }
+    return;
+  }
   if (isGuideOpen()) {
     if (e.key.toLowerCase() === 'g' || e.key === 'Escape') {
       e.preventDefault();
@@ -29076,7 +30084,7 @@ function loop(now) {
 requestAnimationFrame(loop);
 preloadEnemySprites();
 // Co-op UI disabled in 5.5.1 Waymark.
-restoreLoadoutState();
+restoreLoadoutState({ restoreMission: false });
 updateMissionSelectionUI();
 ui();
 renderSetupPickers();
