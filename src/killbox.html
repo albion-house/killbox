@@ -7281,7 +7281,7 @@ const LEVELS = {
       ],
       keyContainers: [
         { id: 'securityCrate', name: 'Supply Crate', kind: 'crate', c: 10, r: 22 },
-        { id: 'labyrinthLocker', name: 'Equipment Locker', kind: 'locker', c: 14, r: 14 },
+        { id: 'labyrinthLocker', name: 'Key Chest', kind: 'chest', c: 14, r: 14 },
         { id: 'containmentPod', name: 'Research Pod', kind: 'pod', c: 40, r: 20 },
         { id: 'reactorCache', name: 'Storage Container', kind: 'container', c: 55, r: 30 },
       ],
@@ -8440,11 +8440,12 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.39.23';
+const GAME_VERSION = '7.40.0';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'BigSling';
+const BUILD_NAME = 'RelayBloom';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Doubled the Stone Slinger sprite draw scale from its original baseline.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Restored Chemical Plant Relay defense pacing, environmental relay progress, Rift Boon orbit visuals, and Dark Chapel awakening feedback.' },
+  { version: '7.39.23', name: 'BigSling', changes: 'Doubled the Stone Slinger sprite draw scale from its original baseline.' },
   { version: '7.39.22', name: 'SlingScale', changes: 'Increased the Stone Slinger sprite draw scale.' },
   { version: '7.39.21', name: 'ChickSling', changes: 'Updated the Stone Slinger enemy sprite.' },
   { version: '7.39.20', name: 'GroundLock', changes: 'Re-anchored the Goblin Grunt runtime shadow to the sprite foot band.' },
@@ -10357,10 +10358,12 @@ function tryOpenExpeditionContainer() {
   if (container.id === 'labyrinthLocker') {
     ex.finalKeyCollected = true;
     ex.keyLabyrinthEscape = true;
-    ex.keyLabyrinthWakeTimer = 1.2;
-    ex.message = 'Locker opened. Run.';
+    ex.keyLabyrinthWakeTimer = .25;
+    ex.darkChapelAwakened = true;
+    ex.message = 'Key chest opened. Something woke.';
     ex.messageTime = 6;
-    floatText('LOCKER KEY', pos.x - 38, pos.y - 34, '#ffd45a');
+    awakenDarkChapelSkull(pos);
+    floatText('KEY CHEST', pos.x - 38, pos.y - 34, '#ffd45a');
   } else {
     floatText('KEY FOUND', pos.x - 34, pos.y - 34, '#ffd45a');
   }
@@ -10401,9 +10404,9 @@ function startExpeditionExtractionEvent() {
     ex.roomStates[relayRoom.id] = 'active';
     ex.activeRoomId = relayRoom.id;
     ex.roomObjective = { roomId: relayRoom.id, type: 'relayHold', label: 'Relay Hold' };
-    delete ex.roomDoorsUnlocked?.[relayRoom.id];
-    ex.roomBlockers = expeditionRoomDoorBlockers(relayRoom);
-    primeExpeditionRoomBoundarySides(relayRoom);
+    ex.roomDoorsUnlocked ||= {};
+    ex.roomDoorsUnlocked[relayRoom.id] = true;
+    ex.roomBlockers = [];
   }
   ex.message = 'Hold on for 2 minutes.';
   ex.messageTime = 3;
@@ -10997,8 +11000,10 @@ function completeShatterConvoyRoom(room, message = '') {
 function shatterConvoyStartHold(room) {
   const ex = S.expedition;
   if (!ex || !room) return false;
+  const relayHold = room.id === 'deadRelay';
+  const buildDuration = relayHold ? 20 : 0;
   const duration = room.holdSeconds || (room.id === 'deadRelay' ? 75 : 30);
-  const label = room.id === 'deadRelay' ? 'Relay Charging' : 'Hold Rift';
+  const label = relayHold ? 'Build Phase' : 'Hold Rift';
   ex.riftEverCarried = true;
   ex.riftAwakeningTime = 0;
   ex.roomObjective = {
@@ -11007,22 +11012,30 @@ function shatterConvoyStartHold(room) {
     label,
     timer: duration,
     duration,
+    buildTimer: buildDuration,
+    buildDuration,
     waveIndex: 0,
   };
-  ex.roomBlockers = expeditionRoomDoorBlockers(room);
-  delete ex.roomDoorsUnlocked?.[room.id];
-  primeExpeditionRoomBoundarySides(room);
+  ex.roomDoorsUnlocked ||= {};
+  if (relayHold) {
+    ex.roomDoorsUnlocked[room.id] = true;
+    ex.roomBlockers = [];
+  } else {
+    ex.roomBlockers = expeditionRoomDoorBlockers(room);
+    delete ex.roomDoorsUnlocked?.[room.id];
+    primeExpeditionRoomBoundarySides(room);
+  }
   ex.message = label;
   ex.messageTime = 4;
-  announceWave(room.id === 'deadRelay' ? 'DEAD RELAY CHARGING' : 'AMBUSH HOLD STARTED', 'danger', 1.1);
+  announceWave(room.id === 'deadRelay' ? 'RELAY BUILD PHASE' : 'AMBUSH HOLD STARTED', room.id === 'deadRelay' ? 'resting' : 'danger', 1.1);
   playSfx(room.id === 'deadRelay' ? 'bossWarning' : 'waveStart');
   const point = shatterConvoyRoomPoint(room);
   if (point) {
     shockwave(point.x, point.y, '#f0b8ff', room.id === 'deadRelay' ? 245 : 190, .4);
     burst(point.x, point.y, '#f0b8ff', room.id === 'deadRelay' ? 24 : 14, 'spark', 190);
-    floatText(room.id === 'deadRelay' ? 'RELAY CHARGING' : 'HOLD STARTED', point.x - 58, point.y - 52, '#fff1ff');
+    floatText(room.id === 'deadRelay' ? 'BUILD PHASE' : 'HOLD STARTED', point.x - 58, point.y - 52, '#fff1ff');
   }
-  showMissionHint(room.id === 'deadRelay' ? 'Relay Charging' : 'Hold Rift', `expedition02-${room.id}-hold-start`, 3);
+  showMissionHint(room.id === 'deadRelay' ? 'Build defenses around the Relay.' : 'Hold Rift', `expedition02-${room.id}-hold-start`, 3);
   updateShatterConvoyHold(0, room);
   return true;
 }
@@ -11107,6 +11120,23 @@ function updateShatterConvoyHold(dt, activeRoom) {
   const ex = S.expedition;
   const objective = ex?.roomObjective;
   if (!isShatterConvoyExpedition() || !activeRoom || objective?.type !== 'shatterHold') return false;
+  const relayHold = activeRoom.id === 'deadRelay';
+  if (relayHold && (objective.buildTimer || 0) > 0) {
+    objective.buildTimer = Math.max(0, (objective.buildTimer || 0) - dt);
+    objective.label = 'Build Phase';
+    if (objective.buildTimer > 0) return true;
+    objective.buildTimer = 0;
+    objective.label = 'Relay Assault';
+    ex.message = 'Relay assault incoming.';
+    ex.messageTime = 4;
+    announceWave('RELAY ASSAULT', 'danger', 1.25);
+    playSfx('waveStart');
+    const point = shatterConvoyRoomPoint(activeRoom);
+    if (point) {
+      shockwave(point.x, point.y, '#18d8ff', 220, .42);
+      burst(point.x, point.y, '#e8fbff', 20, 'spark', 180);
+    }
+  }
   objective.timer = Math.max(0, (objective.timer || 0) - dt);
   const elapsed = (objective.duration || 0) - objective.timer;
   const waves = activeRoom.holdWaves || [];
@@ -11128,8 +11158,14 @@ function updateShatterConvoyHold(dt, activeRoom) {
       ex.messageTime = 3;
     }
   }
-  objective.label = activeRoom.id === 'deadRelay' ? 'Relay Charging' : 'Hold Rift';
-  if (objective.timer <= 0) {
+  objective.label = activeRoom.id === 'deadRelay' ? 'Relay Assault' : 'Hold Rift';
+  if (relayHold) {
+    const liveRelayEnemies = S.enemies.some(e => e && !e.dead && e.expeditionRoomId === activeRoom.id);
+    if ((objective.waveIndex || 0) >= waves.length && !liveRelayEnemies) {
+      completeShatterConvoyRoom(activeRoom, 'Dead Relay charged.');
+      startExpeditionEscapeSequence();
+    }
+  } else if (objective.timer <= 0) {
     if (activeRoom.id === 'deadRelay') {
       completeShatterConvoyRoom(activeRoom, 'Dead Relay charged.');
       startExpeditionEscapeSequence();
@@ -11147,7 +11183,7 @@ function expeditionEncounterDef(room) {
     spiral:      { objective: 'clear', label: 'Clear Spiral Keep', roomType: 'runner', enemies: ['grunt', 'runner', 'shield'] },
     barracks:    { objective: 'clear', label: 'Clear Rift Access', fixedEnemies: ['grunt', 'runner', 'runner', 'sapper', 'runner', 'shield'] },
     lab:         { objective: 'treasure', label: 'Open the Containment Chest', terminalPrompt: 'Press E to open the chest.', enemies: [], pressureEnemies: ['hexcaller', 'hexcaller', 'hexcaller'] },
-    keyLabyrinth:{ objective: 'keyEscape', label: 'Open the locker. Escape.', terminalPrompt: 'Open the locker.', enemies: [], pressureEnemies: [] },
+    keyLabyrinth:{ objective: 'keyEscape', label: 'Restore partial power. Open the key chest.', terminalPrompt: 'Press E to restore partial power.', enemies: [], pressureEnemies: [] },
     chapel:      { objective: 'chapelWaves', label: 'Survive Chapel Waves', waveCount: 2, waveSize: 15, waveGap: 45 },
     reactor:     { objective: 'elite', label: 'Clear Reactor Complex', enemies: ['runner', 'brute', 'sapper'], elite: 'brute' },
     flesh:       { objective: 'nest', label: 'Clear Flesh Garden', roomType: 'splitter', enemies: ['splitter', 'splitter', 'splitter'], nest: true },
@@ -11776,12 +11812,12 @@ function tryActivateExpeditionRoomTerminal() {
     awardGoldCache(500, tx, ty, 'containment chest');
     for (const type of ['blackhole', 'goose', 'bees']) expeditionGrantStoredSurge(type, 'containment chest');
   }
-  ex.message = room.id === 'keyLabyrinth' ? 'Locker ready.' : ex.roomObjective?.type === 'treasure' ? 'Containment treasure claimed.' : 'Power restored.';
+  ex.message = room.id === 'keyLabyrinth' ? 'Control box engaged. Partial power restored.' : ex.roomObjective?.type === 'treasure' ? 'Containment treasure claimed.' : 'Power restored.';
   ex.messageTime = 5;
   ex.prompt = '';
   ex.promptTime = 0;
-  showMissionHint(room.id === 'keyLabyrinth' ? 'Open the locker.' : ex.roomObjective?.type === 'treasure' ? 'Treasure stored in the Surge bar.' : 'Containment power restored.', `expedition-terminal-${room.id}`, 3.2);
-  announceWave(ex.roomObjective?.type === 'treasure' ? 'CONTAINMENT TREASURE CLAIMED' : `${room.name.toUpperCase()} ONLINE`, 'resting', .9);
+  showMissionHint(room.id === 'keyLabyrinth' ? 'Partial power restored. Open the key chest.' : ex.roomObjective?.type === 'treasure' ? 'Treasure stored in the Surge bar.' : 'Containment power restored.', `expedition-terminal-${room.id}`, 3.2);
+  announceWave(room.id === 'keyLabyrinth' ? 'PARTIAL POWER RESTORED' : ex.roomObjective?.type === 'treasure' ? 'CONTAINMENT TREASURE CLAIMED' : `${room.name.toUpperCase()} ONLINE`, 'resting', .9);
   shockwave(tx, ty, '#8edcff', 170, .34);
   burst(tx, ty, '#e8f6ff', 18, 'spark', 180);
   playSfx('secondaryReady');
@@ -11883,7 +11919,7 @@ function updateExpedition(dt) {
         const radius = EXPEDITION_PROTOTYPE_TUNING.blackoutContainment.terminalInteractRadius || 86;
         const tx = cx(terminal.c), ty = cy(terminal.r);
         if (dist(S.hero.x, S.hero.y, tx, ty) <= radius) {
-        ex.prompt = ex.roomObjective?.type === 'keyEscape' ? 'Open the locker.' : ex.roomObjective?.type === 'treasure' ? 'Press E to open the chest.' : 'Press E to restore power.';
+        ex.prompt = ex.roomObjective?.type === 'keyEscape' ? 'Press E to restore partial power.' : ex.roomObjective?.type === 'treasure' ? 'Press E to open the chest.' : 'Press E to restore power.';
         ex.promptTime = .25;
       }
     }
@@ -11954,7 +11990,7 @@ function updateExpedition(dt) {
       ? 'Core removed. Relay timer paused.'
       : ex.extractionHoldMessageTime > 0
         ? 'Hold on for 2 minutes.'
-        : `Relay holdout: ${Math.ceil(ex.extractionTimer || 0)}s.`;
+        : 'Relay holdout active.';
     ex.messageTime = Math.max(ex.messageTime || 0, .25);
   }
 }
@@ -12135,6 +12171,41 @@ function spawnBoneWarden(room) {
   floatText('BONE WARDEN', boss.x - 54, boss.y - 52, '#ffe09c');
   shockwave(boss.x, boss.y, '#ffe09c', 190, .42);
   return boss;
+}
+
+function awakenDarkChapelSkull(pos = null) {
+  const ex = S.expedition;
+  const room = expeditionRoomById('keyLabyrinth');
+  if (!isExpeditionRun() || !ex || !room) return false;
+  let skull = (S.cornerSkulls || []).find(s => s && !s.dead && s.boneWarden);
+  if (!skull) skull = spawnBoneWarden(room);
+  if (!skull) return false;
+  skull.awakenedByChest = true;
+  skull.dormantLabyrinthSkull = false;
+  skull.flash = 1.4;
+  skull.awakeningTimer = 1.8;
+  skull.jawWake = 1.8;
+  skull.state = 'flying';
+  skull.phase = Math.max(skull.phase || 1, 2);
+  skull.phaseT = 0;
+  skull.spiralR = Math.max(150, dist(skull.x, skull.y, S.hero.x, S.hero.y));
+  skull.orbitA = Math.atan2(skull.y - S.hero.y, skull.x - S.hero.x);
+  ex.keyLabyrinthWakeRequest = true;
+  ex.keyLabyrinthWakeTimer = 0;
+  ex.ghostLightFlicker = .65;
+  ex.message = 'Dark Chapel awakened.';
+  ex.messageTime = 6;
+  const x = Number.isFinite(pos?.x) ? pos.x : skull.x;
+  const y = Number.isFinite(pos?.y) ? pos.y : skull.y;
+  announceWave('DARK CHAPEL AWAKENS', 'boss', 1.6);
+  playSfx('bossWarning');
+  shockwave(skull.x, skull.y, '#ff4a3a', 260, .62);
+  shockwave(x, y, '#ffd45a', 160, .34);
+  burst(skull.x, skull.y, '#ffddd8', 26, 'spark', 210);
+  burst(skull.x, skull.y, '#2b0010', 18, 'smoke', 180);
+  floatText('AWAKE', skull.x - 32, skull.y - 86, '#ffddd8');
+  shake(16, .7);
+  return true;
 }
 
 function spawnExpeditionLabSkulls(room) {
@@ -14834,7 +14905,10 @@ function missionObjectiveText() {
     if (isShatterConvoyExpedition()) {
       if (ex.escapeActive) return 'Escape';
       if (ex.roomObjective?.type === 'shatterHold' && ex.riftCarried) return 'Redeploy Rift';
-      if (ex.roomObjective?.type === 'shatterHold') return ex.roomObjective.roomId === 'deadRelay' ? 'Relay Charging' : 'Hold Rift';
+      if (ex.roomObjective?.type === 'shatterHold') {
+        if (ex.roomObjective.roomId === 'deadRelay' && (ex.roomObjective.buildTimer || 0) > 0) return 'Build Phase';
+        return ex.roomObjective.roomId === 'deadRelay' ? 'Relay Assault' : 'Hold Rift';
+      }
       if (ex.roomObjective?.type === 'breachGate' || ex.roomObjective?.type === 'ambushDeploy' || ex.roomObjective?.type === 'relayDeploy') return 'Dock Rift';
       return 'Move Forward';
     }
@@ -14843,7 +14917,7 @@ function missionObjectiveText() {
       ? 'Relay Hold Paused'
       : ex.extractionHoldMessageTime > 0
         ? 'Hold On For 2 Minutes'
-        : `Hold Relay ${Math.ceil(ex.extractionTimer || 0)}s`;
+        : 'Hold Relay';
     if (ex.activeRoomId && ex.roomObjective?.label) return ex.roomObjective.label;
     if (expeditionExtractionUnlocked()) return 'Return to Relay';
     return `Find Keys ${expeditionExtractionKeyProgressText()}`;
@@ -14877,8 +14951,9 @@ function missionObjectiveHudState() {
       if (ex.escapeActive) return { title: 'ESCAPE', sub: '' };
       if (ex.roomObjective?.type === 'shatterHold') {
         if (ex.riftCarried) return { title: 'REDEPLOY RIFT', sub: '' };
+        if (ex.roomObjective.roomId === 'deadRelay' && (ex.roomObjective.buildTimer || 0) > 0) return { title: 'BUILD PHASE', sub: 'FORTIFY RELAY' };
         return ex.roomObjective.roomId === 'deadRelay'
-          ? { title: 'RELAY CHARGING', sub: '' }
+          ? { title: 'RELAY ASSAULT', sub: '' }
           : { title: 'HOLD RIFT', sub: '' };
       }
       if (ex.roomObjective?.type === 'breachGate' || ex.roomObjective?.type === 'ambushDeploy' || ex.roomObjective?.type === 'relayDeploy') return { title: 'DOCK RIFT', sub: '' };
@@ -14896,7 +14971,7 @@ function missionObjectiveHudState() {
       if (ex.extractionHoldMessageTime > 0) {
         return { title: 'HOLD ON', sub: 'FOR 2 MINUTES' };
       }
-      return { title: 'HOLD RELAY', sub: `${Math.ceil(ex.extractionTimer || 0)} SECONDS` };
+      return { title: 'HOLD RELAY', sub: 'SURVIVE WAVES' };
     }
     if (expeditionExtractionUnlocked()) {
       return { title: 'RETURN TO RELAY', sub: 'RIFT AND KEYS READY' };
@@ -21179,13 +21254,14 @@ function collectHealthOrbs(dt) {
         if (S.expedition) {
           S.expedition.finalKeyCollected = true;
           S.expedition.keyLabyrinthEscape = true;
-          S.expedition.keyLabyrinthWakeTimer = 1.2;
-          S.expedition.message = 'Locker key acquired. Run.';
+          S.expedition.keyLabyrinthWakeTimer = .25;
+          S.expedition.message = 'Key chest opened. Something woke.';
           S.expedition.messageTime = 7;
+          awakenDarkChapelSkull(o);
         }
-        floatText('LOCKER KEY', o.x - 42, o.y - 34, '#ffd45a');
+        floatText('KEY CHEST', o.x - 42, o.y - 34, '#ffd45a');
         floatText('FINAL CHAMBER UNLOCKED', o.x - 82, o.y - 12, '#fff1c0');
-        announceWave('LOCKER KEY ACQUIRED', 'resting', 1.4);
+        announceWave('KEY CHEST OPENED', 'resting', 1.4);
         shake(14, .65);
         shockwave(o.x, o.y, '#ffd45a', 260, .5);
         shockwave(o.x, o.y, '#fff1c0', 170, .34);
@@ -25039,6 +25115,13 @@ function shatterConvoyRoomVisualState(room) {
   const roomState = ex.roomStates?.[room.id] || 'inactive';
   const holdActive = objectiveType === 'shatterHold';
   const duration = Math.max(1, objective?.duration || room.holdSeconds || 1);
+  const buildDuration = Math.max(1, objective?.buildDuration || 1);
+  const buildActive = holdActive && room.id === 'deadRelay' && (objective?.buildTimer || 0) > 0;
+  const buildProgress = buildActive
+    ? clamp(1 - (objective.buildTimer || 0) / buildDuration, 0, 1)
+    : holdActive && room.id === 'deadRelay'
+      ? 1
+      : 0;
   const holdProgress = holdActive
     ? clamp(1 - (objective.timer || 0) / duration, 0, 1)
     : roomState === 'cleared' || (room.id === 'deadRelay' && ex.escapeActive)
@@ -25048,6 +25131,8 @@ function shatterConvoyRoomVisualState(room) {
     roomState,
     objectiveType,
     holdActive,
+    buildActive,
+    buildProgress,
     holdProgress,
     riftCarried: !!ex.riftCarried,
     riftNearPoint: shatterConvoyRiftAtRoomPoint(room, room.id === 'breach' ? 150 : 130),
@@ -25177,9 +25262,10 @@ function drawShatterConvoyHoldSocket(room, visual, t) {
 function drawShatterConvoyRelay(room, visual, t) {
   const point = shatterConvoyRoomPoint(room);
   if (!point) return;
-  const charging = visual.holdActive && !visual.riftCarried;
+  const charging = visual.holdActive && !visual.riftCarried && !visual.buildActive;
+  const building = visual.buildActive && !visual.riftCarried;
   const carryingDuringHold = visual.holdActive && visual.riftCarried;
-  const activeAlpha = visual.cleared || visual.escapeActive ? 1 : charging ? .95 : carryingDuringHold ? .42 : visual.riftNearPoint ? .55 : .2;
+  const activeAlpha = visual.cleared || visual.escapeActive ? 1 : (charging || building) ? .95 : carryingDuringHold ? .42 : visual.riftNearPoint ? .55 : .2;
   ctx.save();
   ctx.translate(point.x, point.y);
   ctx.globalAlpha = .96;
@@ -25202,6 +25288,21 @@ function drawShatterConvoyRelay(room, visual, t) {
   ctx.arc(0, 0, 84 + Math.sin(t * 4) * 4, 0, 7);
   ctx.fill();
   ctx.globalAlpha = .95;
+  if (building) {
+    ctx.globalAlpha = .5 + Math.sin(t * 6) * .08;
+    ctx.strokeStyle = '#18d8ff';
+    ctx.lineWidth = 4;
+    ctx.setLineDash([18, 13]);
+    ctx.beginPath();
+    ctx.arc(0, 0, 104, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * visual.buildProgress);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = .36;
+    ctx.fillStyle = '#18d8ff';
+    ctx.beginPath();
+    ctx.arc(0, 0, 90 + Math.sin(t * 5) * 3, 0, 7);
+    ctx.fill();
+  }
   if (charging) {
     for (let i = 0; i < 4; i++) {
       const r = 42 + i * 18 + Math.sin(t * 5 + i) * 4;
@@ -25251,11 +25352,12 @@ function drawShatterConvoyRelay(room, visual, t) {
 function drawShatterConvoyRelayTimerOverlay(t) {
   const ex = S.expedition;
   if (!isShatterConvoyExpedition() || !ex?.roomObjective || ex.roomObjective.type !== 'shatterHold' || ex.roomObjective.roomId !== 'deadRelay' || ex.riftCarried) return;
+  if (!(ex.roomObjective.buildDuration > 0)) return;
   const room = expeditionRoomById('deadRelay');
   const point = shatterConvoyRoomPoint(room);
   if (!point) return;
-  const duration = Math.max(1, ex.roomObjective.duration || room?.holdSeconds || 1);
-  const progress = clamp(1 - (ex.roomObjective.timer || 0) / duration, 0, 1);
+  const duration = Math.max(1, ex.roomObjective.buildDuration || 20);
+  const progress = clamp(1 - (ex.roomObjective.buildTimer || 0) / duration, 0, 1);
   const start = -Math.PI / 2;
   const end = start + Math.PI * 2 * progress;
   ctx.save();
@@ -25570,7 +25672,11 @@ function drawExpeditionCoreHeartSprite(x, y, t, activated = false, carried = fal
 }
 
 function drawExpeditionRiftCore(x, y, t, activated = false, carried = false) {
-  if (drawExpeditionCoreHeartSprite(x, y, t, activated, carried)) return;
+  const spriteRendered = drawExpeditionCoreHeartSprite(x, y, t, activated, carried);
+  if (spriteRendered) {
+    if (activated && !carried) drawExpeditionRiftUpgradeOrbitEffects(x, y, t);
+    return;
+  }
   if (carried) {
     const ex = S.expedition;
     const warnState = ex?.riftWarnState || 0;
@@ -25888,6 +25994,97 @@ function drawExpeditionRiftCore(x, y, t, activated = false, carried = false) {
   ctx.restore();
 }
 
+function drawExpeditionRiftUpgradeOrbitEffects(x, y, t) {
+  const ex = S.expedition;
+  if (!isExpeditionRun() || !ex?.riftActivated) return;
+  const visual = expeditionRiftVisualState(t);
+  if (!visual.count) return;
+  const vt = visual.visualT || t;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.globalCompositeOperation = 'screen';
+  ctx.globalAlpha = .34 + visual.threat * .16;
+  ctx.strokeStyle = visual.danger ? '#ff324f' : '#8edcff';
+  ctx.lineWidth = 3;
+  ctx.setLineDash([18, 13, 6, 11]);
+  ctx.beginPath();
+  ctx.arc(0, 0, 74 + Math.sin(vt * 4) * 4, vt * .24, vt * .24 + Math.PI * 1.78);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  if (visual.hasShield) {
+    ctx.globalCompositeOperation = 'source-over';
+    for (let i = 0; i < 10; i++) {
+      const a = vt * 1.15 + i * Math.PI * 2 / 10;
+      const r = 86 + Math.sin(vt * 3 + i) * 5;
+      ctx.save();
+      ctx.translate(Math.cos(a) * r, Math.sin(a) * r);
+      ctx.rotate(a + Math.PI / 2 + Math.sin(vt * 2 + i) * .18);
+      ctx.globalAlpha = .82;
+      ctx.fillStyle = i % 2 ? '#d7ccb1' : '#f0e5cb';
+      ctx.strokeStyle = '#1a1010';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.roundRect(-4, -14, 8, 28, 4);
+      ctx.fill();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, -17, 5, 0, 7);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+  if (visual.hasPulse) {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = '#7b0615';
+    ctx.lineWidth = 5;
+    for (let i = 0; i < 7; i++) {
+      const a = -vt * .7 + i * Math.PI * 2 / 7;
+      const r = 58 + Math.sin(vt * 5 + i) * 6;
+      ctx.globalAlpha = .58;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+      ctx.bezierCurveTo(
+        Math.cos(a + .28) * (r + 22), Math.sin(a + .28) * (r + 18),
+        Math.cos(a + .56) * (r + 34), Math.sin(a + .56) * (r + 30),
+        Math.cos(a + .78) * (r + 46), Math.sin(a + .78) * (r + 36)
+      );
+      ctx.stroke();
+    }
+  }
+  if (visual.hasField) {
+    const runes = ['I', 'V', 'X', 'O', '+', '?'];
+    ctx.globalCompositeOperation = 'screen';
+    ctx.font = '900 15px Georgia';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i < 12; i++) {
+      const a = vt * .45 + i * Math.PI * 2 / 12;
+      const r = 112 + Math.sin(vt * 2.2 + i) * 10;
+      ctx.globalAlpha = .2 + (i % 3) * .08;
+      ctx.fillStyle = i % 2 ? '#8edcff' : '#f0b8ff';
+      ctx.save();
+      ctx.translate(Math.cos(a) * r, Math.sin(a) * r);
+      ctx.rotate(a + Math.PI / 2);
+      ctx.fillText(runes[i % runes.length], 0, 0);
+      ctx.restore();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = '#080208';
+    for (let i = 0; i < 14; i++) {
+      const phase = (vt * .12 + i * .091) % 1;
+      const a = i * 2.399 - vt * .2;
+      const r = 52 + phase * 96;
+      const size = 5 + (i % 4) * 2;
+      ctx.globalAlpha = .38 - phase * .22;
+      ctx.beginPath();
+      ctx.ellipse(Math.cos(a) * r, Math.sin(a) * r * .82, size * 1.8, size, a, 0, 7);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
 function drawExpeditionRiftAwakening(t) {
   const ex = S.expedition;
   if (!isExpeditionRun() || !(ex?.riftAwakeningTime > 0) || !ex.rift) return;
@@ -26079,11 +26276,22 @@ function drawExpeditionKeyContainer(container, t) {
   ctx.translate(x, y);
   const pulse = opened ? 0 : Math.sin(t * 4 + container.c) * 2;
   ctx.globalAlpha = opened ? .58 : .95;
-  ctx.fillStyle = opened ? '#32271c' : container.kind === 'pod' ? '#18343a' : container.kind === 'locker' ? '#2b3442' : '#4b3320';
+  ctx.fillStyle = opened ? '#32271c' : container.kind === 'pod' ? '#18343a' : container.kind === 'chest' ? '#4b3320' : container.kind === 'locker' ? '#2b3442' : '#4b3320';
   ctx.strokeStyle = opened ? '#8a7152' : '#ffd45a';
   ctx.lineWidth = opened ? 2 : 3;
-  ctx.fillRect(-22, -16 + pulse * .15, 44, 32);
-  ctx.strokeRect(-22, -16 + pulse * .15, 44, 32);
+  if (container.kind === 'chest') {
+    ctx.fillRect(-24, -12 + pulse * .15, 48, 28);
+    ctx.beginPath();
+    ctx.arc(0, -12 + pulse * .15, 24, Math.PI, 0);
+    ctx.fill();
+    ctx.strokeRect(-24, -12 + pulse * .15, 48, 28);
+    ctx.beginPath();
+    ctx.arc(0, -12 + pulse * .15, 24, Math.PI, 0);
+    ctx.stroke();
+  } else {
+    ctx.fillRect(-22, -16 + pulse * .15, 44, 32);
+    ctx.strokeRect(-22, -16 + pulse * .15, 44, 32);
+  }
   ctx.fillStyle = opened ? '#1b130d' : '#fff1c0';
   ctx.fillRect(-12, -4 + pulse * .15, 24, 8);
   if (!opened) {
@@ -26298,17 +26506,37 @@ function drawExpeditionObjects(t) {
       ctx.restore();
       continue;
     }
-    ctx.fillStyle = '#1a1410';
-    ctx.fillRect(-24, -18, 48, 36);
+    const chapelControl = terminalRoom.id === 'keyLabyrinth';
+    ctx.fillStyle = chapelControl ? '#191f22' : '#1a1410';
+    ctx.fillRect(chapelControl ? -20 : -24, chapelControl ? -24 : -18, chapelControl ? 40 : 48, chapelControl ? 48 : 36);
     ctx.strokeStyle = powered ? '#9fffc8' : '#8edcff';
     ctx.lineWidth = 3;
-    ctx.strokeRect(-24, -18, 48, 36);
-    ctx.fillStyle = powered ? '#9fffc8' : '#5cc6ff';
-    ctx.fillRect(-14, -8, 28, 16);
+    ctx.strokeRect(chapelControl ? -20 : -24, chapelControl ? -24 : -18, chapelControl ? 40 : 48, chapelControl ? 48 : 36);
+    if (chapelControl) {
+      ctx.fillStyle = '#0b1114';
+      ctx.fillRect(-12, -15, 24, 12);
+      ctx.fillStyle = powered ? '#9fffc8' : '#5cc6ff';
+      ctx.fillRect(-9, -12, 18, 6);
+      ctx.strokeStyle = powered ? '#d8ffd8' : '#9fe7ff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-11, 7);
+      ctx.lineTo(-3, -1);
+      ctx.lineTo(5, 7);
+      ctx.lineTo(13, -1);
+      ctx.stroke();
+      ctx.fillStyle = powered ? '#d8ffd8' : '#5cc6ff';
+      ctx.beginPath();
+      ctx.arc(0, 16, powered ? 5 : 3.5, 0, 7);
+      ctx.fill();
+    } else {
+      ctx.fillStyle = powered ? '#9fffc8' : '#5cc6ff';
+      ctx.fillRect(-14, -8, 28, 16);
+    }
     ctx.globalAlpha = powered ? .55 : .35 + Math.sin(t * 6) * .08;
     ctx.fillStyle = powered ? '#d8ffd8' : '#9fe7ff';
     ctx.beginPath();
-    ctx.arc(0, 0, powered ? 44 : 34, 0, 7);
+    ctx.arc(0, 0, chapelControl ? (powered ? 64 : 38) : (powered ? 44 : 34), 0, 7);
     ctx.fill();
     ctx.globalAlpha = 1;
     if (activeRoom?.id === terminalRoom.id && !powered && ex.roomObjective?.type === 'terminal') {
@@ -26325,10 +26553,18 @@ function drawExpeditionObjects(t) {
 }
 
 function expeditionDarkRoomTuning(room) {
-  return {
+  const tuning = {
     ...(EXPEDITION_PROTOTYPE_TUNING.darkRooms || {}),
     ...(room?.darkness || {}),
   };
+  if (room?.id === 'keyLabyrinth' && expeditionRoomTerminalPowered(room.id)) {
+    tuning.darknessAlpha = Math.max(.5, (tuning.darknessAlpha ?? .9) * .67);
+    tuning.floorReadabilityAlpha = Math.min(.24, (tuning.floorReadabilityAlpha ?? .07) * 1.5);
+    tuning.playerLightRadius = (tuning.playerLightRadius || 82) * 1.5;
+    tuning.riftLightRadius = (tuning.riftLightRadius || 265) * 1.5;
+    tuning.softEdge = (tuning.softEdge || 62) * 1.2;
+  }
+  return tuning;
 }
 
 function expeditionRoomDarkActive(room) {
@@ -27490,6 +27726,8 @@ function drawCornerSkull(skull, t) {
   const scale = Math.max(1, (skull.rad || 21) / 21);
   ctx.scale(scale, scale);
   const flying = skull.state === 'flying';
+  const awakened = !!(skull.boneWarden && (skull.awakenedByChest || flying || (skull.awakeningTimer || 0) > 0));
+  if (awakened) ctx.rotate(Math.sin(t * 4.8) * .035);
   const flash = flying ? (.45 + Math.abs(Math.sin(t * 18)) * .45) : 0;
   if (abstractGouacheEnabled()) {
     drawAbstractGouacheSkull(skull, t);
@@ -27526,18 +27764,28 @@ function drawCornerSkull(skull, t) {
   ctx.moveTo(-12, -9); ctx.lineTo(-6, -22); ctx.lineTo(0, -10); ctx.closePath();
   ctx.moveTo(12, -9); ctx.lineTo(6, -22); ctx.lineTo(0, -10); ctx.closePath();
   ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#2b120b';
+  ctx.fillStyle = awakened ? '#ff2f4f' : '#2b120b';
   ctx.beginPath();
-  ctx.arc(-6, -3, 3.2, 0, 7);
-  ctx.arc(6, -3, 3.2, 0, 7);
+  ctx.arc(-6, -3, awakened ? 4.8 + Math.sin(t * 8) * .8 : 3.2, 0, 7);
+  ctx.arc(6, -3, awakened ? 4.8 + Math.sin(t * 8 + 1.7) * .8 : 3.2, 0, 7);
   ctx.fill();
-  ctx.strokeStyle = '#2b120b';
+  if (awakened) {
+    ctx.globalAlpha = .42;
+    ctx.fillStyle = '#ff2f4f';
+    ctx.beginPath();
+    ctx.arc(-6, -3, 9, 0, 7);
+    ctx.arc(6, -3, 9, 0, 7);
+    ctx.fill();
+    ctx.globalAlpha = .98;
+  }
+  const jawWake = awakened ? Math.max(0, Math.sin(t * 6.4) * 3 + 3) : 0;
+  ctx.strokeStyle = awakened ? '#7b0615' : '#2b120b';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(-7, 8); ctx.lineTo(7, 8);
-  ctx.moveTo(-4, 6); ctx.lineTo(-4, 12);
-  ctx.moveTo(0, 6); ctx.lineTo(0, 12);
-  ctx.moveTo(4, 6); ctx.lineTo(4, 12);
+  ctx.moveTo(-7, 8 + jawWake); ctx.lineTo(7, 8 + jawWake);
+  ctx.moveTo(-4, 6); ctx.lineTo(-4, 12 + jawWake);
+  ctx.moveTo(0, 6); ctx.lineTo(0, 12 + jawWake);
+  ctx.moveTo(4, 6); ctx.lineTo(4, 12 + jawWake);
   ctx.stroke();
   if (flying) {
     ctx.globalAlpha = flash;
