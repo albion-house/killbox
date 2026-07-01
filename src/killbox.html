@@ -5758,28 +5758,6 @@ body.expeditionGameplay #combatHud {
   isolation: isolate;
 }
 
-#start .missionChoice::before {
-  content: '';
-  position: absolute;
-  inset: 9px auto 9px 9px;
-  width: 4px;
-  border-radius: 99px;
-  background: rgba(240, 201, 107, .44);
-  box-shadow: 0 0 14px rgba(240, 201, 107, .18);
-  z-index: 4;
-  pointer-events: none;
-}
-
-#start .missionChoice[data-mission-type="expedition"]::before {
-  background: linear-gradient(180deg, #f0c96b, #a67aff 50%, #64f2c9);
-  box-shadow: 0 0 16px rgba(166, 122, 255, .35);
-}
-
-#start .missionChoice[data-mission-type="arena"]::before {
-  background: linear-gradient(180deg, #ffe07c, #ff7a29 55%, #8d3213);
-  box-shadow: 0 0 16px rgba(255, 122, 41, .34);
-}
-
 #start .missionChoice .modeArt {
   grid-row: 1;
   grid-column: 1;
@@ -6631,8 +6609,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.39.11</b>
-      <span id="warRoomBuildName">RaygunJoel</span>
+      <b id="warRoomVersion">v7.39.23</b>
+      <span id="warRoomBuildName">BigSling</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -6702,7 +6680,7 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion"><span>v7.39.11</span><span>RaygunJoel</span></div>
+            <div class="loadoutVersion" id="loadoutVersion"><span>v7.39.23</span><span>BigSling</span></div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -7802,11 +7780,25 @@ function towerHasDurability(t) { return !!t && !!TOWERS[t.type] && !isCoreTowerT
 function towerDisabledUntil(t) { return t && t.disabledUntil ? t.disabledUntil : 0; }
 function towerIsDisabled(t) { return isCoreTowerType(t?.type) && towerDisabledUntil(t) > performance.now() / 1000; }
 
+// Tuned to the current 8-direction raygun sprite sheet, relative to the hero center anchor.
+const HERO_MUZZLE_OFFSETS_BY_OCTANT = [
+  { x: 34, y: -24 }, // east
+  { x: 30, y: -13 }, // southeast
+  { x: 9, y: -5 },   // south
+  { x: -25, y: -13 },// southwest
+  { x: -34, y: -24 },// west
+  { x: -28, y: -35 },// northwest
+  { x: -7, y: -42 }, // north
+  { x: 28, y: -35 }, // northeast
+];
+
 function heroMuzzlePoint(h, aim, forward = 24) {
-  // Simple upper-body muzzle offset for the raygun sprite; refine per weapon later if needed.
+  const octant = ((Math.round(aim / (Math.PI / 4)) % 8) + 8) % 8;
+  const offset = HERO_MUZZLE_OFFSETS_BY_OCTANT[octant] || HERO_MUZZLE_OFFSETS_BY_OCTANT[0];
+  const scale = forward / 24;
   return {
-    x: h.x + Math.cos(aim) * forward,
-    y: h.y - 24 + Math.sin(aim) * Math.max(8, forward * 0.35),
+    x: h.x + offset.x * scale,
+    y: h.y + offset.y * scale,
   };
 }
 
@@ -8448,11 +8440,23 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.39.11';
+const GAME_VERSION = '7.39.23';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'RaygunJoel';
+const BUILD_NAME = 'BigSling';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Replaced the hero walk source with the raygun sprite sheet and moved hero projectile origins to the upper body.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Doubled the Stone Slinger sprite draw scale from its original baseline.' },
+  { version: '7.39.22', name: 'SlingScale', changes: 'Increased the Stone Slinger sprite draw scale.' },
+  { version: '7.39.21', name: 'ChickSling', changes: 'Updated the Stone Slinger enemy sprite.' },
+  { version: '7.39.20', name: 'GroundLock', changes: 'Re-anchored the Goblin Grunt runtime shadow to the sprite foot band.' },
+  { version: '7.39.19', name: 'FootShadow', changes: 'Tightened the Goblin Grunt ground shadow under its feet.' },
+  { version: '7.39.18', name: 'ShadowStep', changes: 'Moved the Goblin Grunt ground shadow under its feet.' },
+  { version: '7.39.17', name: 'GoblinSize', changes: 'Increased the Goblin Grunt sprite draw scale for clearer combat readability.' },
+  { version: '7.39.16', name: 'GoblinSprite', changes: 'Updated the Goblin Grunt 8-direction walk sprite sheet.' },
+  { version: '7.39.15', name: 'GoblinBox', changes: 'Added taller goblin projectile hurtboxes for readable hero-shot hits.' },
+  { version: '7.39.14', name: 'AimGuard', changes: 'Prevented invalid shooting aim from snapping the hero sprite east.' },
+  { version: '7.39.13', name: 'MuzzleSnap', changes: 'Moved hero shots to direction-aware raygun muzzle offsets.' },
+  { version: '7.39.12', name: 'RaygunWalk', changes: 'Updated the hero raygun walk sheet to the transparent 256-frame export with tighter cropping.' },
+  { version: '7.39.11', name: 'RaygunJoel', changes: 'Replaced the hero walk source with the raygun sprite sheet and moved hero projectile origins to the upper body.' },
   { version: '7.39.10', name: 'StackFix', changes: 'Hardened Mission Launch section flow and image containment so details and loadout do not stack over each other.' },
   { version: '7.39.9', name: 'FlowFix', changes: 'Made Mission Launch responsive so the loadout strip stays below expedition content on shorter screens.' },
   { version: '7.39.8', name: 'OpenDeck', changes: 'Cleaned Mission Launch spacing, removed the Play Last Run button, and improved loadout readability.' },
@@ -9403,7 +9407,60 @@ function canBuildOnCell(c, r) { return c >= 0 && r >= 0 && c < COLS && r < ROWS 
 function valid(c, r) { return canEnemyEnterCell(c, r); }
 function cellAt(x, y) { return { c: Math.floor((x - OX) / G), r: Math.floor((y - OY) / G) }; }
 function getMouseWorldPosition() { return { x: mouse.x + CAMERA.x, y: mouse.y + CAMERA.y }; }
+function hasValidAimInput(h = S.hero) {
+  if (!h || !mouse.aimValid || !Number.isFinite(mouse.x) || !Number.isFinite(mouse.y)) return false;
+  const m = getMouseWorldPosition();
+  const dx = m.x - h.x;
+  const dy = m.y - h.y;
+  return Number.isFinite(dx) && Number.isFinite(dy) && Math.hypot(dx, dy) > 6;
+}
 function getWorldBounds() { return { x: OX - 18, y: OY - 18, w: COLS * G + 36, h: ROWS * G + 36 }; }
+function enemyProjectileHurtbox(e) {
+  const hb = ENEMY_PROJECTILE_HURTBOXES[e?.type];
+  if (!hb) return null;
+  const w = Number.isFinite(e.hurtW) ? e.hurtW : hb.w;
+  const h = Number.isFinite(e.hurtH) ? e.hurtH : hb.h;
+  const y = Number.isFinite(e.hurtY) ? e.hurtY : hb.y;
+  return {
+    x: e.x - w / 2,
+    y: e.y - y,
+    w,
+    h,
+  };
+}
+function segmentIntersectsExpandedRect(x1, y1, x2, y2, rect, pad = 0) {
+  const minX = rect.x - pad;
+  const maxX = rect.x + rect.w + pad;
+  const minY = rect.y - pad;
+  const maxY = rect.y + rect.h + pad;
+  if (x1 >= minX && x1 <= maxX && y1 >= minY && y1 <= maxY) return true;
+  if (x2 >= minX && x2 <= maxX && y2 >= minY && y2 <= maxY) return true;
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  let t0 = 0;
+  let t1 = 1;
+  const clip = (p, q) => {
+    if (p === 0) return q >= 0;
+    const t = q / p;
+    if (p < 0) {
+      if (t > t1) return false;
+      if (t > t0) t0 = t;
+    } else {
+      if (t < t0) return false;
+      if (t < t1) t1 = t;
+    }
+    return true;
+  };
+  return clip(-dx, x1 - minX)
+    && clip(dx, maxX - x1)
+    && clip(-dy, y1 - minY)
+    && clip(dy, maxY - y1);
+}
+function heroShotHitsEnemy(s, e, oldX, oldY, pad = 5) {
+  const hb = enemyProjectileHurtbox(e);
+  if (hb) return segmentIntersectsExpandedRect(oldX, oldY, s.x, s.y, hb, pad);
+  return segDist(e.x, e.y, oldX, oldY, s.x, s.y) < (e.rad || 12) + pad;
+}
 function getExpeditionActiveRoom() {
   if (!isExpeditionRun()) return null;
   const cfg = expeditionConfig();
@@ -13853,12 +13910,12 @@ function useTrinket(id) {
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 const $ = id => document.getElementById(id);
-let mouse = { x: 0, y: 0, down: false };
+let mouse = { x: 0, y: 0, down: false, aimValid: false };
 let keys = {};
 const ENEMY_SPRITE_FILES = {
   grunt: 'assets/enemies/goblin-grunt-green-walk.png',
   runner: 'assets/enemies/feral-runner.svg',
-  slinger: 'assets/enemies/stone-slinger.svg',
+  slinger: 'assets/enemies/stone-slinger.png',
   brute: 'assets/enemies/butcher-brute.svg',
   ogre: 'assets/enemies/gate-ogre.svg',
   hunter: 'assets/enemies/saboteur.svg',
@@ -13889,17 +13946,21 @@ const GOBLIN_GRUNT_FRAME_SIZE = 256;
 const GOBLIN_GRUNT_SHEET_COLS = 4;
 const GOBLIN_GRUNT_SHEET_ROWS = 8;
 const GOBLIN_GRUNT_FRAME_MS = 140;
-const GOBLIN_GRUNT_DRAW_W = 72;
-const GOBLIN_GRUNT_DRAW_H = 86;
+const GOBLIN_GRUNT_DRAW_W = 94;
+const GOBLIN_GRUNT_DRAW_H = 112;
 const GOBLIN_GRUNT_DRAW_Y_OFFSET = -8;
 const GOBLIN_GRUNT_CROP_X = 54;
 const GOBLIN_GRUNT_CROP_Y = 28;
 const GOBLIN_GRUNT_CROP_W = 148;
 const GOBLIN_GRUNT_CROP_H = 190;
-const GOBLIN_GRUNT_SHADOW_W = 42;
-const GOBLIN_GRUNT_SHADOW_H = 13;
-const GOBLIN_GRUNT_SHADOW_ALPHA = 0.18;
-const GOBLIN_GRUNT_SHADOW_Y = -6;
+const GOBLIN_GRUNT_SHADOW_W = 28;
+const GOBLIN_GRUNT_SHADOW_H = 7;
+const GOBLIN_GRUNT_SHADOW_ALPHA = 0.12;
+const GOBLIN_GRUNT_SHADOW_Y = -28;
+const ENEMY_PROJECTILE_HURTBOXES = {
+  // Projectile-only: goblin sprite is anchored near its feet, so the hurtbox extends upward.
+  grunt: { w: 60, h: 107, y: 102 },
+};
 const DEBUG_GOBLIN_ROW_PREVIEW = false; // Debug-only: set true to show the all-row goblin sprite-sheet preview.
 const GOBLIN_GRUNT_FORCE_ROW = null; // Set 0-7 to force all goblins to one sheet row for Meshy sprite-sheet row calibration.
 // Calibration steps:
@@ -13923,16 +13984,16 @@ const GOBLIN_GRUNT_DIR_BY_OCTANT = ['e', 'se', 's', 'sw', 'w', 'nw', 'n', 'ne'];
 const NORMAL_ENEMY_TYPES_WITHOUT_RIFT_DIAMOND = new Set(['grunt', 'slinger', 'runner', 'bomber', 'hunter', 'shield', 'healer']);
 // TODO: Replace goblin-grunt-green-walk.png with a transparent export if this first-pass sheet still shows its black backing in play.
 const HERO_SPRITE_SHEET = {
-  src: 'assets/player/character_sprite_sheet_with_raygun_transparent.jpg',
-  frameW: 160,
-  frameH: 160,
+  src: 'assets/player/hero-joel-walk-8dir-4frame-raygun.png',
+  frameW: 256,
+  frameH: 256,
   cols: 4,
   rows: 8,
 };
 const HERO_WALK_SPRITE_SHEET = {
-  src: 'assets/player/character_sprite_sheet_with_raygun_transparent.jpg',
-  frameW: 160,
-  frameH: 160,
+  src: 'assets/player/hero-joel-walk-8dir-4frame-raygun.png',
+  frameW: 256,
+  frameH: 256,
   cols: 4,
   rows: 8,
 };
@@ -18998,8 +19059,7 @@ function shootHero() {
   if (!canHeroUseWeapon()) return;
   const h = S.hero;
   const w = WEAPONS[h.weapon] || WEAPONS.blunderbuss;
-  const m = getMouseWorldPosition();
-  const a = Math.atan2(m.y - h.y, m.x - h.x);
+  const a = getFacingForShot(h);
   const before = S.heroShots.length;
   if (w.primaryFire) w.primaryFire(h, a);
   callMutagenHook('onHeroFire', h, a, before);
@@ -19053,8 +19113,7 @@ function weaponSecondaryDown() {
   }
   if (!canHeroUseWeapon()) return;
   const w = WEAPONS[h.weapon] || WEAPONS.blunderbuss;
-  const m = getMouseWorldPosition();
-  const a = Math.atan2(m.y - h.y, m.x - h.x);
+  const a = getFacingForShot(h);
   if (h.weapon === 'ranger') {
     if (h.secondaryCd <= 0 && !h.charging) {
       h.charging = true;
@@ -19086,8 +19145,7 @@ function weaponSecondaryUp() {
     h.charge = 0;
     return;
   }
-  const m = getMouseWorldPosition();
-  const aim = Math.atan2(m.y - h.y, m.x - h.x);
+  const aim = getFacingForShot(h);
   const charge = Math.max(.15, h.charge || 0);
   const fullCharge = charge >= .9;
   const chargePower = fullCharge ? 1 : charge;
@@ -19150,8 +19208,7 @@ function useLifeFlask() {
 function useBlunderShield() {
   const h = S.hero;
   if (!canHeroUseWeapon() || h.secondaryCd > 0) return;
-  const m = getMouseWorldPosition();
-  const aim = Math.atan2(m.y - h.y, m.x - h.x);
+  const aim = getFacingForShot(h);
   const now = performance.now() / 1000;
   const duration = 3 * (h.blunderShieldMult || 1);
   h.blunderShieldUntil = Math.max(h.blunderShieldUntil || 0, now + duration);
@@ -22748,7 +22805,7 @@ function projectiles(dt) {
       }
       if (!s.dead) {
         for (const e of S.enemies) {
-          if (e.dead || s.hitEnemies.has(e) || segDist(e.x, e.y, oldX, oldY, s.x, s.y) >= e.rad + 10) continue;
+          if (e.dead || s.hitEnemies.has(e) || !heroShotHitsEnemy(s, e, oldX, oldY, 10)) continue;
           s.hitEnemies.add(e);
           const stunBefore = e.stun || 0;
           const bossLike = e.type === 'slimeking' || !!e.boss || !!e.eliteRoomTarget;
@@ -22841,7 +22898,7 @@ function projectiles(dt) {
     if (!s.dead) {
       collisionT0 = KB_PROFILE.active ? profileNow() : 0;
       for (const e of S.enemies) {
-        if (!e.dead && dist(s.x, s.y, e.x, e.y) < e.rad + 5) {
+        if (!e.dead && heroShotHitsEnemy(s, e, oldX, oldY, 5)) {
           let dmg = s.dmg;
           if (s.weapon === 'ranger' && ['runner','slinger','healer','bomber'].includes(e.type)) dmg *= 1.35;
           if (s.weapon === 'storm' && (e.type === 'slimeking' || e.type === 'ogre' || e.type === 'siege')) dmg *= .55;
@@ -27837,7 +27894,7 @@ function drawEngineer(t) {
 
 function heroSpriteFacingAngle(h, aimAngle) {
   const { dx, dy } = heroMovementVector();
-  if (mouse.down || h.charging) {
+  if ((mouse.down || h.charging) && hasValidAimInput(h) && Number.isFinite(aimAngle)) {
     h.visualFacingAngle = aimAngle;
     return aimAngle;
   }
@@ -27848,6 +27905,19 @@ function heroSpriteFacingAngle(h, aimAngle) {
   if (Number.isFinite(h.visualFacingAngle)) return h.visualFacingAngle;
   h.visualFacingAngle = aimAngle;
   return aimAngle;
+}
+
+function getFacingForShot(h) {
+  if (hasValidAimInput(h)) {
+    const m = getMouseWorldPosition();
+    return Math.atan2(m.y - h.y, m.x - h.x);
+  }
+  const { dx, dy } = heroMovementVector();
+  if (dx || dy) return Math.atan2(dy, dx);
+  if (Number.isFinite(h.visualFacingAngle)) return h.visualFacingAngle;
+  // Angle 0 means east, so only use it when real aim input produced it.
+  h.visualFacingAngle = -Math.PI / 2;
+  return h.visualFacingAngle;
 }
 
 function heroSpriteFrameIndex(angle) {
@@ -27884,11 +27954,11 @@ function drawHeroCoreWarning(lowWarn) {
   ctx.restore();
 }
 
-const PLAYER_SPRITE_FRAME_SIZE = 160;
-const PLAYER_SPRITE_SOURCE_CROP_X = 14;
-const PLAYER_SPRITE_SOURCE_CROP_Y = 0;
-const PLAYER_SPRITE_SOURCE_CROP_W = 132;
-const PLAYER_SPRITE_SOURCE_CROP_H = 160;
+const PLAYER_SPRITE_FRAME_SIZE = 256;
+const PLAYER_SPRITE_SOURCE_CROP_X = 68;
+const PLAYER_SPRITE_SOURCE_CROP_Y = 36;
+const PLAYER_SPRITE_SOURCE_CROP_W = 120;
+const PLAYER_SPRITE_SOURCE_CROP_H = 145;
 const PLAYER_SPRITE_DRAW_W = 92;
 const PLAYER_SPRITE_DRAW_H = 112;
 const PLAYER_SPRITE_DRAW_Y_OFFSET = -18;
@@ -27898,17 +27968,17 @@ const PLAYER_SHADOW_W = 48;
 const PLAYER_SHADOW_H = 20;
 const PLAYER_SHADOW_ALPHA = 0.11;
 const PLAYER_SHADOW_FEATHER_STEPS = 4;
-const PLAYER_WALK_FRAME_SIZE = 160;
+const PLAYER_WALK_FRAME_SIZE = 256;
 const PLAYER_WALK_SHEET_COLS = 4;
 const PLAYER_WALK_SHEET_ROWS = 8;
 const PLAYER_WALK_FRAME_MS = 120;
-const PLAYER_WALK_CROP_X = 14;
-const PLAYER_WALK_CROP_Y = 0;
-const PLAYER_WALK_CROP_W = 132;
-const PLAYER_WALK_CROP_H = 160;
+const PLAYER_WALK_CROP_X = 68;
+const PLAYER_WALK_CROP_Y = 36;
+const PLAYER_WALK_CROP_W = 120;
+const PLAYER_WALK_CROP_H = 145;
 // Octants are east, southeast, south, southwest, west, northwest, north, northeast.
-// Sheet rows are east, northeast, north, northwest, west, southwest, south, southeast.
-const PLAYER_WALK_ROW_BY_OCTANT = [0, 7, 6, 5, 4, 3, 2, 1];
+// Sheet rows are south, southeast, east, northeast, north, northwest, west, southwest.
+const PLAYER_WALK_ROW_BY_OCTANT = [2, 1, 0, 7, 6, 5, 4, 3];
 const PLAYER_WALK_BACKGROUND_THRESHOLD = 242;
 
 function isHeroWalkBackgroundPixel(data, index) {
@@ -28140,8 +28210,7 @@ function drawHero(t) {
   const h = S.hero;
   if (h.ghostGrabbed) return;
   if (h.spawnState === 'spawning') return;
-  const m = getMouseWorldPosition();
-  const a = Math.atan2(m.y - h.y, m.x - h.x);
+  const a = getFacingForShot(h);
   const w = WEAPONS[h.weapon] || WEAPONS.blunderbuss;
   const now = performance.now() / 1000;
   const blunderShieldActive = h.weapon === 'blunderbuss' && (h.blunderShieldUntil || 0) > now;
@@ -28702,6 +28771,18 @@ function drawEnemy(e) {
   ctx.filter = 'none';
   ctx.restore();
 
+  if (S.devShowInfo) {
+    const hb = enemyProjectileHurtbox(e);
+    if (hb) {
+      ctx.save();
+      ctx.globalAlpha = .42;
+      ctx.strokeStyle = '#8edcff';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(hb.x, hb.y, hb.w, hb.h);
+      ctx.restore();
+    }
+  }
+
   const hpPct = Math.max(0, Math.min(1, e.hp / e.max));
   const basicGrunt = e.type === 'grunt' && !e.elite && !e.boss && !e.wild;
   const showEnemyHp = !basicGrunt || hpPct < .985 || e.flash > 0 || e.hitPulse > 0;
@@ -28756,7 +28837,7 @@ function enemyShowsRiftDiamond(e) {
 function drawEnemySprite(e, base) {
   if (e.type === 'grunt') return drawGoblinGruntSprite(e);
   const img = ENEMY_SPRITES[e.type];
-  const pad = e.type === 'slimeking' ? 2.8 : e.type === 'siege' ? 2.45 : e.type === 'ogre' || e.type === 'brute' ? 2.35 : 2.15;
+  const pad = e.type === 'slinger' ? 4.3 : e.type === 'slimeking' ? 2.8 : e.type === 'siege' ? 2.45 : e.type === 'ogre' || e.type === 'brute' ? 2.35 : 2.15;
   const size = e.rad * pad;
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'source-over';
@@ -29734,6 +29815,7 @@ function updateMouseFromEvent(e) {
   const pt = canvasPointFromEvent(e);
   mouse.x = pt.x;
   mouse.y = pt.y;
+  mouse.aimValid = true;
 }
 canvas.onmousemove = e => updateMouseFromEvent(e);
 canvas.onpointermove = e => updateMouseFromEvent(e);
