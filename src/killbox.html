@@ -8440,11 +8440,14 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.40.0';
+const GAME_VERSION = '7.43.0';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'RelayBloom';
+const BUILD_NAME = 'CorePurge';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Restored Chemical Plant Relay defense pacing, environmental relay progress, Rift Boon orbit visuals, and Dark Chapel awakening feedback.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Redesigned Expedition escape collapse with routed mixed attackers, a devastating Core purge, and survivor cleanup combat.' },
+  { version: '7.42.0', name: 'CoreThreat', changes: 'Added role-based Expedition enemy targeting so defense waves split pressure between the player and deployed Core.' },
+  { version: '7.41.0', name: 'CursedRift', changes: 'Redesigned Expedition Rift Boon visuals as cursed relic corruption with darker acquisition effects and escalating artifact instability.' },
+  { version: '7.40.0', name: 'RelayBloom', changes: 'Restored Chemical Plant Relay defense pacing, environmental relay progress, Rift Boon orbit visuals, and Dark Chapel awakening feedback.' },
   { version: '7.39.23', name: 'BigSling', changes: 'Doubled the Stone Slinger sprite draw scale from its original baseline.' },
   { version: '7.39.22', name: 'SlingScale', changes: 'Increased the Stone Slinger sprite draw scale.' },
   { version: '7.39.21', name: 'ChickSling', changes: 'Updated the Stone Slinger enemy sprite.' },
@@ -9174,8 +9177,11 @@ function expeditionGrantRiftUpgrade(id, source = 'room clear') {
   ex.messageTime = 5;
   if (ex.rift) {
     floatText(def.name.toUpperCase(), ex.rift.x - 52, ex.rift.y - 34, '#8edcff');
-    shockwave(ex.rift.x, ex.rift.y, '#8edcff', 110, .28);
-    burst(ex.rift.x, ex.rift.y, '#d8ffd8', 10, 'spark', 110);
+    shockwave(ex.rift.x, ex.rift.y, '#6f2cff', 190, .42);
+    shockwave(ex.rift.x, ex.rift.y, '#1b001f', 250, .5);
+    burst(ex.rift.x, ex.rift.y, '#d8b8ff', 22, 'spark', 190);
+    burst(ex.rift.x, ex.rift.y, '#120018', 18, 'smoke', 140);
+    startExpeditionRiftBoonAcquisitionFx(id);
   }
   ui();
   return true;
@@ -10456,12 +10462,16 @@ function spawnExpeditionRelayEnemy(type, directionIndex) {
   if (!enemy) return null;
   enemy.entry = spawn.label || 'Relay approach';
   enemy.expeditionSpawn = true;
-  enemy.expeditionTarget = 'rift';
-  enemy.riftHunter = true;
+  enemy.expeditionTarget = 'hero';
+  enemy.riftHunter = false;
   enemy.expeditionTargetKey = key(target.c, target.r);
   enemy.expeditionLastTarget = enemy.expeditionTargetKey;
   enemy.expeditionTargetCell = { c: target.c, r: target.r };
   enemy.expeditionNextRetargetAt = performance.now() / 1000 + 2.6 + Math.random() * 1.4;
+  const spawnIndex = ex.relayEnemySpawnCount = (ex.relayEnemySpawnCount || 0) + 1;
+  assignExpeditionEnemyTargetRole(enemy, spawnIndex);
+  if (spawnIndex % 3 === 0) enemy.expeditionTargetRole = 'coreBreaker';
+  expeditionRefreshEnemyTargetChoice(enemy, 'relay-role-target');
   return enemy;
 }
 
@@ -10492,6 +10502,11 @@ function startExpeditionEscapeSequence() {
   ex.escapeSpawnTimer = 0;
   ex.escapeOverloadTimer = 0;
   ex.escapeRelayFxTimer = .18;
+  ex.escapeCollapseSeed = Math.floor(Math.random() * 1000000);
+  ex.escapeCollapseSpawnCount = 0;
+  ex.escapePurgeTriggered = false;
+  ex.escapeCleanupActive = false;
+  ex.escapeCleanupMessageShown = false;
   ex.phase = 'escape';
   ex.riftCarried = false;
   const relay = expeditionRelayPadCenter();
@@ -10525,43 +10540,138 @@ function startExpeditionEscapeSequence() {
   for (let i = 0; i < burstCount; i++) spawnExpeditionCollapseEnemy(true);
 }
 
+function expeditionEscapeTargetPoint() {
+  const ex = S.expedition;
+  if (ex?.riftCarried) return { x: S.hero.x, y: S.hero.y, c: cellAt(S.hero.x, S.hero.y).c, r: cellAt(S.hero.x, S.hero.y).r };
+  if (ex?.rift) {
+    const cell = cellAt(ex.rift.x, ex.rift.y);
+    return { x: ex.rift.x, y: ex.rift.y, c: cell.c, r: cell.r };
+  }
+  const cell = cellAt(S.hero.x, S.hero.y);
+  return { x: S.hero.x, y: S.hero.y, c: cell.c, r: cell.r };
+}
+
+function expeditionEscapeSpawnSources(targetCell, count = 10) {
+  const cfg = expeditionConfig();
+  const ex = S.expedition;
+  const cacheKey = `${S.levelId}:${targetCell.c},${targetCell.r}:${ex?.activeRoomId || ''}:${ex?.riftCarried ? 1 : 0}`;
+  const now = performance.now() / 1000;
+  if (ex?.escapeSpawnSourceCache?.key === cacheKey && ex.escapeSpawnSourceCache.until > now) {
+    return ex.escapeSpawnSourceCache.sources || [];
+  }
+  const out = [];
+  const seen = new Set();
+  const add = (source, label = 'collapse breach') => {
+    if (!source || !Number.isFinite(source.c) || !Number.isFinite(source.r)) return;
+    if (!isRoad(source.c, source.r) || isBlockedTerrain(source.c, source.r) || isExpeditionRoomBlockedCell(source.c, source.r)) return;
+    const k = key(source.c, source.r);
+    if (seen.has(k)) return;
+    const path = routePath({ c: source.c, r: source.r }, targetCell);
+    if (!path.length) return;
+    seen.add(k);
+    out.push({
+      c: source.c,
+      r: source.r,
+      x: Number.isFinite(source.x) ? source.x : cx(source.c),
+      y: Number.isFinite(source.y) ? source.y : cy(source.r),
+      label: source.label || source.kind || label,
+      kind: source.kind || 'breach',
+      path,
+    });
+  };
+  const rooms = cfg?.rooms || [];
+  const activeRoom = rooms.find(room => room.id === S.expedition?.activeRoomId) || expeditionRoomAtHero();
+  const targetRoom = rooms.find(room => expeditionRoomContainsCell(room, targetCell.c, targetCell.r));
+  for (const room of [activeRoom, targetRoom].filter(Boolean)) {
+    for (const cell of expeditionRoomSpawnCells(room, 4)) add(cell, room.name);
+    for (const entrance of room.entrances || []) add(entrance, entrance.label || room.name);
+  }
+  for (const spawn of levelDef(S.levelId)?.spawns || []) add(spawn, spawn.label || 'facility breach');
+  for (const room of rooms) {
+    if (out.length >= count) break;
+    if (room === activeRoom || room === targetRoom) continue;
+    const center = expeditionRoomCenter(room);
+    if (!center || dist(center.x, center.y, targetCell.x || cx(targetCell.c), targetCell.y || cy(targetCell.r)) > Math.max(W, H) * 1.2) continue;
+    for (const entrance of room.entrances || []) add(entrance, entrance.label || room.name);
+    if (out.length < count) for (const cell of expeditionRoomSpawnCells(room, 2)) add(cell, room.name);
+  }
+  if (ex) ex.escapeSpawnSourceCache = { key: cacheKey, until: now + .85, sources: out };
+  return out;
+}
+
+function pickExpeditionCollapseEnemyType(openingBurst = false) {
+  const ex = S.expedition || {};
+  const n = ex.escapeCollapseSpawnCount || 0;
+  const roll = Math.random();
+  if (!openingBurst && n > 20 && n % 17 === 0) return Math.random() < .65 ? 'brute' : 'siege';
+  if (!openingBurst && n > 34 && n % 29 === 0) return Math.random() < .5 ? 'warden' : 'hexcaller';
+  if (roll < (openingBurst ? .68 : .58)) return 'runner';
+  if (roll < .73) return 'grunt';
+  if (roll < .84) return 'sapper';
+  if (roll < .91) return Math.random() < .55 ? 'slinger' : 'shield';
+  if (roll < .965) return Math.random() < .5 ? 'hunter' : 'hexcaller';
+  return Math.random() < .55 ? 'brute' : 'warden';
+}
+
 function spawnExpeditionCollapseEnemy(openingBurst = false) {
   const ex = S.expedition;
   const shatterConvoy = isShatterConvoyExpedition();
-  const cap = shatterConvoy ? 96 : 64;
+  const cap = shatterConvoy ? 72 : 48;
   if (!ex?.escapeActive || S.enemies.filter(e => e && !e.dead && e.expeditionCollapse).length >= cap) return null;
-  const routeBand = shatterConvoy ? Math.max(210, H * .34) : Math.max(500, H * .9);
-  const x = shatterConvoy
-    ? S.hero.x + (openingBurst ? Math.max(260, W * .28) : Math.max(420, W * (.42 + Math.random() * .14))) + Math.random() * Math.max(220, W * .24)
-    : openingBurst
-      ? S.hero.x - Math.max(420, W * .52) + Math.random() * Math.max(760, W * 1.04)
-      : S.hero.x - Math.max(520, W * (.55 + Math.random() * .18));
-  const y = S.hero.y + (Math.random() - .5) * routeBand;
-  const type = shatterConvoy
-    ? (Math.random() < .88 ? 'runner' : Math.random() < .55 ? 'sapper' : 'grunt')
-    : Math.random() < .82 ? 'runner' : 'grunt';
+  const target = expeditionEscapeTargetPoint();
+  const targetCell = { c: target.c, r: target.r, x: target.x, y: target.y };
+  const sources = expeditionEscapeSpawnSources(targetCell, shatterConvoy ? 14 : 10);
+  const source = sources.length ? sources[Math.floor(Math.random() * sources.length)] : null;
+  if (!source) return null;
+  const type = pickExpeditionCollapseEnemyType(openingBurst);
   const oldWave = S.wave;
-  S.wave = Math.max(S.wave, 10);
-  const enemy = spawnEnemyAt(type, x, y, [{ c: 0, r: 0, x, y }], 0);
+  S.wave = Math.max(S.wave, openingBurst ? 11 : 12 + Math.floor((ex.escapeElapsed || 0) / 12));
+  const enemy = spawnEnemyAt(type, source.x, source.y, source.path, 0);
   S.wave = oldWave;
   if (!enemy) return null;
-  enemy.entry = 'reality collapse';
+  ex.escapeCollapseSpawnCount = (ex.escapeCollapseSpawnCount || 0) + 1;
+  enemy.entry = source.label || 'collapse breach';
   enemy.expeditionSpawn = true;
   enemy.expeditionCollapse = true;
-  enemy.expeditionAiTier = 'collapse';
-  enemy.expeditionTarget = null;
-  enemy.riftHunter = false;
-  enemy.collapseDir = shatterConvoy ? -1 : 1;
-  enemy.collapseVx = (shatterConvoy ? -(310 + Math.random() * 230) : 190 + Math.random() * 150);
-  enemy.collapseVy = (Math.random() - .5) * (shatterConvoy ? 46 : 70);
-  enemy.collapseLife = shatterConvoy ? 4.6 + Math.random() * 2.2 : 6 + Math.random() * 3;
-  enemy.wild = false;
-  enemy.behaviors = [];
+  enemy.expeditionEncounter = true;
+  enemy.expeditionTarget = ex.riftCarried ? 'hero' : 'rift';
+  enemy.riftHunter = enemy.expeditionTarget === 'rift';
+  assignExpeditionEnemyTargetRole(enemy, ex.escapeCollapseSpawnCount);
+  if (type === 'sapper' || type === 'brute' || type === 'siege' || type === 'warden') enemy.expeditionTargetRole = 'coreBreaker';
+  enemy.expeditionTargetKey = key(targetCell.c, targetCell.r);
+  enemy.expeditionLastTarget = enemy.expeditionTargetKey;
+  enemy.expeditionTargetCell = { c: targetCell.c, r: targetCell.r };
+  enemy.expeditionNextRetargetAt = performance.now() / 1000 + .5 + Math.random() * .45;
+  enemy.expeditionRoleRetargetAt = performance.now() / 1000 + .35 + Math.random() * .3;
+  enemy.collapseLife = shatterConvoy ? 14 + Math.random() * 7 : 16 + Math.random() * 8;
+  enemy.collapseSourceKind = source.kind || 'breach';
+  enemy.collapsePanic = .7 + Math.random() * .7;
+  enemy.wild = enemy.type !== 'siege' && enemy.type !== 'brute' && Math.random() < .35;
+  if (type === 'phase' && Math.random() < .35) enemy.collapsePhasing = true;
+  if (!openingBurst && ex.escapeCollapseSpawnCount > 12 && Math.random() < .055) {
+    enemy.elite = true;
+    enemy.max *= 1.55;
+    enemy.hp = enemy.max;
+    enemy.val += 18;
+    enemy.rad += 2;
+    enemy.collapseElite = true;
+    floatText('ELITE', enemy.x - 16, enemy.y - 26, '#fff1a8');
+    shockwave(enemy.x, enemy.y, '#ffcf6a', 62, .2);
+  }
+  if (openingBurst || Math.random() < .4) {
+    shockwave(enemy.x, enemy.y, source.kind === 'vent' ? '#f0b8ff' : '#ff3b61', 44 + Math.random() * 48, .2);
+    burst(enemy.x, enemy.y, source.kind === 'vent' ? '#b37cff' : '#5b1518', 6, source.kind === 'vent' ? 'spark' : 'smoke', 110);
+  }
   return enemy;
 }
 
 function expeditionCollapseEnemyStep(e, dt) {
   if (!e || e.dead) return;
+  if (!e.collapsePhasing) {
+    e.collapseLife = Math.max(0, (e.collapseLife || 0) - dt);
+    if (e.collapseLife <= 0 && dist(e.x, e.y, S.hero.x, S.hero.y) > Math.max(W, H)) e.dead = true;
+    return;
+  }
   e.flash = Math.max(0, (e.flash || 0) - dt);
   e.stun = Math.max(0, (e.stun || 0) - dt);
   e.collapseLife = (e.collapseLife || 0) - dt;
@@ -10578,47 +10688,122 @@ function expeditionCollapseEnemyStep(e, dt) {
   if (e.collapseLife <= 0 || (dir > 0 && e.x > S.hero.x + Math.max(620, W * .7)) || (dir < 0 && e.x < S.hero.x - Math.max(620, W * .7))) e.dead = true;
 }
 
+function spawnExpeditionPurgeGibs(x, y, e, mult = 1) {
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+  const large = isLargeEnemy(e) || e?.elite || e?.collapseElite;
+  const count = Math.floor((large ? 10 : 6) * mult) + Math.floor(Math.random() * (large ? 8 : 5));
+  const shapes = ['chunk', 'chunk', 'tri', 'square', 'tooth', 'eye'];
+  while ((S.liveGibs || []).length > GIB_LIVE_MAX) addSettledGib(S.liveGibs.shift());
+  for (let i = 0; i < count; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const sp = (large ? 260 : 210) * (.45 + Math.random() * 1.2);
+    S.liveGibs.push({
+      x, y,
+      vx: Math.cos(a) * sp,
+      vy: Math.sin(a) * sp,
+      z: 0,
+      vz: 130 + Math.random() * (large ? 300 : 220),
+      rot: Math.random() * Math.PI * 2,
+      spin: (Math.random() - .5) * 11,
+      r: (large ? 6.8 : 4.8) * (.75 + Math.random() * 1.35),
+      c: GIB_COLORS[Math.floor(Math.random() * GIB_COLORS.length)],
+      edge: '#130b08',
+      shape: shapes[Math.floor(Math.random() * shapes.length)],
+      sides: 5 + Math.floor(Math.random() * 4),
+      seed: Array.from({ length: 5 }, () => Math.random()),
+      life: .46 + Math.random() * .72,
+      alpha: .96,
+      bounces: 0,
+    });
+  }
+}
+
+function expeditionEscapeCleanupEnemies() {
+  return S.enemies.filter(e => e && !e.dead && e.escapePurgeSurvivor);
+}
+
 function applyExpeditionCoreOverload() {
   const ex = S.expedition;
   if (!ex?.escapeActive || !ex.riftCarried) return;
+  if (ex.escapePurgeTriggered) {
+    const survivors = expeditionEscapeCleanupEnemies();
+    if (survivors.length) {
+      for (const e of survivors) {
+        e.flash = Math.max(e.flash || 0, .18);
+        if (Math.random() < .18) burst(e.x, e.y, '#b37cff', 2, 'spark', 50);
+      }
+      if (Math.random() < .28) shockwave(S.hero.x, S.hero.y, '#6f2cff', 120 + Math.random() * 80, .14);
+    }
+    return;
+  }
+  ex.escapePurgeTriggered = true;
+  ex.escapeCleanupActive = true;
   let hits = 0;
-  let visualHits = 0;
-  for (const e of S.enemies) {
-    if (!e || e.dead) continue;
+  const candidates = S.enemies
+    .filter(e => e && !e.dead && dist(S.hero.x, S.hero.y, e.x, e.y) <= 620 + (e.rad || 0))
+    .sort((a, b) => {
+      const da = dist(S.hero.x, S.hero.y, a.x, a.y);
+      const db = dist(S.hero.x, S.hero.y, b.x, b.y);
+      const av = (a.type === 'runner' ? 0 : isLargeEnemy(a) ? 2 : 1) + da * .002;
+      const bv = (b.type === 'runner' ? 0 : isLargeEnemy(b) ? 2 : 1) + db * .002;
+      return av - bv || Math.random() - .5;
+    });
+  const survivorTarget = Math.max(candidates.length >= 10 ? 2 : 1, Math.round(candidates.length * .2));
+  const survivors = new Set(candidates.slice(-survivorTarget));
+  for (let i = 0; i < candidates.length; i++) {
+    const e = candidates[i];
     const d = dist(S.hero.x, S.hero.y, e.x, e.y);
-    if (d > 205 + (e.rad || 0)) continue;
     const boss = e.type === 'slimeking' || !!e.boss || !!e.eliteRoomTarget;
     const large = boss || isLargeEnemy(e) || ['brute', 'ogre', 'siege', 'warden'].includes(e.type);
-    const wasAlive = !e.dead;
-    const damage = e.type === 'runner'
-      ? Math.max(e.hp, e.max) * 2
-      : boss
-        ? Math.max(80, e.max * .12)
-        : large
-          ? Math.max(95, e.max * .42)
-          : Math.max(e.hp, e.max) * 1.4;
-    if (e.expeditionCollapse) {
+    const survives = survivors.has(e) || boss;
+    if (survives) {
+      e.escapePurgeSurvivor = true;
+      e.expeditionCollapse = false;
+      e.collapsePhasing = false;
+      e.expeditionSpawn = true;
+      e.expeditionEncounter = true;
+      e.expeditionTarget = 'hero';
+      e.riftHunter = false;
+      e.hp = Math.max(12, Math.min(e.hp || e.max || 20, (e.max || e.hp || 20) * (large ? .48 : .34)));
+      e.flash = Math.max(e.flash || 0, 1.1);
+      e.stun = Math.max(e.stun || 0, large ? .28 : .42);
+      e.slow = Math.max(e.slow || 0, .5);
+      retargetExpeditionEnemy(e, 'purge-survivor');
+    } else {
       e.hp = 0;
       e.dead = true;
-    } else {
-      hit(e, damage, null, true);
     }
     const a = Math.atan2(e.y - S.hero.y, e.x - S.hero.x);
-    const force = boss ? 110 : large ? 260 : 520;
+    const force = survives ? (large ? 360 : 520) : (large ? 680 : 920);
     e.kx = (e.kx || 0) + Math.cos(a) * force;
     e.ky = (e.ky || 0) + Math.sin(a) * force;
-    e.stun = Math.max(e.stun || 0, boss ? .08 : large ? .16 : .3);
-    if (visualHits < 5) {
-      for (let i = 0; i < (large ? 1 : 2); i++) spawnBloodSplats(e.x, e.y, e);
-      burst(e.x, e.y, wasAlive && e.dead ? '#b01822' : '#8a1118', large ? 8 : 12, 'blood', large ? 260 : 320);
-      if (!large && wasAlive) floatText('CRIT', e.x - 14, e.y - 30, '#fff1a8');
-      visualHits++;
+    for (let s = 0; s < (large ? 3 : 5); s++) spawnBloodSplats(e.x, e.y, e);
+    burst(e.x, e.y, survives ? '#8a1118' : '#b01822', survives ? 18 : large ? 36 : 52, 'blood', survives ? 280 : 520);
+    burst(e.x, e.y, '#2a0308', survives ? 8 : 16, 'smoke', survives ? 130 : 240);
+    spawnExpeditionPurgeGibs(e.x, e.y, e, survives ? .65 : large ? 1.7 : 1.25);
+    if (!survives && !large && i < 24) floatText('PURGED', e.x - 22, e.y - 30, '#fff1a8');
+    if (survives) {
+      floatText('SURVIVED', e.x - 28, e.y - 34, '#ffcf6a');
+      shockwave(e.x, e.y, '#ffcf6a', large ? 78 : 58, .2);
     }
     hits++;
   }
   if (hits) {
-    shockwave(S.hero.x, S.hero.y, '#6a0a0f', 205, .18);
-    shake(Math.min(9, 3 + hits * .45), .12);
+    shockwave(S.hero.x, S.hero.y, '#ffffff', 560, .55);
+    shockwave(S.hero.x, S.hero.y, '#6f2cff', 720, .72);
+    shockwave(S.hero.x, S.hero.y, '#6a0a0f', 920, .9);
+    burst(S.hero.x, S.hero.y, '#f0b8ff', 90, 'spark', 620);
+    burst(S.hero.x, S.hero.y, '#120018', 54, 'smoke', 360);
+    shake(Math.min(34, 16 + hits * .55), .95);
+    playSfx('bossWarning');
+    playSfx('waveClear');
+    announceWave('CORE PURGE', 'boss', 1.4);
+    ex.message = 'CORE PURGE: finish the survivors.';
+    ex.messageTime = 4;
+    ex.prompt = 'CLEAR SURVIVORS';
+    ex.promptTime = 4;
+  } else {
+    ex.escapeCleanupActive = false;
   }
 }
 
@@ -10709,9 +10894,9 @@ function updateExpeditionEscapeSequence(dt) {
     const climax = shatterConvoy && (ex.escapeElapsed || 0) < 16;
     const count = shatterConvoy
       ? ex.riftCarried
-        ? (climax ? 14 : 7)
-        : (climax ? 10 : 5)
-      : ex.riftCarried ? 8 : 6;
+        ? (climax ? 10 : 6)
+        : (climax ? 8 : 4)
+      : ex.riftCarried ? 6 : 4;
     for (let i = 0; i < count; i++) spawnExpeditionCollapseEnemy();
     ex.escapeSpawnTimer = shatterConvoy
       ? ex.riftCarried
@@ -10723,18 +10908,42 @@ function updateExpeditionEscapeSequence(dt) {
     applyExpeditionCoreOverload();
     ex.escapeOverloadTimer = .18;
   }
+  if (ex.escapeCleanupActive && !expeditionEscapeCleanupEnemies().length) {
+    ex.escapeCleanupActive = false;
+    ex.message = 'Collapse survivors cleared.';
+    ex.messageTime = 3;
+    ex.prompt = isShatterConvoyExpedition() ? 'REACH EXTRACTION' : 'RETURN TO THE ENTRANCE';
+    ex.promptTime = 3;
+    announceWave('AREA SAFE', 'resting', 1);
+    playSfx('waveClear');
+  }
   const cfg = expeditionConfig();
   const escapeRoomId = cfg?.escapeRoomId || 'entry';
   const escapeRoom = (cfg?.rooms || []).find(room => room.id === escapeRoomId);
   if (ex.riftCarried && escapeRoom && expeditionRoomContainsPoint(escapeRoom, S.hero.x, S.hero.y)) {
+    if (ex.escapeCleanupActive) {
+      const survivors = expeditionEscapeCleanupEnemies().length;
+      ex.message = survivors ? `Finish ${survivors} collapse survivor${survivors === 1 ? '' : 's'}.` : 'Confirm the room is safe.';
+      ex.messageTime = 1.5;
+      ex.prompt = 'CLEAR SURVIVORS';
+      ex.promptTime = 1.5;
+      if (!ex.escapeCleanupMessageShown) {
+        announceWave('SURVIVORS REMAIN', 'danger', 1);
+        showMissionHint('Finish the collapse survivors before extraction.', 'expedition-escape-cleanup', 3);
+        ex.escapeCleanupMessageShown = true;
+      }
+      return;
+    }
     finishExpeditionExtraction();
     return;
   }
-  ex.message = ex.riftCarried
+  ex.message = ex.escapeCleanupActive
+    ? 'CORE PURGE COMPLETE — FINISH SURVIVORS'
+    : ex.riftCarried
     ? (isShatterConvoyExpedition() ? 'CORE OVERLOAD — REACH EXTRACTION' : 'CORE OVERLOAD — RETURN TO THE ENTRANCE')
     : 'EXTRACT THE CORE';
   ex.messageTime = Math.max(ex.messageTime || 0, .25);
-  ex.prompt = ex.riftCarried ? (isShatterConvoyExpedition() ? 'REACH EXTRACTION' : 'RETURN TO THE ENTRANCE') : 'PICK UP THE CORE';
+  ex.prompt = ex.escapeCleanupActive ? 'CLEAR SURVIVORS' : ex.riftCarried ? (isShatterConvoyExpedition() ? 'REACH EXTRACTION' : 'RETURN TO THE ENTRANCE') : 'PICK UP THE CORE';
   ex.promptTime = Math.max(ex.promptTime || 0, .25);
 }
 
@@ -10885,11 +11094,11 @@ function spawnShatterConvoyInstabilityHunters() {
     return spawnExpeditionRoomEnemy(type, room, cell, false);
   }).filter(Boolean);
   for (const enemy of spawned) {
-    enemy.expeditionTarget = 'rift';
-    enemy.riftHunter = true;
+    assignExpeditionEnemyTargetRole(enemy);
     enemy.expeditionRecentlyEngagedUntil = performance.now() / 1000 + 5;
-    retargetExpeditionEnemy(enemy, 'shatter-instability');
+    expeditionRefreshEnemyTargetChoice(enemy, 'shatter-instability');
   }
+  ensureExpeditionDefenseCorePressure(spawned, 'shatter-instability-core');
   if (spawned.length) {
     ex.message = 'Rift instability drew hunters.';
     ex.messageTime = 3;
@@ -10947,10 +11156,9 @@ function spawnShatterConvoyHoldWave(room, wave) {
         enemy.x += dx / d * leadIn;
         enemy.y += dy / d * leadIn;
       }
-      enemy.expeditionTarget = 'rift';
-      enemy.riftHunter = true;
+      assignExpeditionEnemyTargetRole(enemy, spawned.length);
       enemy.expeditionRecentlyEngagedUntil = performance.now() / 1000 + 5;
-      retargetExpeditionEnemy(enemy, 'shatter-convoy-hold');
+      expeditionRefreshEnemyTargetChoice(enemy, 'shatter-convoy-hold');
       spawned.push(enemy);
     }
   }
@@ -11290,6 +11498,8 @@ function spawnExpeditionRoomEnemy(type, room, spawnCell, elite = false) {
   e.expeditionLastTarget = e.expeditionTargetKey;
   e.expeditionTargetCell = { c: target.c, r: target.r };
   e.expeditionNextRetargetAt = performance.now() / 1000 + 2.6 + Math.random() * 1.4;
+  assignExpeditionEnemyTargetRole(e);
+  expeditionRefreshEnemyTargetChoice(e, 'room-spawn-role');
   e.entry = spawnCell?.label || spawnCell?.kind || room.name || room.id;
   if (elite) {
     e.eliteRoomTarget = true;
@@ -11328,19 +11538,14 @@ function spawnExpeditionRoomRouteThreats(room, force = false) {
 }
 
 function assignExpeditionRoomTargets(enemies, room) {
-  const cfg = expeditionConfig();
-  if (!cfg || !expeditionRoomCanThreatenRift(room)) return;
+  if (!expeditionRoomCanThreatenRift(room)) return;
   const candidates = enemies.filter(e => e && !e.dead && !e.eliteRoomTarget);
   if (!candidates.length) return;
-  const ratio = clamp((cfg.riftHunterRatio ?? .25) + expeditionRiftThreatScale() * .35, 0, .9);
-  const count = Math.min(candidates.length, Math.max(0, Math.round(candidates.length * ratio)));
-  for (let i = 0; i < count; i++) {
-    const e = candidates[i];
-    e.expeditionTarget = 'rift';
-    e.riftHunter = true;
-    e.expeditionRetargetTimer = 0;
-    retargetExpeditionEnemy(e, 'rift-hunter');
+  for (let i = 0; i < candidates.length; i++) {
+    assignExpeditionEnemyTargetRole(candidates[i], i);
+    expeditionRefreshEnemyTargetChoice(candidates[i], 'room-role-target');
   }
+  ensureExpeditionDefenseCorePressure(candidates, 'room-core-pressure');
 }
 
 function spawnExpeditionRoomNest(room) {
@@ -11423,6 +11628,10 @@ function damageExpeditionRift(e, dt) {
   if (!isExpeditionRun() || !ex?.riftEverCarried || !rift || !e || e.dead || e.expeditionTarget !== 'rift') return false;
   const d = dist(e.x, e.y, rift.x, rift.y);
   if (d >= (e.rad || 12) + 42) return false;
+  const faceD = d || 1;
+  e.vx = (rift.x - e.x) / faceD;
+  e.vy = (rift.y - e.y) / faceD;
+  if (e.type === 'warden') e.guardFacing = Math.atan2(rift.y - e.y, rift.x - e.x);
   const shieldActive = expeditionRiftShieldActive();
   if (shieldActive) {
     rift.flash = Math.max(rift.flash || 0, .35);
@@ -11841,9 +12050,7 @@ function spawnExpeditionEnemy(pool) {
   const cell = expeditionSpawnCell();
   if (!cell) return null;
   const ex = S.expedition || {};
-  const cfg = expeditionConfig();
-  const riftTarget = !!(ex.riftActivated && ex.riftEverCarried && ex.rift && Math.random() < clamp((cfg?.riftHunterRatio ?? .25) + expeditionRiftThreatScale() * .35, 0, .9));
-  const target = riftTarget ? cellAt(ex.rift.x, ex.rift.y) : cellAt(S.hero.x, S.hero.y);
+  const target = cellAt(S.hero.x, S.hero.y);
   let path = routePath(cell, target);
   if (!path.length && ex.riftActivated) path = routePath(cell, GOAL);
   if (!path.length) path = [cell, target];
@@ -11855,12 +12062,14 @@ function spawnExpeditionEnemy(pool) {
   if (e) {
     e.entry = cell.label || 'facility';
     e.expeditionSpawn = true;
-    e.expeditionTarget = riftTarget ? 'rift' : 'hero';
-    e.riftHunter = riftTarget;
+    e.expeditionTarget = 'hero';
+    e.riftHunter = false;
     e.expeditionTargetKey = key(target.c, target.r);
     e.expeditionLastTarget = e.expeditionTargetKey;
     e.expeditionTargetCell = { c: target.c, r: target.r };
     e.expeditionNextRetargetAt = performance.now() / 1000 + 2.6 + Math.random() * 1.4;
+    assignExpeditionEnemyTargetRole(e);
+    expeditionRefreshEnemyTargetChoice(e, 'expedition-spawn-role');
   }
   return e;
 }
@@ -13025,10 +13234,108 @@ function enemyPath(e) {
   return Array.isArray(e.path) && e.path.length ? e.path : (S.path || []);
 }
 
-function expeditionEnemyTargetCell(e) {
+function expeditionCoreTargetAvailable() {
   const ex = S.expedition;
+  return !!(isExpeditionRun() && ex?.riftActivated && ex.riftEverCarried && ex.rift && !ex.riftCarried && (ex.rift.hp ?? 1) > 0);
+}
+
+function expeditionEnemyTargetRoleForType(type) {
+  switch (type) {
+    case 'runner':
+    case 'hunter':
+    case 'phase':
+    case 'bomber':
+      return 'playerHunter';
+    case 'brute':
+    case 'ogre':
+    case 'shield':
+    case 'siege':
+    case 'sapper':
+    case 'warden':
+    case 'slimeking':
+      return 'coreBreaker';
+    case 'slinger':
+    case 'healer':
+    case 'hexcaller':
+      return 'rangedHarasser';
+    case 'grunt':
+    case 'splitter':
+    default:
+      return 'opportunist';
+  }
+}
+
+function assignExpeditionEnemyTargetRole(e, index = 0) {
+  if (!e || e.dead) return null;
+  if (!e.expeditionTargetRole) e.expeditionTargetRole = expeditionEnemyTargetRoleForType(e.type);
+  e.expeditionTargetRoleIndex = Number.isFinite(e.expeditionTargetRoleIndex) ? e.expeditionTargetRoleIndex : index;
+  return e.expeditionTargetRole;
+}
+
+function expeditionEnemyPreferredTarget(e) {
+  if (!e || !expeditionCoreTargetAvailable()) return 'hero';
+  const ex = S.expedition;
+  const role = assignExpeditionEnemyTargetRole(e) || 'opportunist';
+  const rift = ex.rift;
+  const heroD = dist(e.x, e.y, S.hero.x, S.hero.y);
+  const coreD = dist(e.x, e.y, rift.x, rift.y);
+  const coreExposed = !expeditionRiftShieldActive();
+  switch (role) {
+    case 'playerHunter':
+      return coreD < 100 && heroD > coreD + 230 ? 'rift' : 'hero';
+    case 'coreBreaker':
+      return heroD + 145 < coreD ? 'hero' : 'rift';
+    case 'rangedHarasser': {
+      const range = Math.max(220, Math.min(430, (e.range || 260) + 70));
+      if (coreExposed && coreD < range && heroD > coreD + 125) return 'rift';
+      return coreD < 120 && heroD > 210 ? 'rift' : 'hero';
+    }
+    case 'opportunist':
+    default:
+      return coreD <= heroD + 60 ? 'rift' : 'hero';
+  }
+}
+
+function expeditionSetEnemyTarget(e, target, reason = 'role-target') {
+  if (!e || e.dead) return false;
+  const nextTarget = target === 'rift' && expeditionCoreTargetAvailable() ? 'rift' : 'hero';
+  const changed = e.expeditionTarget !== nextTarget;
+  e.expeditionTarget = nextTarget;
+  e.riftHunter = nextTarget === 'rift';
+  if (changed) return retargetExpeditionEnemy(e, reason);
+  return false;
+}
+
+function expeditionRefreshEnemyTargetChoice(e, reason = 'role-target') {
+  if (!isExpeditionRun() || !e || e.dead) return false;
+  assignExpeditionEnemyTargetRole(e);
+  return expeditionSetEnemyTarget(e, expeditionEnemyPreferredTarget(e), reason);
+}
+
+function ensureExpeditionDefenseCorePressure(enemies, reason = 'defense-core-pressure') {
+  if (!expeditionCoreTargetAvailable() || !Array.isArray(enemies)) return;
+  const candidates = enemies.filter(e => e && !e.dead && !e.eliteRoomTarget);
+  if (!candidates.length) return;
+  const desired = Math.min(candidates.length > 1 ? candidates.length - 1 : 1, Math.max(1, Math.round(candidates.length * .35)));
+  const sorted = candidates.slice().sort((a, b) => {
+    const ar = assignExpeditionEnemyTargetRole(a) === 'coreBreaker' ? 0 : assignExpeditionEnemyTargetRole(a) === 'opportunist' ? 1 : 2;
+    const br = assignExpeditionEnemyTargetRole(b) === 'coreBreaker' ? 0 : assignExpeditionEnemyTargetRole(b) === 'opportunist' ? 1 : 2;
+    return ar - br || ((a.id || 0) - (b.id || 0));
+  });
+  for (let i = 0; i < sorted.length; i++) {
+    const e = sorted[i];
+    if (i < desired) {
+      e.expeditionTargetRole = 'coreBreaker';
+      expeditionSetEnemyTarget(e, 'rift', reason);
+    } else {
+      expeditionRefreshEnemyTargetChoice(e, reason);
+    }
+  }
+}
+
+function expeditionEnemyTargetCell(e) {
   const target = e?.expeditionTarget || 'hero';
-  if (target === 'rift' && ex?.riftActivated && ex.riftEverCarried && ex.rift && !ex.riftCarried) return cellAt(ex.rift.x, ex.rift.y);
+  if (target === 'rift' && expeditionCoreTargetAvailable()) return cellAt(S.expedition.rift.x, S.expedition.rift.y);
   return cellAt(S.hero.x, S.hero.y);
 }
 
@@ -13073,10 +13380,19 @@ function updateExpeditionEnemyTarget(e, dt) {
     e.riftHunter = false;
   }
   const activeRoomEnemy = !!(e.expeditionRoomId && ex.activeRoomId === e.expeditionRoomId);
+  const roleEnemy = !!(e.expeditionTargetRole || e.expeditionSpawn || e.expeditionEncounter);
   const riftHunter = e.expeditionTarget === 'rift';
-  if (!activeRoomEnemy && !riftHunter) return false;
+  if (!activeRoomEnemy && !riftHunter && !roleEnemy) return false;
   if (!e.expeditionTarget) e.expeditionTarget = 'hero';
   const now = performance.now() / 1000;
+  const rift = ex.rift;
+  const nearCore = expeditionCoreTargetAvailable() && rift && dist(e.x, e.y, rift.x, rift.y) < 190;
+  const roleDue = roleEnemy && ((e.expeditionRoleRetargetAt || 0) <= now || (nearCore && (e.expeditionNearCoreRetargetAt || 0) <= now));
+  if (roleDue) {
+    expeditionRefreshEnemyTargetChoice(e, nearCore ? 'near-core-choice' : 'role-choice');
+    e.expeditionRoleRetargetAt = now + (nearCore ? .45 : 1.1) + ((e.id || 0) % 7) * .025;
+    if (nearCore) e.expeditionNearCoreRetargetAt = now + .45 + ((e.id || 0) % 5) * .025;
+  }
   const cachedTarget = e.expeditionTargetCell;
   const path = enemyPath(e);
   const atPathEnd = !path[(e.node || 0) + 1];
@@ -13084,7 +13400,7 @@ function updateExpeditionEnemyTarget(e, dt) {
   const currentTarget = expeditionEnemyTargetCell(e);
   const targetChanged = !cachedTarget || cachedTarget.c !== currentTarget.c || cachedTarget.r !== currentTarget.r;
   const targetInvalid = e.expeditionTarget === 'rift'
-    ? !ex.riftActivated || !ex.riftEverCarried || !ex.rift
+    ? !expeditionCoreTargetAvailable()
     : !cachedTarget;
   if (targetInvalid || atPathEnd || (due && targetChanged)) {
     retargetExpeditionEnemy(e, atPathEnd ? 'room-path-end' : targetInvalid ? 'room-target-invalid' : 'room-target-moved');
@@ -21567,8 +21883,10 @@ function updateBroodCarrierBehavior(e, dt) {
     child.expeditionEncounter = e.expeditionEncounter;
     child.expeditionSpawn = e.expeditionSpawn;
     child.expeditionTarget = e.expeditionTarget || child.expeditionTarget;
+    child.expeditionTargetRole = e.expeditionTargetRole || expeditionEnemyTargetRoleForType(child.type);
     child.riftHunter = e.riftHunter;
     child.expeditionRetargetTimer = 0;
+    expeditionRefreshEnemyTargetChoice(child, 'brood-role-target');
   }
   floatText('BROOD', e.x - 20, e.y - e.rad - 22, '#b9d84f');
   burst(e.x, e.y, '#b9d84f', 10, 'goo', 120);
@@ -21883,6 +22201,7 @@ function simpleExpeditionEnemyStep(e, dt) {
     e.ky = 0;
     return;
   }
+  updateExpeditionEnemyTarget(e, dt);
   if (e.dead || damageExpeditionRift(e, dt)) return;
   if (e.stun > 0) {
     const prevX = e.x, prevY = e.y;
@@ -24020,7 +24339,7 @@ function step(dt) {
     buildEnemySpatialGrid(S.enemies);
     for (const e of S.enemies) {
       const oldX = e.x, oldY = e.y;
-      if (isExpeditionRun() && e.expeditionCollapse) expeditionCollapseEnemyStep(e, dt);
+      if (isExpeditionRun() && e.expeditionCollapse && e.collapsePhasing) expeditionCollapseEnemyStep(e, dt);
       else if (isExpeditionRun() && e.expeditionAiTier === 'simple') simpleExpeditionEnemyStep(e, dt);
       else enemyStep(e, dt);
       if (!e.expeditionCollapse) {
@@ -24090,6 +24409,10 @@ function step(dt) {
         alert.classList.add('hidden');
       }
     }
+  }
+  if (S.expedition?.riftBoonFx) {
+    S.expedition.riftBoonFx.time = Math.max(0, (S.expedition.riftBoonFx.time || 0) - dt);
+    if (S.expedition.riftBoonFx.time <= 0) S.expedition.riftBoonFx = null;
   }
 
   // Screen shake decay
@@ -25737,6 +26060,7 @@ function drawExpeditionRiftCore(x, y, t, activated = false, carried = false) {
   const pulse = 1 + Math.sin(vt * (weak ? 4 : 6)) * (weak ? .035 : .07);
   const fragile = weak ? .82 + Math.sin(t * 11.7) * .06 : 1;
   const carryScale = carried ? TETHERED_RIFT_DRAW_SIZE / DEPLOYED_RIFT_DRAW_SIZE : 1;
+  if (activated && !carried && !dormant) drawExpeditionRiftUpgradeOrbitEffects(x, y, t);
   ctx.save();
   ctx.translate(x, y);
   ctx.scale(visual.scale * carryScale, visual.scale * carryScale);
@@ -25820,7 +26144,7 @@ function drawExpeditionRiftCore(x, y, t, activated = false, carried = false) {
     ctx.globalAlpha = 1;
   }
 
-  if (visual.hasField) {
+  if (false && visual.hasField) {
     ctx.globalCompositeOperation = 'source-over';
     for (let ring = 0; ring < 3; ring++) {
       const r = 74 + ring * 34 + Math.sin(vt * 2.4 + ring) * 7;
@@ -25864,7 +26188,7 @@ function drawExpeditionRiftCore(x, y, t, activated = false, carried = false) {
     ctx.globalCompositeOperation = 'screen';
   }
 
-  if (visual.hasPulse) {
+  if (false && visual.hasPulse) {
     ctx.globalCompositeOperation = 'source-over';
     ctx.save();
     const crownPulse = 1 + Math.sin(vt * 5.6) * .11;
@@ -25910,7 +26234,7 @@ function drawExpeditionRiftCore(x, y, t, activated = false, carried = false) {
     ctx.globalCompositeOperation = 'source-over';
   }
 
-  if (visual.shieldActive || visual.hasShield) {
+  if (false && (visual.shieldActive || visual.hasShield)) {
     const rot = vt * 2.7;
     ctx.globalAlpha = .94;
     ctx.fillStyle = '#cdbb91';
@@ -25994,93 +26318,361 @@ function drawExpeditionRiftCore(x, y, t, activated = false, carried = false) {
   ctx.restore();
 }
 
+function riftRelicOrbitPoint(i, t, baseR = 92, speed = .42, drift = 1) {
+  const seed = (i + 1) * 12.9898;
+  const a = t * speed * (i % 2 ? -1 : 1) + i * 2.399 + Math.sin(t * (.31 + i * .013) + seed) * .18 * drift;
+  const rx = baseR + Math.sin(t * (.73 + i * .04) + seed) * (12 + (i % 3) * 5) * drift;
+  const ry = baseR * (.72 + (i % 4) * .035) + Math.cos(t * (.57 + i * .03) + seed * .7) * (9 + (i % 2) * 7) * drift;
+  return {
+    x: Math.cos(a) * rx + Math.sin(t * .19 + seed) * 7 * drift,
+    y: Math.sin(a) * ry + Math.cos(t * .23 + seed) * 8 * drift,
+    a,
+    bob: Math.sin(t * (1.4 + (i % 5) * .17) + seed) * (3 + (i % 4)),
+  };
+}
+
+function drawCursedBoneRelic(i, t, p) {
+  ctx.save();
+  ctx.translate(p.x, p.y + p.bob);
+  ctx.rotate(p.a + Math.sin(t * 1.7 + i) * .22);
+  const len = 28 + (i % 4) * 7;
+  const thick = 5 + (i % 3) * 1.6;
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = .86;
+  ctx.strokeStyle = '#1a1010';
+  ctx.lineWidth = thick + 4;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(-len * .45, 0);
+  ctx.quadraticCurveTo(-len * .08, Math.sin(i) * 5, len * .45, Math.cos(i) * 3);
+  ctx.stroke();
+  ctx.strokeStyle = i % 2 ? '#d2c5aa' : '#bba88f';
+  ctx.lineWidth = thick;
+  ctx.beginPath();
+  ctx.moveTo(-len * .45, 0);
+  ctx.quadraticCurveTo(-len * .08, Math.sin(i) * 5, len * .45, Math.cos(i) * 3);
+  ctx.stroke();
+  ctx.fillStyle = i % 2 ? '#e7dcc7' : '#cbb99a';
+  for (const end of [-1, 1]) {
+    ctx.beginPath();
+    ctx.ellipse(end * len * .5, -thick * .45, thick * .8, thick * .65, .25 * end, 0, 7);
+    ctx.ellipse(end * len * .48, thick * .48, thick * .72, thick * .58, -.35 * end, 0, 7);
+    ctx.fill();
+  }
+  ctx.strokeStyle = '#4a0511';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(-len * .12, -thick * .7);
+  ctx.lineTo(-len * .02, thick * .65);
+  ctx.moveTo(len * .14, -thick * .35);
+  ctx.lineTo(len * .02, thick * .75);
+  ctx.stroke();
+  if (Math.sin(t * .9 + i * 2.7) > .96) {
+    ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = .55;
+    ctx.fillStyle = '#b47cff';
+    for (let d = 0; d < 5; d++) {
+      ctx.beginPath();
+      ctx.arc(Math.cos(d * 1.7 + i) * (10 + d * 2), Math.sin(d * 2.1 + t) * 8, 2 + d * .35, 0, 7);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  ctx.globalAlpha = .12;
+  ctx.strokeStyle = '#b47cff';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(p.x - Math.cos(p.a) * 18, p.y + p.bob - Math.sin(p.a) * 12);
+  ctx.quadraticCurveTo(p.x * .92, p.y * .9, p.x - Math.cos(p.a + .5) * 42, p.y + p.bob - Math.sin(p.a + .5) * 26);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawScrapWeaponRelic(i, t, p) {
+  ctx.save();
+  ctx.translate(p.x, p.y + p.bob);
+  const lunge = Math.max(0, Math.sin(t * (1.1 + (i % 3) * .21) + i * 1.9) - .86) * 34;
+  ctx.translate(Math.cos(p.a) * lunge, Math.sin(p.a) * lunge * .72);
+  ctx.rotate(p.a * (i % 2 ? -1 : 1) + t * (.7 + (i % 5) * .21) + Math.sin(t + i) * .18);
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = .9;
+  ctx.strokeStyle = '#170809';
+  ctx.lineWidth = 3;
+  const kind = i % 6;
+  if (kind === 0) {
+    ctx.fillStyle = '#8b7a61';
+    ctx.beginPath(); ctx.arc(0, 0, 17, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#18080a';
+    for (let tooth = 0; tooth < 9; tooth++) {
+      const a = tooth * Math.PI * 2 / 9;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * 14, Math.sin(a) * 14);
+      ctx.lineTo(Math.cos(a + .13) * 24, Math.sin(a + .13) * 24);
+      ctx.lineTo(Math.cos(a + .26) * 14, Math.sin(a + .26) * 14);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#26070a';
+    ctx.beginPath(); ctx.arc(0, 0, 6, 0, 7); ctx.fill();
+  } else if (kind === 1) {
+    ctx.fillStyle = '#9a8970';
+    ctx.beginPath();
+    ctx.moveTo(-8, -22); ctx.lineTo(14, -12); ctx.lineTo(6, 28); ctx.lineTo(-12, 22); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#4a2216'; ctx.fillRect(-5, 20, 9, 24);
+  } else if (kind === 2) {
+    ctx.strokeStyle = '#a38f75';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(-12, -22); ctx.quadraticCurveTo(18, -6, -2, 22); ctx.stroke();
+    ctx.strokeStyle = '#170809'; ctx.lineWidth = 2; ctx.stroke();
+  } else if (kind === 3) {
+    ctx.fillStyle = '#85745d';
+    ctx.beginPath();
+    ctx.moveTo(0, -28); ctx.lineTo(9, 8); ctx.lineTo(0, 30); ctx.lineTo(-9, 8); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#4a2216'; ctx.fillRect(-12, 9, 24, 5);
+  } else if (kind === 4) {
+    ctx.fillStyle = '#6f6252';
+    ctx.fillRect(-5, -26, 10, 42); ctx.strokeRect(-5, -26, 10, 42);
+    ctx.beginPath(); ctx.moveTo(-15, -10); ctx.lineTo(0, -24); ctx.lineTo(15, -9); ctx.lineTo(0, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+  } else {
+    ctx.fillStyle = '#98846a';
+    ctx.beginPath(); ctx.moveTo(-20, -3); ctx.lineTo(22, -12); ctx.lineTo(12, 8); ctx.lineTo(-24, 9); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#4a0511'; ctx.fillRect(-11, 4, 18, 4);
+  }
+  ctx.globalCompositeOperation = 'screen';
+  ctx.globalAlpha = .18 + lunge * .006;
+  ctx.strokeStyle = '#ff3b61';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0, 0, 27 + lunge * .2, -.4, 1.2);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawCorruptionWisp(i, t, baseR = 72, alpha = .3) {
+  const p = riftRelicOrbitPoint(i, t, baseR + (i % 5) * 12, .22 + (i % 4) * .05, 1.4);
+  ctx.save();
+  ctx.translate(p.x, p.y + p.bob);
+  ctx.rotate(p.a + Math.sin(t + i) * .6);
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = i % 3 ? '#080208' : '#17051e';
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 10 + (i % 4) * 5, 25 + (i % 5) * 7, .4, 0, 7);
+  ctx.fill();
+  ctx.globalCompositeOperation = 'screen';
+  ctx.globalAlpha = alpha * .45;
+  ctx.strokeStyle = '#b47cff';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-3, -12);
+  ctx.bezierCurveTo(16, -3, -20, 12, 6, 26);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawGhostFaceRelic(i, t, p) {
+  const flicker = Math.sin(t * (1.7 + i * .11) + i * 4.1);
+  if (flicker < .35) return;
+  ctx.save();
+  ctx.translate(p.x, p.y + p.bob);
+  ctx.rotate(Math.sin(t * .7 + i) * .3);
+  ctx.globalCompositeOperation = 'screen';
+  ctx.globalAlpha = (.16 + flicker * .16);
+  ctx.fillStyle = '#d8b8ff';
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 14 + (i % 3) * 4, 20 + (i % 2) * 7, Math.sin(i) * .25, 0, 7);
+  ctx.fill();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = .5;
+  ctx.fillStyle = '#050108';
+  ctx.beginPath();
+  ctx.arc(-5, -4, 2.6, 0, 7);
+  ctx.arc(6, -3, 2.2, 0, 7);
+  ctx.ellipse(1, 8, 3.2, 6, 0, 0, 7);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawRiftProgressionCorruption(visual, t) {
+  const count = visual.count || 0;
+  const threat = visual.threat || 0;
+  const vt = visual.visualT || t;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  const breath = 1 + Math.sin(t * 2.4) * (.035 + count * .01);
+  ctx.globalAlpha = .16 + count * .035;
+  ctx.fillStyle = count >= 4 ? '#2b0010' : '#3d0648';
+  ctx.beginPath();
+  ctx.ellipse(0, 4, (74 + count * 10) * breath, (52 + count * 7) / breath, Math.sin(t * .6) * .18, 0, 7);
+  ctx.fill();
+  ctx.strokeStyle = count >= 3 ? '#6f2cff' : '#b47cff';
+  ctx.lineWidth = 2 + count * .4;
+  ctx.globalAlpha = .18 + count * .04;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 62 + count * 13 + Math.sin(t * 4) * 4, 46 + count * 8 + Math.cos(t * 3.3) * 3, vt * .08, 0, 7);
+  ctx.stroke();
+  if (count >= 3) {
+    ctx.globalAlpha = .28;
+    ctx.strokeStyle = '#120018';
+    ctx.lineWidth = 5;
+    for (let i = 0; i < 5 + count; i++) {
+      const p = riftRelicOrbitPoint(i + 60, t, 70 + i * 7, .18, 1.2);
+      ctx.beginPath();
+      ctx.moveTo(p.x * .5, p.y * .5);
+      ctx.quadraticCurveTo(p.x * .72 + Math.sin(t + i) * 18, p.y * .78, p.x, p.y);
+      ctx.stroke();
+    }
+  }
+  if (count >= 5) {
+    ctx.globalAlpha = .18 + Math.sin(t * 5) * .05;
+    ctx.strokeStyle = '#e0c8ff';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 18, 3, 14]);
+    ctx.beginPath();
+    ctx.ellipse(Math.sin(t * .7) * 6, Math.cos(t * .9) * 5, 132 + threat * 34, 82 + threat * 18, Math.sin(t * .4) * .35, 0, 7);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  ctx.restore();
+}
+
+function drawRiftCursedParticles(visual, t) {
+  const count = Math.max(1, visual.count || 0);
+  ctx.save();
+  ctx.globalCompositeOperation = 'source-over';
+  for (let i = 0; i < 12 + count * 5; i++) {
+    const p = riftRelicOrbitPoint(i + 120, t, 42 + (i % 7) * 17, .12 + (i % 5) * .025, 1.8);
+    const ember = i % 4 === 0;
+    ctx.globalAlpha = ember ? .36 : .18;
+    ctx.fillStyle = ember ? '#b47cff' : '#060208';
+    ctx.beginPath();
+    ctx.ellipse(p.x, p.y + p.bob, ember ? 2.4 : 3.8, ember ? 3.8 : 2.4, p.a, 0, 7);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
 function drawExpeditionRiftUpgradeOrbitEffects(x, y, t) {
   const ex = S.expedition;
   if (!isExpeditionRun() || !ex?.riftActivated) return;
   const visual = expeditionRiftVisualState(t);
-  if (!visual.count) return;
   const vt = visual.visualT || t;
   ctx.save();
   ctx.translate(x, y);
+  drawRiftProgressionCorruption(visual, t);
+  drawRiftCursedParticles(visual, t);
+  if (visual.hasField || visual.count >= 4) {
+    for (let i = 0; i < 14 + visual.count * 2; i++) drawCorruptionWisp(i, vt, 68 + (i % 6) * 10, .18 + visual.threat * .16);
+    for (let i = 0; i < 5 + visual.count; i++) {
+      const p = riftRelicOrbitPoint(i + 30, vt, 98 + (i % 4) * 14, .31 + (i % 3) * .04, 1.6);
+      if (i % 2 === 0) drawGhostFaceRelic(i, vt, p);
+      else {
+        ctx.save();
+        ctx.translate(p.x, p.y + p.bob);
+        ctx.rotate(p.a + Math.sin(vt + i) * .4);
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = .36;
+        ctx.fillStyle = '#09040b';
+        ctx.beginPath();
+        ctx.moveTo(-16, -10);
+        ctx.lineTo(14 + Math.sin(vt + i) * 8, -4);
+        ctx.lineTo(8, 18);
+        ctx.lineTo(-20, 8);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+  }
+  if (visual.hasShield || visual.count >= 2) {
+    const boneCount = visual.hasShield ? 11 : 5;
+    for (let i = 0; i < boneCount; i++) {
+      const p = riftRelicOrbitPoint(i, vt, 82 + (i % 4) * 9, .28 + (i % 5) * .035, 1.35);
+      drawCursedBoneRelic(i, vt, p);
+    }
+  }
+  if (visual.hasPulse || visual.count >= 3) {
+    const weaponCount = visual.hasPulse ? 10 : 5;
+    for (let i = 0; i < weaponCount; i++) {
+      const p = riftRelicOrbitPoint(i + 15, vt, 96 + (i % 3) * 10, .5 + (i % 5) * .055, 1.25);
+      drawScrapWeaponRelic(i, vt, p);
+    }
+  }
+  ctx.restore();
+}
+
+function startExpeditionRiftBoonAcquisitionFx(upgradeId) {
+  const ex = S.expedition;
+  if (!isExpeditionRun() || !ex?.rift) return;
+  ex.riftBoonFx = {
+    upgradeId,
+    time: 2.15,
+    duration: 2.15,
+    count: expeditionRiftUpgradeIds().length,
+  };
+  ex.rift.flash = Math.max(ex.rift.flash || 0, 1.4);
+  shake(8, .42);
+}
+
+function drawExpeditionRiftBoonAcquisitionFx(x, y, t) {
+  const fx = S.expedition?.riftBoonFx;
+  if (!fx || !(fx.time > 0)) return;
+  const duration = Math.max(.1, fx.duration || 2.15);
+  const progress = clamp(1 - fx.time / duration, 0, 1);
+  const fade = Math.sin(progress * Math.PI);
+  ctx.save();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = .32 * fade;
+  ctx.fillStyle = '#020006';
+  ctx.fillRect(CAMERA.x - 80, CAMERA.y - 80, W + 160, H + 160);
   ctx.globalCompositeOperation = 'screen';
-  ctx.globalAlpha = .34 + visual.threat * .16;
-  ctx.strokeStyle = visual.danger ? '#ff324f' : '#8edcff';
-  ctx.lineWidth = 3;
-  ctx.setLineDash([18, 13, 6, 11]);
+  ctx.translate(x, y);
+  ctx.globalAlpha = .75 * fade;
+  ctx.strokeStyle = '#6f2cff';
+  ctx.lineWidth = 9;
   ctx.beginPath();
-  ctx.arc(0, 0, 74 + Math.sin(vt * 4) * 4, vt * .24, vt * .24 + Math.PI * 1.78);
+  ctx.arc(0, 0, 36 + progress * 270, 0, 7);
   ctx.stroke();
-  ctx.setLineDash([]);
-  if (visual.hasShield) {
-    ctx.globalCompositeOperation = 'source-over';
-    for (let i = 0; i < 10; i++) {
-      const a = vt * 1.15 + i * Math.PI * 2 / 10;
-      const r = 86 + Math.sin(vt * 3 + i) * 5;
-      ctx.save();
-      ctx.translate(Math.cos(a) * r, Math.sin(a) * r);
-      ctx.rotate(a + Math.PI / 2 + Math.sin(vt * 2 + i) * .18);
-      ctx.globalAlpha = .82;
-      ctx.fillStyle = i % 2 ? '#d7ccb1' : '#f0e5cb';
-      ctx.strokeStyle = '#1a1010';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.roundRect(-4, -14, 8, 28, 4);
-      ctx.fill();
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(0, -17, 5, 0, 7);
-      ctx.fill();
-      ctx.stroke();
-      ctx.restore();
+  ctx.globalAlpha = .38 * fade;
+  ctx.fillStyle = '#2b0010';
+  ctx.beginPath();
+  ctx.arc(0, 0, 120 + progress * 190, 0, 7);
+  ctx.fill();
+  for (let i = 0; i < 22; i++) {
+    const a = i * 2.399 + progress * (2.2 + (i % 4) * .28);
+    const r = 28 + progress * (70 + i * 7);
+    const px = Math.cos(a) * r;
+    const py = Math.sin(a) * r * (.68 + (i % 3) * .04);
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.rotate(a + progress * 4 + i);
+    ctx.globalAlpha = fade * (.34 + (i % 3) * .08);
+    if (i % 5 === 0) {
+      ctx.strokeStyle = '#2b0010';
+      ctx.lineWidth = 5;
+      ctx.beginPath(); ctx.moveTo(-18, 0); ctx.lineTo(18, 0); ctx.stroke();
+      ctx.strokeStyle = '#b47cff';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(12, 0); ctx.stroke();
+    } else if (i % 5 === 1) {
+      drawCursedBoneRelic(i, t + progress, { x: 0, y: 0, a, bob: 0 });
+    } else if (i % 5 === 2) {
+      drawScrapWeaponRelic(i, t + progress, { x: 0, y: 0, a, bob: 0 });
+    } else if (i % 5 === 3) {
+      ctx.fillStyle = '#d2c5aa';
+      ctx.beginPath(); ctx.arc(0, 0, 10, 0, 7); ctx.fill();
+      ctx.fillStyle = '#050108';
+      ctx.beginPath(); ctx.arc(-4, -2, 2, 0, 7); ctx.arc(4, -2, 2, 0, 7); ctx.fill();
+    } else {
+      ctx.fillStyle = '#080208';
+      ctx.beginPath(); ctx.ellipse(0, 0, 10, 24, .5, 0, 7); ctx.fill();
     }
-  }
-  if (visual.hasPulse) {
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.strokeStyle = '#7b0615';
-    ctx.lineWidth = 5;
-    for (let i = 0; i < 7; i++) {
-      const a = -vt * .7 + i * Math.PI * 2 / 7;
-      const r = 58 + Math.sin(vt * 5 + i) * 6;
-      ctx.globalAlpha = .58;
-      ctx.beginPath();
-      ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
-      ctx.bezierCurveTo(
-        Math.cos(a + .28) * (r + 22), Math.sin(a + .28) * (r + 18),
-        Math.cos(a + .56) * (r + 34), Math.sin(a + .56) * (r + 30),
-        Math.cos(a + .78) * (r + 46), Math.sin(a + .78) * (r + 36)
-      );
-      ctx.stroke();
-    }
-  }
-  if (visual.hasField) {
-    const runes = ['I', 'V', 'X', 'O', '+', '?'];
-    ctx.globalCompositeOperation = 'screen';
-    ctx.font = '900 15px Georgia';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    for (let i = 0; i < 12; i++) {
-      const a = vt * .45 + i * Math.PI * 2 / 12;
-      const r = 112 + Math.sin(vt * 2.2 + i) * 10;
-      ctx.globalAlpha = .2 + (i % 3) * .08;
-      ctx.fillStyle = i % 2 ? '#8edcff' : '#f0b8ff';
-      ctx.save();
-      ctx.translate(Math.cos(a) * r, Math.sin(a) * r);
-      ctx.rotate(a + Math.PI / 2);
-      ctx.fillText(runes[i % runes.length], 0, 0);
-      ctx.restore();
-    }
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = '#080208';
-    for (let i = 0; i < 14; i++) {
-      const phase = (vt * .12 + i * .091) % 1;
-      const a = i * 2.399 - vt * .2;
-      const r = 52 + phase * 96;
-      const size = 5 + (i % 4) * 2;
-      ctx.globalAlpha = .38 - phase * .22;
-      ctx.beginPath();
-      ctx.ellipse(Math.cos(a) * r, Math.sin(a) * r * .82, size * 1.8, size, a, 0, 7);
-      ctx.fill();
-    }
+    ctx.restore();
   }
   ctx.restore();
 }
@@ -26320,6 +26912,7 @@ function drawExpeditionObjects(t) {
   const riftRenderY = ex.riftCarried ? carriedRiftY + carriedRiftBob : ex.rift?.y;
   const nearRift = ex.riftActivated || ex.riftFound || dist(S.hero.x, S.hero.y, staticX, staticY) < 360;
   if (nearRift) drawExpeditionRiftCore(ex.riftActivated ? riftRenderX : staticX, ex.riftActivated ? riftRenderY : staticY, t, ex.riftActivated, !!ex.riftCarried);
+  if (nearRift && ex.riftActivated) drawExpeditionRiftBoonAcquisitionFx(riftRenderX, riftRenderY, t);
   if (ex.escapeActive && ex.riftCarried) {
     ctx.save();
     ctx.translate(S.hero.x, S.hero.y);
