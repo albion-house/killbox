@@ -6609,8 +6609,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.45.0</b>
-      <span id="warRoomBuildName">WardenEye</span>
+      <b id="warRoomVersion">v7.45.1</b>
+      <span id="warRoomBuildName">WardenFeet</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -6680,7 +6680,7 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion"><span>v7.45.0</span><span>WardenEye</span></div>
+            <div class="loadoutVersion" id="loadoutVersion"><span>v7.45.1</span><span>WardenFeet</span></div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -8440,11 +8440,12 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.45.0';
+const GAME_VERSION = '7.45.1';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'WardenEye';
+const BUILD_NAME = 'WardenFeet';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Made Aegis Warden shield arcs and exposed weak points readable, with clearer flank-hit feedback and reduced blocked popup spam.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Moved the Aegis Warden weak point to its feet so players can counter front-facing Wardens by aiming low.' },
+  { version: '7.45.0', name: 'WardenEye', changes: 'Made Aegis Warden shield arcs and exposed weak points readable, with clearer flank-hit feedback and reduced blocked popup spam.' },
   { version: '7.44.0', name: 'RoomVariants', changes: 'Added randomized Expedition room encounter variants with count, timing, elite, and composition modifiers.' },
   { version: '7.43.0', name: 'CorePurge', changes: 'Redesigned Expedition escape collapse with routed mixed attackers, a devastating Core purge, and survivor cleanup combat.' },
   { version: '7.42.0', name: 'CoreThreat', changes: 'Added role-based Expedition enemy targeting so defense waves split pressure between the player and deployed Core.' },
@@ -9469,6 +9470,19 @@ function heroShotHitsEnemy(s, e, oldX, oldY, pad = 5) {
   const hb = enemyProjectileHurtbox(e);
   if (hb) return segmentIntersectsExpandedRect(oldX, oldY, s.x, s.y, hb, pad);
   return segDist(e.x, e.y, oldX, oldY, s.x, s.y) < (e.rad || 12) + pad;
+}
+function wardenFootWeakRect(e) {
+  const r = e?.rad || 17;
+  return {
+    x: e.x - r * .78,
+    y: e.y + r * .34,
+    w: r * 1.56,
+    h: r * .88,
+  };
+}
+function heroShotHitsWardenFootWeakPoint(s, e, oldX, oldY) {
+  if (!s || !e || e.type !== 'warden') return false;
+  return segmentIntersectsExpandedRect(oldX, oldY, s.x, s.y, wardenFootWeakRect(e), 3);
 }
 function getExpeditionActiveRoom() {
   if (!isExpeditionRun()) return null;
@@ -19138,7 +19152,7 @@ function nextSpawnDelay() {
 }
 
 // ── Damage / kill helpers ─────────────────────────────────────────
-function hit(e, amt, tower, byHero = false) {
+function hit(e, amt, tower, byHero = false, opts = {}) {
   if (e.dead) return;
   const sourceX = tower ? tower.x : byHero ? S.hero.x : e.x;
   const sourceY = tower ? tower.y : byHero ? S.hero.y : e.y;
@@ -19155,7 +19169,8 @@ function hit(e, amt, tower, byHero = false) {
     const facing = Number.isFinite(e.guardFacing) ? e.guardFacing : sourceAngle;
     const diff = Math.abs(Math.atan2(Math.sin(sourceAngle - facing), Math.cos(sourceAngle - facing)));
     const frontBlocked = diff < 1.08;
-    if (frontBlocked && (tower || byHero)) {
+    const footWeakHit = !!opts.wardenFootWeakHit;
+    if (frontBlocked && (tower || byHero) && !footWeakHit) {
       amt *= 0.35;
       e.guardHold = Math.max(e.guardHold || 0, .95);
       e.guardFacing = sourceAngle;
@@ -19166,7 +19181,7 @@ function hit(e, amt, tower, byHero = false) {
       }
       if (!S.wardenHintShown) {
         S.wardenHintShown = true;
-        floatText('FLANK THE WARDEN', e.x - 58, e.y - e.rad - 34, '#f0b8ff', { big: true, life: 1.25 });
+        floatText('SHOOT THE FEET', e.x - 54, e.y - e.rad - 34, '#f0b8ff', { big: true, life: 1.25 });
       }
     } else {
       e.guardHold = Math.max(e.guardHold || 0, .45);
@@ -19195,9 +19210,8 @@ function hit(e, amt, tower, byHero = false) {
   }
   const applied = Math.max(1, amt);
   if (wardenWeakHit) {
-    const weakAngle = (Number.isFinite(e.guardFacing) ? e.guardFacing : sourceAngle) + Math.PI;
-    const wx = e.x + Math.cos(weakAngle) * (e.rad + 5);
-    const wy = e.y + Math.sin(weakAngle) * (e.rad + 2);
+    const wx = Number.isFinite(opts.impactX) ? opts.impactX : e.x;
+    const wy = Number.isFinite(opts.impactY) ? opts.impactY : e.y + (e.rad || 17) * .82;
     e.weakFlash = Math.max(e.weakFlash || 0, .36);
     e.guardHold = Math.max(e.guardHold || 0, .55);
     floatText(`-${Math.round(applied)}`, wx - 10, wy - 18, '#ff77dd', { big: true, life: .72 });
@@ -23480,7 +23494,11 @@ function projectiles(dt) {
           s.hitEnemies.add(e);
           const stunBefore = e.stun || 0;
           const bossLike = e.type === 'slimeking' || !!e.boss || !!e.eliteRoomTarget;
-          hit(e, s.dmg, null, true);
+          hit(e, s.dmg, null, true, {
+            impactX: s.x,
+            impactY: s.y,
+            wardenFootWeakHit: heroShotHitsWardenFootWeakPoint(s, e, oldX, oldY),
+          });
           e.stun = bossLike ? stunBefore : Math.max(e.stun || 0, 1.2);
           shockwave(e.x, e.y, bossLike ? '#8c7b96' : '#b98cff', 28, .12);
           if (e.hp <= 0) kill(e, null, true);
@@ -23588,7 +23606,11 @@ function projectiles(dt) {
             && !isLargeEnemy(e)
             && !e.boss
             && !e.eliteRoomTarget;
-          hit(e, dmg, null, true);
+          hit(e, dmg, null, true, {
+            impactX: s.x,
+            impactY: s.y,
+            wardenFootWeakHit: heroShotHitsWardenFootWeakPoint(s, e, oldX, oldY),
+          });
           if (shatterKillTarget && e.dead) {
             floatText('SHATTERED!', e.x - 42, e.y - e.rad - 34, '#ffffff');
             burst(e.x, e.y, '#e9fbff', 28, 'spark', 260);
@@ -30251,14 +30273,16 @@ function drawAegisWardenReadability(e, tNow, visualRot = 0) {
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
+  ctx.restore();
 
-  const coreX = -e.rad - 5;
-  const coreY = 1;
+  ctx.save();
+  const coreX = 0;
+  const coreY = e.rad * .78;
   ctx.globalCompositeOperation = 'screen';
   ctx.globalAlpha = .34 + pulse * .22 + weakFlash * .42;
   ctx.fillStyle = weakFlash > 0 ? '#ff77dd' : '#c84dff';
   ctx.beginPath();
-  ctx.arc(coreX, coreY, 10 + pulse * 2 + weakFlash * 8, 0, 7);
+  ctx.ellipse(coreX, coreY, 14 + pulse * 2 + weakFlash * 8, 8 + pulse + weakFlash * 4, 0, 0, 7);
   ctx.fill();
   ctx.globalCompositeOperation = 'source-over';
   ctx.globalAlpha = 1;
@@ -30266,13 +30290,22 @@ function drawAegisWardenReadability(e, tNow, visualRot = 0) {
   ctx.strokeStyle = '#2b071b';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.ellipse(coreX, coreY, 6 + weakFlash * 3, 9 + pulse * 2 + weakFlash * 3, 0, 0, 7);
+  ctx.ellipse(coreX, coreY, 11 + weakFlash * 3, 5 + pulse + weakFlash * 3, 0, 0, 7);
   ctx.fill();
   ctx.stroke();
   ctx.fillStyle = '#fff7ff';
   ctx.beginPath();
-  ctx.arc(coreX - 2, coreY - 3, 2.4 + weakFlash * 1.5, 0, 7);
+  ctx.arc(coreX - 4, coreY - 2, 2.4 + weakFlash * 1.5, 0, 7);
   ctx.fill();
+  ctx.strokeStyle = '#ff77dd';
+  ctx.lineWidth = 2;
+  ctx.globalAlpha = .78 + weakFlash * .22;
+  ctx.beginPath();
+  ctx.moveTo(-e.rad * .62, e.rad * .24);
+  ctx.lineTo(-e.rad * .34, coreY - 2);
+  ctx.moveTo(e.rad * .62, e.rad * .24);
+  ctx.lineTo(e.rad * .34, coreY - 2);
+  ctx.stroke();
   ctx.restore();
 }
 function drawSapperImp(e, base) { drawHumanoidBase(e, '#7a4a1e', '#b87f4b'); ctx.fillStyle='#3c2417'; ctx.beginPath(); ctx.arc(0, -8, 10, 0, 7); ctx.fill(); ctx.fillStyle='#f5c57a'; ctx.fillRect(9, 0, 10, 8); ctx.strokeStyle='#d59a58'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(10, 8); ctx.lineTo(22, 14); ctx.stroke(); }
