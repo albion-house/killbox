@@ -6609,8 +6609,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.44.0</b>
-      <span id="warRoomBuildName">RoomVariants</span>
+      <b id="warRoomVersion">v7.45.0</b>
+      <span id="warRoomBuildName">WardenEye</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -6680,7 +6680,7 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion"><span>v7.44.0</span><span>RoomVariants</span></div>
+            <div class="loadoutVersion" id="loadoutVersion"><span>v7.45.0</span><span>WardenEye</span></div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -8440,11 +8440,12 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.44.0';
+const GAME_VERSION = '7.45.0';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'RoomVariants';
+const BUILD_NAME = 'WardenEye';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Added randomized Expedition room encounter variants with count, timing, elite, and composition modifiers.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Made Aegis Warden shield arcs and exposed weak points readable, with clearer flank-hit feedback and reduced blocked popup spam.' },
+  { version: '7.44.0', name: 'RoomVariants', changes: 'Added randomized Expedition room encounter variants with count, timing, elite, and composition modifiers.' },
   { version: '7.43.0', name: 'CorePurge', changes: 'Redesigned Expedition escape collapse with routed mixed attackers, a devastating Core purge, and survivor cleanup combat.' },
   { version: '7.42.0', name: 'CoreThreat', changes: 'Added role-based Expedition enemy targeting so defense waves split pressure between the player and deployed Core.' },
   { version: '7.41.0', name: 'CursedRift', changes: 'Redesigned Expedition Rift Boon visuals as cursed relic corruption with darker acquisition effects and escalating artifact instability.' },
@@ -19149,6 +19150,7 @@ function hit(e, amt, tower, byHero = false) {
   if (e.type === 'healer' && tower) amt *= .08;
   // Shield bearers resist tower fire until they are stunned by the hero
   if (e.type === 'shield' && tower && !(e.stun > 0)) amt *= .12;
+  let wardenWeakHit = false;
   if (e.type === 'warden') {
     const facing = Number.isFinite(e.guardFacing) ? e.guardFacing : sourceAngle;
     const diff = Math.abs(Math.atan2(Math.sin(sourceAngle - facing), Math.cos(sourceAngle - facing)));
@@ -19158,10 +19160,18 @@ function hit(e, amt, tower, byHero = false) {
       e.guardHold = Math.max(e.guardHold || 0, .95);
       e.guardFacing = sourceAngle;
       e.guardFlash = .28;
-      if (tower || byHero) floatText('BLOCKED', e.x - 24, e.y - 22, '#8edcff');
+      if ((e.blockedTextCd || 0) <= 0) {
+        floatText('BLOCKED', e.x - 24, e.y - 22, '#8edcff');
+        e.blockedTextCd = .7;
+      }
+      if (!S.wardenHintShown) {
+        S.wardenHintShown = true;
+        floatText('FLANK THE WARDEN', e.x - 58, e.y - e.rad - 34, '#f0b8ff', { big: true, life: 1.25 });
+      }
     } else {
-      e.guardHold = Math.max(e.guardHold || 0, .6);
-      e.guardFacing = sourceAngle;
+      e.guardHold = Math.max(e.guardHold || 0, .45);
+      if (!Number.isFinite(e.guardFacing)) e.guardFacing = sourceAngle + Math.PI;
+      if (tower || byHero) wardenWeakHit = true;
     }
   }
   if (e.type === 'hexcaller' && (e.hexWard || 0) > 0 && (tower || byHero)) {
@@ -19184,6 +19194,16 @@ function hit(e, amt, tower, byHero = false) {
     S.parts.push({ kind: 'bolt', x: S.hero.x, y: S.hero.y, x2: e.x, y2: e.y, life: .12, maxLife: .12, c: '#ffe56b', w: 4 });
   }
   const applied = Math.max(1, amt);
+  if (wardenWeakHit) {
+    const weakAngle = (Number.isFinite(e.guardFacing) ? e.guardFacing : sourceAngle) + Math.PI;
+    const wx = e.x + Math.cos(weakAngle) * (e.rad + 5);
+    const wy = e.y + Math.sin(weakAngle) * (e.rad + 2);
+    e.weakFlash = Math.max(e.weakFlash || 0, .36);
+    e.guardHold = Math.max(e.guardHold || 0, .55);
+    floatText(`-${Math.round(applied)}`, wx - 10, wy - 18, '#ff77dd', { big: true, life: .72 });
+    burst(wx, wy, '#b37cff', 7, 'spark', 110);
+    burst(wx, wy, '#ff4d6d', 5, 'spark', 90);
+  }
   if (S.devShowInfo) {
     const dmgLabel = tower ? `-${Math.round(applied)}` : byHero ? `-${Math.round(applied)}` : `${Math.round(applied)}`;
     floatText(dmgLabel, e.x - 10, e.y - e.rad - 18, tower ? '#ffd86a' : '#ffffff');
@@ -22437,6 +22457,9 @@ function simpleExpeditionEnemyStep(e, dt) {
   const timerT0 = KB_PROFILE.active ? profileNow() : 0;
   e.flash = Math.max(0, e.flash - dt);
   updateEnemyBehaviorTimers(e, dt);
+  e.guardFlash = Math.max(0, (e.guardFlash || 0) - dt);
+  e.weakFlash = Math.max(0, (e.weakFlash || 0) - dt);
+  e.blockedTextCd = Math.max(0, (e.blockedTextCd || 0) - dt);
   e.freeze = Math.max(0, (e.freeze || 0) - dt);
   e.chill = Math.max(0, (e.chill || 0) - dt * .6);
   e.stun = Math.max(0, (e.stun || 0) - dt);
@@ -22519,6 +22542,9 @@ function enemyStep(e, dt) {
     e.stun = Math.max(0, (e.stun || 0) - dt * .08);
   }
   e.guardHold = Math.max(0, (e.guardHold || 0) - dt);
+  e.guardFlash = Math.max(0, (e.guardFlash || 0) - dt);
+  e.weakFlash = Math.max(0, (e.weakFlash || 0) - dt);
+  e.blockedTextCd = Math.max(0, (e.blockedTextCd || 0) - dt);
   e.phaseActive = Math.max(0, (e.phaseActive || 0) - dt);
   e.phaseCd = Math.max(0, (e.phaseCd || 0) - dt);
   e.sapCd = Math.max(0, (e.sapCd || 0) - dt);
@@ -24358,8 +24384,8 @@ function destroyStructure(x, y, label = 'tower') {
   shockwave(x, y, '#d0a35d', label === 'barrier' ? 44 : 52, .32);
 }
 
-function floatText(s, x, y, c) {
-  S.texts.push({ s, x, y, c, life: 1 });
+function floatText(s, x, y, c, opts = {}) {
+  S.texts.push({ s, x, y, c, life: opts.life || 1, big: !!opts.big });
 }
 
 function showPickupPopup(title, body, x, y, c = '#fff4d0') {
@@ -25049,10 +25075,10 @@ function draw(t) {
     for (const q of S.texts) {
       if (q.popup) drawPickupPopup(q);
       else {
-        ctx.globalAlpha = q.life * (q.coreHitText ? .74 : 1);
+        ctx.globalAlpha = Math.min(1, q.life) * (q.coreHitText ? .74 : 1);
         ctx.fillStyle   = q.c;
-        ctx.font        = q.coreHitText ? 'bold 13px Georgia' : 'bold 15px Georgia';
-        ctx.lineWidth   = q.coreHitText ? 3 : 4;
+        ctx.font        = q.coreHitText ? 'bold 13px Georgia' : q.big ? 'bold 20px Georgia' : 'bold 15px Georgia';
+        ctx.lineWidth   = q.coreHitText ? 3 : q.big ? 5 : 4;
         ctx.strokeStyle = '#000000';
         ctx.strokeText(q.s, q.x, q.y);
         ctx.fillText(q.s, q.x, q.y);
@@ -29727,6 +29753,7 @@ function drawEnemy(e) {
     ctx.globalCompositeOperation = 'source-over';
     drawEnemyBody(e, base, blink);
   }
+  if (e.type === 'warden') drawAegisWardenReadability(e, tNow, rot);
 
   if (e.stun > 0 && (e.freeze || 0) <= 0) {
     ctx.strokeStyle = '#7ac6e8';
@@ -30190,6 +30217,64 @@ function drawPowderLunatic(e, base, blink) { drawHumanoidBase(e, '#d0872e', '#a7
 function drawShieldBearer(e, base) { drawHumanoidBase(e, '#2f4f74', '#8ea4b8'); ctx.fillStyle='#9fc0c8'; ctx.fillRect(-4,-14,14,30); ctx.fillStyle='#4c627f'; ctx.fillRect(8,-16,12,34); }
 function drawPlagueMonk(e, base) { drawHumanoidBase(e, '#5f8f45', '#a6b768'); ctx.fillStyle='#6f8d3b'; ctx.fillRect(-2,-18,4,20); ctx.fillRect(-10,-10,20,4); ctx.strokeStyle='#6f8d3b'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(0,0,e.rad+7,0,7); ctx.stroke(); }
 function drawAegisWarden(e, base) { drawHumanoidBase(e, '#4a6d84', '#d7f1ff'); ctx.fillStyle='#a9dff7'; ctx.beginPath(); ctx.moveTo(-12,-14); ctx.lineTo(0,-26); ctx.lineTo(12,-14); ctx.lineTo(8,18); ctx.lineTo(-8,18); ctx.closePath(); ctx.fill(); ctx.strokeStyle='#2f4f74'; ctx.lineWidth=3; ctx.stroke(); ctx.strokeStyle='#d7f1ff'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-18,-2); ctx.lineTo(18,-2); ctx.stroke(); }
+function drawAegisWardenReadability(e, tNow, visualRot = 0) {
+  const facing = (Number.isFinite(e.guardFacing) ? e.guardFacing : 0) - visualRot;
+  const pulse = .72 + Math.sin(tNow * 9 + (e.id || 0)) * .18;
+  const weakFlash = Math.min(1, e.weakFlash || 0);
+  const guardFlash = Math.min(1, e.guardFlash || 0);
+  ctx.save();
+  ctx.rotate(facing);
+
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = .48 + guardFlash * .34;
+  ctx.strokeStyle = guardFlash > 0 ? '#f2fbff' : '#8edcff';
+  ctx.lineWidth = 5 + guardFlash * 3;
+  ctx.beginPath();
+  ctx.arc(0, 0, e.rad + 9, -.98, .98);
+  ctx.stroke();
+  ctx.globalAlpha = .2 + guardFlash * .18;
+  ctx.fillStyle = '#8edcff';
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.arc(0, 0, e.rad + 11, -.78, .78);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.globalAlpha = .9;
+  ctx.fillStyle = '#d7f1ff';
+  ctx.strokeStyle = '#203a52';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(e.rad * .35, -10);
+  ctx.lineTo(e.rad + 8, 0);
+  ctx.lineTo(e.rad * .35, 10);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  const coreX = -e.rad - 5;
+  const coreY = 1;
+  ctx.globalCompositeOperation = 'screen';
+  ctx.globalAlpha = .34 + pulse * .22 + weakFlash * .42;
+  ctx.fillStyle = weakFlash > 0 ? '#ff77dd' : '#c84dff';
+  ctx.beginPath();
+  ctx.arc(coreX, coreY, 10 + pulse * 2 + weakFlash * 8, 0, 7);
+  ctx.fill();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = weakFlash > 0 ? '#fff1ff' : '#ff4d6d';
+  ctx.strokeStyle = '#2b071b';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(coreX, coreY, 6 + weakFlash * 3, 9 + pulse * 2 + weakFlash * 3, 0, 0, 7);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#fff7ff';
+  ctx.beginPath();
+  ctx.arc(coreX - 2, coreY - 3, 2.4 + weakFlash * 1.5, 0, 7);
+  ctx.fill();
+  ctx.restore();
+}
 function drawSapperImp(e, base) { drawHumanoidBase(e, '#7a4a1e', '#b87f4b'); ctx.fillStyle='#3c2417'; ctx.beginPath(); ctx.arc(0, -8, 10, 0, 7); ctx.fill(); ctx.fillStyle='#f5c57a'; ctx.fillRect(9, 0, 10, 8); ctx.strokeStyle='#d59a58'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(10, 8); ctx.lineTo(22, 14); ctx.stroke(); }
 function drawPhaseSkulk(e, base) { ctx.save(); ctx.globalAlpha = .82; drawHumanoidBase(e, '#6d5c92', '#f0d8ff'); ctx.restore(); ctx.globalAlpha = .65; ctx.strokeStyle='#d7c8ff'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(0, 0, e.rad + 4, 0, 7); ctx.stroke(); ctx.globalAlpha = 1; ctx.fillStyle='#b37cff'; ctx.beginPath(); ctx.moveTo(-8,-16); ctx.lineTo(0,-28); ctx.lineTo(8,-16); ctx.lineTo(3,-4); ctx.lineTo(-3,-4); ctx.closePath(); ctx.fill(); }
 function drawSplitter(e, base) { drawHumanoidBase(e, '#4b6a8f', '#e7f4ff'); ctx.fillStyle='#8edcff'; ctx.beginPath(); ctx.arc(0, -10, 7, 0, 7); ctx.fill(); ctx.strokeStyle='#cfe8ff'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(-15,-3); ctx.lineTo(-24,-18); ctx.moveTo(15,-3); ctx.lineTo(24,-18); ctx.stroke(); }
