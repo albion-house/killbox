@@ -6609,8 +6609,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.39.23</b>
-      <span id="warRoomBuildName">BigSling</span>
+      <b id="warRoomVersion">v7.44.0</b>
+      <span id="warRoomBuildName">RoomVariants</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -6680,7 +6680,7 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion"><span>v7.39.23</span><span>BigSling</span></div>
+            <div class="loadoutVersion" id="loadoutVersion"><span>v7.44.0</span><span>RoomVariants</span></div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -8440,11 +8440,12 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.43.0';
+const GAME_VERSION = '7.44.0';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'CorePurge';
+const BUILD_NAME = 'RoomVariants';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Redesigned Expedition escape collapse with routed mixed attackers, a devastating Core purge, and survivor cleanup combat.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Added randomized Expedition room encounter variants with count, timing, elite, and composition modifiers.' },
+  { version: '7.43.0', name: 'CorePurge', changes: 'Redesigned Expedition escape collapse with routed mixed attackers, a devastating Core purge, and survivor cleanup combat.' },
   { version: '7.42.0', name: 'CoreThreat', changes: 'Added role-based Expedition enemy targeting so defense waves split pressure between the player and deployed Core.' },
   { version: '7.41.0', name: 'CursedRift', changes: 'Redesigned Expedition Rift Boon visuals as cursed relic corruption with darker acquisition effects and escalating artifact instability.' },
   { version: '7.40.0', name: 'RelayBloom', changes: 'Restored Chemical Plant Relay defense pacing, environmental relay progress, Rift Boon orbit visuals, and Dark Chapel awakening feedback.' },
@@ -9905,6 +9906,8 @@ function createExpeditionState(levelId = S.levelId) {
     roomNests: [],
     roomPressure: {},
     roomThreatsSpawned: {},
+    roomEncounterVariants: {},
+    roomSpawnQueues: {},
     pressureReleaseTimer: 0,
     storedSurge: null,
     storedSurges: [],
@@ -11405,12 +11408,247 @@ function expeditionEnemyDensity() {
   return Math.max(1, Number(EXPEDITION_PROTOTYPE_TUNING.enemyDensity) || 1);
 }
 
-function expeditionEncounterEnemies(def) {
+const EXPEDITION_ENCOUNTER_VARIANTS = [
+  {
+    id: 'swarm',
+    label: 'Swarm',
+    weight: 30,
+    pool: ['runner', 'runner', 'runner', 'grunt'],
+    elitePool: ['hunter', 'runner'],
+    countMult: 1.35,
+    hpMult: .92,
+    speedMult: 1.12,
+    rewardMult: 1,
+    spawnDelayMult: .78,
+    eliteChance: .12,
+    upgradeChance: .12,
+  },
+  {
+    id: 'siege',
+    label: 'Siege',
+    weight: 22,
+    pool: ['sapper', 'sapper', 'shield', 'brute', 'warden'],
+    elitePool: ['brute', 'warden', 'siege'],
+    countMult: .74,
+    hpMult: 1.28,
+    speedMult: .94,
+    rewardMult: 1.08,
+    spawnDelayMult: 1.18,
+    eliteChance: .2,
+    upgradeChance: .36,
+  },
+  {
+    id: 'hunterPack',
+    label: 'Hunter Pack',
+    weight: 24,
+    pool: ['grunt', 'runner', 'runner', 'sapper', 'shield', 'hunter'],
+    elitePool: ['hunter', 'brute'],
+    countMult: 1.05,
+    hpMult: 1.04,
+    speedMult: 1.14,
+    rewardMult: 1.04,
+    spawnDelayMult: .92,
+    eliteChance: .24,
+    upgradeChance: .2,
+  },
+  {
+    id: 'infestation',
+    label: 'Infestation',
+    weight: 20,
+    pool: ['grunt', 'runner', 'runner', 'splitter'],
+    elitePool: ['splitter', 'sapper', 'hexcaller'],
+    countMult: 1.12,
+    hpMult: .92,
+    speedMult: 1.04,
+    rewardMult: 1.02,
+    spawnDelayMult: 1.28,
+    eliteChance: .14,
+    upgradeChance: .18,
+    trickle: true,
+  },
+  {
+    id: 'nightmare',
+    label: 'Nightmare',
+    weight: 4,
+    pool: ['grunt', 'runner', 'slinger', 'sapper', 'shield', 'brute', 'warden', 'splitter', 'hexcaller', 'hunter', 'siege'],
+    elitePool: ['hunter', 'brute', 'warden', 'siege', 'hexcaller'],
+    countMult: 1.18,
+    hpMult: 1.1,
+    speedMult: 1.08,
+    rewardMult: 1.25,
+    spawnDelayMult: .96,
+    eliteChance: .34,
+    upgradeChance: .32,
+  },
+];
+
+const EXPEDITION_STRONGER_ENEMY = {
+  grunt: ['runner', 'slinger'],
+  runner: ['sapper', 'shield'],
+  slinger: ['hexcaller', 'sapper'],
+  sapper: ['brute', 'warden'],
+  shield: ['warden', 'brute'],
+  splitter: ['hexcaller', 'brute'],
+};
+
+function expeditionVariantApplies(def) {
+  return !!def && !['keyEscape'].includes(def.objective);
+}
+
+function chooseExpeditionEncounterVariant(room, def) {
+  if (!expeditionVariantApplies(def)) return null;
+  const choices = EXPEDITION_ENCOUNTER_VARIANTS.filter(v => room?.id !== 'entry' || v.id !== 'nightmare');
+  const total = choices.reduce((sum, v) => sum + v.weight, 0);
+  let roll = Math.random() * total;
+  const selected = choices.find(v => {
+    roll -= v.weight;
+    return roll <= 0;
+  }) || choices[0];
+  const countJitter = .8 + Math.random() * .4;
+  const delayJitter = .88 + Math.random() * .28;
+  const extraElite = Math.random() < (selected.eliteChance || 0);
+  const replacementChance = clamp((selected.upgradeChance || 0) + (Math.random() < .28 ? .16 : 0), 0, .58);
+  return {
+    id: selected.id,
+    label: selected.label,
+    pool: selected.pool.slice(),
+    elitePool: selected.elitePool.slice(),
+    countMult: selected.countMult * countJitter,
+    hpMult: selected.hpMult,
+    speedMult: selected.speedMult,
+    rewardMult: selected.rewardMult,
+    spawnDelayMult: selected.spawnDelayMult * delayJitter,
+    replacementChance,
+    extraElite,
+    trickle: !!selected.trickle,
+  };
+}
+
+function expeditionPickFrom(list, fallback = 'grunt') {
+  if (!Array.isArray(list) || !list.length) return fallback;
+  return list[Math.floor(Math.random() * list.length)] || fallback;
+}
+
+function expeditionMaybeStrongerEnemy(type, variant) {
+  if (!variant || Math.random() >= (variant.replacementChance || 0)) return type;
+  return expeditionPickFrom(EXPEDITION_STRONGER_ENEMY[type], type);
+}
+
+function expeditionEncounterBaseEnemies(def) {
   if (Array.isArray(def?.fixedEnemies)) return def.fixedEnemies.slice();
   const base = Array.isArray(def?.enemies) ? def.enemies.slice() : [];
   const targetCount = Math.max(base.length, Math.ceil(base.length * expeditionEnemyDensity()));
   const roomType = def?.roomType || def?.elite || base[0] || 'grunt';
   return Array.from({ length: targetCount }, () => roomType);
+}
+
+function expeditionEncounterEnemies(def, variant = null) {
+  const base = expeditionEncounterBaseEnemies(def);
+  if (!variant) return base;
+  const count = Math.max(1, Math.round(base.length * Math.max(.55, variant.countMult || 1)));
+  const enemies = [];
+  for (let i = 0; i < count; i++) {
+    const baseType = base[i % Math.max(1, base.length)] || 'grunt';
+    const variantType = Math.random() < .72 ? expeditionPickFrom(variant.pool, baseType) : baseType;
+    enemies.push(expeditionMaybeStrongerEnemy(variantType, variant));
+  }
+  if (def?.elite && !enemies.includes(def.elite)) {
+    enemies[Math.floor(Math.random() * enemies.length)] = def.elite;
+  }
+  return enemies;
+}
+
+function expeditionPressureEnemies(def, variant = null) {
+  const base = Array.isArray(def?.pressureEnemies) ? def.pressureEnemies.slice() : [];
+  if (!variant || !base.length) return base;
+  const count = Math.max(1, Math.round(base.length * Math.max(.7, variant.countMult || 1)));
+  return Array.from({ length: count }, (_, i) => {
+    const baseType = base[i % base.length] || 'grunt';
+    const type = Math.random() < .55 ? expeditionPickFrom(variant.pool, baseType) : baseType;
+    return expeditionMaybeStrongerEnemy(type, variant);
+  });
+}
+
+function expeditionRoomVariant(roomId) {
+  return S.expedition?.roomEncounterVariants?.[roomId] || null;
+}
+
+function expeditionApplyEncounterVariant(e, variant) {
+  if (!e || !variant) return e;
+  e.expeditionEncounterVariant = variant.id;
+  e.max *= variant.hpMult || 1;
+  e.hp = e.max;
+  e.spd *= variant.speedMult || 1;
+  e.val = Math.max(1, Math.round((e.val || 1) * (variant.rewardMult || 1)));
+  return e;
+}
+
+function expeditionRoomSpawnDelay(variant, index) {
+  const base = variant?.trickle ? 2.2 : 1.15;
+  return Math.max(.45, base * (variant?.spawnDelayMult || 1) * (.78 + Math.random() * .54)) * (index + 1);
+}
+
+function expeditionRoomQueuedCount(roomId) {
+  return (S.expedition?.roomSpawnQueues?.[roomId] || []).length;
+}
+
+function expeditionQueueRoomEnemies(room, entries, variant = null) {
+  const ex = S.expedition;
+  if (!ex || !room || !entries.length) return [];
+  const now = performance.now() / 1000;
+  const immediateCount = variant?.trickle
+    ? Math.min(entries.length, 3)
+    : Math.min(entries.length, Math.max(3, Math.ceil(entries.length * (.55 + Math.random() * .25))));
+  const immediate = entries.slice(0, immediateCount);
+  const queued = entries.slice(immediateCount).map((entry, i) => ({
+    ...entry,
+    at: now + expeditionRoomSpawnDelay(variant, i),
+  }));
+  if (queued.length) {
+    ex.roomSpawnQueues ||= {};
+    ex.roomSpawnQueues[room.id] = (ex.roomSpawnQueues[room.id] || []).concat(queued);
+  }
+  return immediate;
+}
+
+function expeditionSpawnRoomEnemyEntries(room, entries, variant = null) {
+  if (!room || !entries.length) return [];
+  const spawnCells = expeditionRoomSpawnCells(room, entries.length);
+  const spawned = entries
+    .map((entry, i) => spawnExpeditionRoomEnemy(entry.type, room, spawnCells[i % spawnCells.length], !!entry.elite, variant))
+    .filter(Boolean);
+  if (spawned.length) assignExpeditionRoomTargets(spawned, room);
+  return spawned;
+}
+
+function updateExpeditionRoomSpawnQueue(room) {
+  const ex = S.expedition;
+  const queue = ex?.roomSpawnQueues?.[room?.id];
+  if (!room || !queue?.length) return [];
+  const now = performance.now() / 1000;
+  const ready = [];
+  const waiting = [];
+  for (const entry of queue) {
+    if ((entry.at || 0) <= now) ready.push(entry);
+    else waiting.push(entry);
+  }
+  ex.roomSpawnQueues[room.id] = waiting;
+  return expeditionSpawnRoomEnemyEntries(room, ready, expeditionRoomVariant(room.id));
+}
+
+function expeditionEncounterEntries(def, variant = null) {
+  const enemies = expeditionEncounterEnemies(def, variant);
+  let elitePlaced = false;
+  const entries = enemies.map(type => {
+    const elite = type === def?.elite && !elitePlaced;
+    if (elite) elitePlaced = true;
+    return { type, elite };
+  });
+  if (variant?.extraElite && entries.length) {
+    const index = Math.floor(Math.random() * entries.length);
+    entries[index] = { type: expeditionPickFrom(variant.elitePool, entries[index].type), elite: true };
+  }
+  return entries;
 }
 
 function expeditionRoomDoorBlockers(room) {
@@ -11481,7 +11719,7 @@ function expeditionRoomSpawnCells(room, count) {
   return picked;
 }
 
-function spawnExpeditionRoomEnemy(type, room, spawnCell, elite = false) {
+function spawnExpeditionRoomEnemy(type, room, spawnCell, elite = false, variant = null) {
   const target = cellAt(S.hero.x, S.hero.y);
   let path = routePath({ c: spawnCell.c, r: spawnCell.r }, target);
   if (!path.length) path = [{ c: spawnCell.c, r: spawnCell.r, x: spawnCell.x, y: spawnCell.y }, { ...target, x: cx(target.c), y: cy(target.r) }];
@@ -11508,6 +11746,7 @@ function spawnExpeditionRoomEnemy(type, room, spawnCell, elite = false) {
     e.val += 10;
     e.rad += 2;
   }
+  expeditionApplyEncounterVariant(e, variant);
   return e;
 }
 
@@ -11691,9 +11930,14 @@ function startExpeditionRoomEncounter(room) {
   if (!ex || !room || room.id === 'extraction' || ex.activeRoomId || expeditionRoomState(room.id) !== 'inactive') return false;
   if (isShatterConvoyExpedition()) return startShatterConvoyRoomEncounter(room);
   const def = expeditionEncounterDef(room);
+  const variant = chooseExpeditionEncounterVariant(room, def);
   ex.roomStates[room.id] = 'active';
   ex.activeRoomId = room.id;
   ex.roomObjective = { roomId: room.id, type: def.objective, label: def.label };
+  ex.roomEncounterVariants ||= {};
+  ex.roomSpawnQueues ||= {};
+  if (variant) ex.roomEncounterVariants[room.id] = variant;
+  delete ex.roomSpawnQueues[room.id];
   delete ex.roomDoorsUnlocked?.[room.id];
   ex.roomBlockers = expeditionRoomDoorBlockers(room);
   ex.roomTerminalStates[room.id] = ex.roomTerminalStates?.[room.id] || 'offline';
@@ -11710,30 +11954,23 @@ function startExpeditionRoomEncounter(room) {
   if (room.id !== 'lab') ensureExpeditionRoomKey(room);
   if (def.nest) spawnExpeditionRoomNest(room);
   const placedThreats = room.id === 'keyLabyrinth' ? [] : spawnExpeditionRoomRouteThreats(room, true);
-  if (Array.isArray(def.pressureEnemies) && def.pressureEnemies.length) {
-    const spawnCells = expeditionRoomSpawnCells(room, def.pressureEnemies.length);
-    def.pressureEnemies
-      .map((type, i) => spawnExpeditionRoomEnemy(type, room, spawnCells[i % spawnCells.length], false))
-      .filter(Boolean);
+  const pressureEnemies = expeditionPressureEnemies(def, variant);
+  if (pressureEnemies.length) {
+    const entries = pressureEnemies.map(type => ({ type, elite: false }));
+    const immediate = expeditionQueueRoomEnemies(room, entries, variant);
+    expeditionSpawnRoomEnemyEntries(room, immediate, variant);
   }
   if (placedThreats.length) assignExpeditionRoomTargets(placedThreats, room);
   if (!['terminal', 'treasure', 'keyEscape', 'chapelWaves'].includes(def.objective)) {
-    const enemies = expeditionEncounterEnemies(def);
-    const spawnCells = expeditionRoomSpawnCells(room, enemies.length);
-    let eliteSpawned = false;
-    const spawned = enemies
-      .map((type, i) => {
-        const elite = type === def.elite && !eliteSpawned;
-        if (elite) eliteSpawned = true;
-        return spawnExpeditionRoomEnemy(type, room, spawnCells[i % spawnCells.length], elite);
-      })
-      .filter(Boolean);
-    assignExpeditionRoomTargets(spawned, room);
+    const entries = expeditionEncounterEntries(def, variant);
+    const immediate = expeditionQueueRoomEnemies(room, entries, variant);
+    expeditionSpawnRoomEnemyEntries(room, immediate, variant);
   }
-  ex.message = def.label;
+  ex.message = variant ? `${variant.label}: ${def.label}` : def.label;
   ex.messageTime = 6;
   maybeShowMissionHint(['terminal', 'treasure', 'keyEscape'].includes(def.objective) ? (def.terminalPrompt || 'Press E to interact.') : def.label.includes('Relay') ? 'Activate the Relay.' : 'Clear the room.', `expedition-room-${room.id}`, 4);
-  announceWave(`${room.name.toUpperCase()}: ${def.label.toUpperCase()}`, ['terminal', 'treasure', 'keyEscape'].includes(def.objective) ? 'resting' : 'danger', 1);
+  const restingObjective = ['terminal', 'treasure', 'keyEscape'].includes(def.objective) && !pressureEnemies.length;
+  announceWave(`${room.name.toUpperCase()}: ${variant ? variant.label.toUpperCase() : def.label.toUpperCase()}`, restingObjective ? 'resting' : 'danger', 1);
   shockwave(S.hero.x, S.hero.y, '#ffcf6a', 110, .26);
   return true;
 }
@@ -11749,6 +11986,7 @@ function completeExpeditionRoomEncounter(roomId) {
   ex.roomDoorsUnlocked ||= {};
   ex.roomDoorsUnlocked[roomId] = true;
   ex.roomBlockers = [];
+  if (ex.roomSpawnQueues) delete ex.roomSpawnQueues[roomId];
   clearExpeditionRoomCombatLeftovers(roomId);
   for (const e of S.enemies) {
     if (e.lockedRoomId === roomId) {
@@ -11786,13 +12024,19 @@ function spawnExpeditionChapelWave(room, waveNumber) {
   const ex = S.expedition;
   if (!isExpeditionRun() || !ex || !room || room.id !== 'chapel') return [];
   const def = expeditionEncounterDef(room);
-  const count = def.waveSize || 15;
-  const spawnCells = expeditionRoomSpawnCells(room, count);
-  const spawned = Array.from({ length: count }, (_, i) =>
-    spawnExpeditionRoomEnemy('grunt', room, spawnCells[i % spawnCells.length], false)
-  ).filter(Boolean);
-  assignExpeditionRoomTargets(spawned, room);
-  announceWave(`CHAPEL WAVE ${waveNumber}/${def.waveCount || 2}`, 'danger', 1.1);
+  const variant = expeditionRoomVariant(room.id);
+  const count = Math.max(1, Math.round((def.waveSize || 15) * (variant?.countMult || 1)));
+  const entries = Array.from({ length: count }, () => ({
+    type: variant ? expeditionMaybeStrongerEnemy(expeditionPickFrom(variant.pool, 'grunt'), variant) : 'grunt',
+    elite: false,
+  }));
+  if (variant?.extraElite && entries.length) {
+    const index = Math.floor(Math.random() * entries.length);
+    entries[index] = { type: expeditionPickFrom(variant.elitePool, entries[index].type), elite: true };
+  }
+  const immediate = expeditionQueueRoomEnemies(room, entries, variant);
+  const spawned = expeditionSpawnRoomEnemyEntries(room, immediate, variant);
+  announceWave(`CHAPEL WAVE ${waveNumber}/${def.waveCount || 2}${variant ? `: ${variant.label.toUpperCase()}` : ''}`, 'danger', 1.1);
   return spawned;
 }
 
@@ -11813,6 +12057,7 @@ function updateExpeditionRoomEncounter(dt = 0) {
       }
       if (updateShatterConvoyHold(dt, activeRoom)) return;
       if (isShatterConvoyExpedition() && ['breachGate', 'ambushDeploy', 'relayDeploy'].includes(ex.roomObjective?.type)) return;
+      if (activeRoom) updateExpeditionRoomSpawnQueue(activeRoom);
       if (ex.roomObjective?.type === 'keyEscape') {
         updateExpeditionGhostEncounter(activeRoom, dt);
         if (activeRoom && ex.finalKeyCollected && !expeditionRoomContainsPoint(activeRoom, S.hero.x, S.hero.y)) {
@@ -11824,7 +12069,7 @@ function updateExpeditionRoomEncounter(dt = 0) {
         if (ex.activeRoomId === 'lab') {
           const room = (cfg.rooms || []).find(r => r.id === ex.activeRoomId);
           const liveRoomEnemies = S.enemies.filter(e => !e.dead && e.expeditionRoomId === ex.activeRoomId);
-          if (expeditionRoomTerminalPowered(ex.activeRoomId) && !liveRoomEnemies.length) {
+          if (expeditionRoomTerminalPowered(ex.activeRoomId) && !liveRoomEnemies.length && !expeditionRoomQueuedCount(ex.activeRoomId)) {
             if ((ex.roomKeyStates?.[ex.activeRoomId] || 'hidden') === 'hidden') {
               ex.roomKeyStates ||= {};
               ex.roomKeyStates[ex.activeRoomId] = 'ready';
@@ -11850,12 +12095,13 @@ function updateExpeditionRoomEncounter(dt = 0) {
           ex.chapelCountdown = ex.chapelWave < (def.waveCount || 2) ? (def.waveGap || 45) : 0;
           return;
         }
-        if ((ex.chapelWave || 0) >= (def.waveCount || 2) && !live.length) completeExpeditionRoomEncounter(room.id);
+        if ((ex.chapelWave || 0) >= (def.waveCount || 2) && !live.length && !expeditionRoomQueuedCount(room.id)) completeExpeditionRoomEncounter(room.id);
         return;
       }
       const live = S.enemies.filter(e => !e.dead && e.expeditionRoomId === ex.activeRoomId);
+      const queued = expeditionRoomQueuedCount(ex.activeRoomId);
       if (ex.roomObjective?.type === 'elite') {
-        if (!live.some(e => e.eliteRoomTarget)) completeExpeditionRoomEncounter(ex.activeRoomId);
+        if (!queued && !live.some(e => e.eliteRoomTarget)) completeExpeditionRoomEncounter(ex.activeRoomId);
       } else if (ex.roomObjective?.type === 'nest') {
         if (ex.activeRoomId === 'flesh') {
           const room = (cfg.rooms || []).find(r => r.id === ex.activeRoomId);
@@ -11868,7 +12114,7 @@ function updateExpeditionRoomEncounter(dt = 0) {
             if (spawned) assignExpeditionRoomTargets([spawned], room);
             ex.fleshNestSpawnAt = now + .65;
           }
-          if (!liveNest && !liveBasics.length && !ex.fleshSlimeKingSpawned && !ex.fleshSlimeKingSpawnAttempted) {
+          if (!queued && !liveNest && !liveBasics.length && !ex.fleshSlimeKingSpawned && !ex.fleshSlimeKingSpawnAttempted) {
             ex.fleshSlimeKingSpawnAttempted = true;
             spawnFleshGardenSlimeKing(room);
           }
@@ -11876,8 +12122,8 @@ function updateExpeditionRoomEncounter(dt = 0) {
         const liveNest = (ex.roomNests || []).some(n => !n.dead && n.roomId === ex.activeRoomId);
         const liveFleshSlime = ex.activeRoomId === 'flesh' && S.enemies.some(e => !e.dead && e.expeditionFleshSlime);
         const fleshBossComplete = ex.activeRoomId !== 'flesh' || (ex.fleshSlimeKingSpawned && !liveFleshSlime);
-        if (!liveNest && fleshBossComplete) completeExpeditionRoomEncounter(ex.activeRoomId);
-      } else if (!live.length) {
+        if (!queued && !liveNest && fleshBossComplete) completeExpeditionRoomEncounter(ex.activeRoomId);
+      } else if (!live.length && !queued) {
         completeExpeditionRoomEncounter(ex.activeRoomId);
       }
       return;
@@ -20352,8 +20598,12 @@ function dropExpeditionEliteReward(e) {
 
 function expeditionRoomRewardProfile(room) {
   const def = expeditionEncounterDef(room);
+  const variant = expeditionRoomVariant(room?.id);
   const specialRooms = new Set(['lab', 'rift']);
   const highThreatTypes = new Set(['brute', 'hexcaller', 'healer']);
+  if (variant?.id === 'nightmare') {
+    return { tier: 3, label: 'NIGHTMARE ROOM REWARD', goldChance: .95, goldMin: 160, goldRange: 130 };
+  }
   if (specialRooms.has(room?.id)) {
     return { tier: 3, label: 'SPECIAL ROOM REWARD', goldChance: .9, goldMin: 140, goldRange: 115 };
   }
