@@ -621,6 +621,14 @@ body:not(.gameplayStarted) #menuToggle {
 .devPanel .devToggleList {
   gap: 3px 6px;
 }
+.devPanel .devToggleList button.debugSafety {
+  border-color: rgba(126, 198, 232, .36);
+  background: rgba(126, 198, 232, .08);
+}
+.devPanel .devToggleList button.debugDanger {
+  border-color: rgba(255, 126, 95, .34);
+  background: rgba(255, 126, 95, .07);
+}
 .devPanel .devToggleList button {
   min-height: 22px;
   padding: 1px 3px;
@@ -659,6 +667,14 @@ body:not(.gameplayStarted) #menuToggle {
 }
 .devPanel .toggleOn .toggleCheck::before {
   content: '✓';
+}
+.devPanel .debugSafety .devBadge {
+  border-color: rgba(126, 198, 232, .7);
+  color: #d8f4ff;
+}
+.devPanel .debugDanger .devBadge {
+  border-color: rgba(255, 126, 95, .7);
+  color: #ffd6c9;
 }
 .guideButton {
   width: 100%;
@@ -6465,13 +6481,13 @@ body.expeditionGameplay #combatHud {
         <summary>Debug Toggles</summary>
         <div class="warRoomSectionBody">
           <div class="devToggleList">
-            <button id="devGoldToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Infinite Gold</span><span class="devBadge" id="devGoldState">OFF</span></button>
-            <button id="devInvToggle"><span class="toggleCheck" aria-hidden="true"></span><span>God Mode</span><span class="devBadge" id="devInvState">OFF</span></button>
-            <button id="devNoclipToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Walk Through Walls</span><span class="devBadge" id="devNoclipState">OFF</span></button>
+            <button id="devGoldToggle" class="debugSafety"><span class="toggleCheck" aria-hidden="true"></span><span>Infinite Gold</span><span class="devBadge" id="devGoldState">OFF</span></button>
+            <button id="devInvToggle" class="debugSafety"><span class="toggleCheck" aria-hidden="true"></span><span>God Mode + Rift Safe</span><span class="devBadge" id="devInvState">OFF</span></button>
+            <button id="devNoclipToggle" class="debugSafety"><span class="toggleCheck" aria-hidden="true"></span><span>Walk Through Walls</span><span class="devBadge" id="devNoclipState">OFF</span></button>
             <button id="devInfoToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Debug Overlay</span><span class="devBadge" id="devInfoState">OFF</span></button>
             <button id="devPowerupDebugToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Powerup Debug</span><span class="devBadge" id="devPowerupDebugState">OFF</span></button>
             <button id="devRiftGuardToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Rift Guard</span><span class="devBadge" id="devRiftGuardState">OFF</span></button>
-            <button id="devRiftNoHpLossToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Rift No HP Loss</span><span class="devBadge" id="devRiftNoHpLossState">OFF</span></button>
+            <button id="devRiftNoHpLossToggle" class="debugSafety"><span class="toggleCheck" aria-hidden="true"></span><span>Rift No HP Loss</span><span class="devBadge" id="devRiftNoHpLossState">OFF</span></button>
             <button id="devPlayerTowerCollisionToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Player Collision With Towers</span><span class="devBadge" id="devPlayerTowerCollisionState">ON</span></button>
             <button id="devAbstractGouacheToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Abstract Gouache Level</span><span class="devBadge" id="devAbstractGouacheState">OFF</span></button>
             <button id="devRoomBoundsToggle"><span class="toggleCheck" aria-hidden="true"></span><span>Room Bounds</span><span class="devBadge" id="devRoomBoundsState">OFF</span></button>
@@ -6503,8 +6519,8 @@ body.expeditionGameplay #combatHud {
                 <option value="eastwest">East / West</option>
                 <option value="spiral">Spiral Keep</option>
                 <option value="citadel">Outer Loops</option>
-                <option value="expedition01">Expedition 01</option>
-                <option value="expedition02">Expedition 02: Shatter Convoy</option>
+                <option value="expedition01">1. The Tunnel</option>
+                <option value="expedition02">2. Chemical Plant</option>
               </select>
               <button id="devLoadArena">Load</button>
             </div>
@@ -6531,7 +6547,7 @@ body.expeditionGameplay #combatHud {
             <button id="devClearRoom"><span class="actionLabel">Clear Room</span><span class="actionMeta">Expedition</span></button>
             <button id="devRevealMap"><span class="actionLabel">Reveal Map</span><span class="actionMeta">Expedition</span></button>
             <button id="devGrantKeys"><span class="actionLabel">Grant All Keys</span><span class="actionMeta">Expedition</span></button>
-            <button id="devDamageCore"><span class="actionLabel">Damage Rift</span><span class="actionMeta">Expedition</span></button>
+            <button id="devDamageCore" class="debugDanger"><span class="actionLabel">Damage Rift</span><span class="actionMeta">Expedition</span></button>
             <button id="devTeleportRelay"><span class="actionLabel">Teleport Relay</span><span class="actionMeta">Expedition</span></button>
           </div>
         </div>
@@ -6609,8 +6625,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.45.1</b>
-      <span id="warRoomBuildName">WardenFeet</span>
+      <b id="warRoomVersion">v7.47.6</b>
+      <span id="warRoomBuildName">RouteFix</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -6680,7 +6696,7 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion"><span>v7.45.1</span><span>WardenFeet</span></div>
+            <div class="loadoutVersion" id="loadoutVersion"><span>v7.47.6</span><span>RouteFix</span></div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
@@ -8440,11 +8456,19 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.45.1';
+const GAME_VERSION = '7.47.6';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'WardenFeet';
+const BUILD_NAME = 'RouteFix';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Moved the Aegis Warden weak point to its feet so players can counter front-facing Wardens by aiming low.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Corrected Expedition loadout routing so Tunnel starts expedition01 and Chemical Plant starts expedition02.' },
+  { version: '7.47.4', name: 'RingPurge', changes: 'Fixed the post-defense Rift ring purge so collapse survivor-rush enemies die immediately on contact.' },
+  { version: '7.47.3', name: 'RingPurge', changes: 'Made the post-defense Rift ring kill most survivor-rush enemies immediately on contact.' },
+  { version: '7.47.2', name: 'RelayFix', changes: 'Fixed Dead Relay clock layering, timer-based completion, Rift purge cleanup, Expedition loadout destination copy, and the default Arc Emitter weapon loadout.' },
+  { version: '7.47.1', name: 'RiftRegen', changes: 'Increased deployed-Rift passive regeneration and moved regen feedback into the Rift health bar.' },
+  { version: '7.47.0', name: 'RiftMend', changes: 'Added slow deployed-Rift passive health regeneration after a short damage-free delay.' },
+  { version: '7.46.3', name: 'CoreAnchor', changes: 'Stabilized Expedition Core targeting, room-clear cleanup, route-threat spawn checks, and Rift-safe debug testing.' },
+  { version: '7.46.2', name: 'RelayClock', changes: 'Added a rainbow Rift charge clock so the Dead Relay defense reads clearly while charging.' },
+  { version: '7.46.1', name: 'BigSlinger', changes: 'Increased Stone Slinger sprite scale by 50% so stone throwers read clearly in combat.' },
   { version: '7.45.0', name: 'WardenEye', changes: 'Made Aegis Warden shield arcs and exposed weak points readable, with clearer flank-hit feedback and reduced blocked popup spam.' },
   { version: '7.44.0', name: 'RoomVariants', changes: 'Added randomized Expedition room encounter variants with count, timing, elite, and composition modifiers.' },
   { version: '7.43.0', name: 'CorePurge', changes: 'Redesigned Expedition escape collapse with routed mixed attackers, a devastating Core purge, and survivor cleanup combat.' },
@@ -8819,14 +8843,57 @@ function profileReport() {
   };
 }
 const LOADOUT_STATE = {
-  selectedIds: ['ranger', 'freeze', 'archer', 'cauldron', 'ballista', 'healingFlask', 'lastStandBeacon', 'goblinCoinPurse'],
-  inspectedId: 'ranger',
+  selectedIds: ['storm', 'ranger', 'archer', 'cauldron', 'ballista', 'healingFlask', 'lastStandBeacon', 'goblinCoinPurse'],
+  inspectedId: 'storm',
   missionType: 'expedition',
   arenaId: 'field',
   expeditionId: 'expedition01'
 };
 const LOADOUT_STORAGE_KEY = 'killbox.lastLoadout.v2';
-const DEFAULT_LOADOUT_IDS = ['ranger', 'freeze', 'archer', 'cauldron', 'ballista', 'healingFlask', 'lastStandBeacon', 'goblinCoinPurse'];
+const LOADOUT_EXPEDITION_ROUTE_VERSION = 2;
+const OLD_DEFAULT_LOADOUT_IDS = ['ranger', 'freeze', 'archer', 'cauldron', 'ballista', 'healingFlask', 'lastStandBeacon', 'goblinCoinPurse'];
+const DEFAULT_LOADOUT_IDS = ['storm', 'ranger', 'archer', 'cauldron', 'ballista', 'healingFlask', 'lastStandBeacon', 'goblinCoinPurse'];
+const EXPEDITION_LOADOUT_ROUTES = {
+  expedition01: {
+    id: 'expedition01',
+    levelId: 'expedition01',
+    title: '1. The Tunnel',
+    startLabel: 'Expedition 1: The Tunnel',
+    body: 'The first step into hostile ground. Establish your Core. Find the first Relay.',
+    preview: 'Explore the facility, find four keys, unlock extraction, then hold out long enough to escape.',
+    thumbClass: 'thumbTunnel',
+    image: 'assets/menu/the-tunnel.jpg',
+    objectives: [
+      'Carry the Core forward.',
+      'Build defenses inside the Core radius.',
+      'Activate Relays to expand your route.',
+    ],
+    expect: 'Small rooms, early enemies, and simple threats. Built for learning the basics.',
+  },
+  expedition02: {
+    id: 'expedition02',
+    levelId: 'expedition02',
+    title: '2. Chemical Plant',
+    startLabel: 'Expedition 2: Chemical Plant',
+    body: 'Toxic spills, volatile machines, and heavier resistance. Push the Core through industrial danger.',
+    preview: 'Move the unstable Rift through a collapsing route. Build fast, abandon defenses, escape alive.',
+    thumbClass: 'thumbChemical',
+    image: 'assets/menu/chemical-plant.jpg',
+    objectives: [
+      'Protect the Core.',
+      'Control lanes with defenses.',
+      'Activate the next Relay.',
+    ],
+    expect: 'More hazards, stronger enemy pressure, and more demanding Core placement.',
+  },
+};
+const EXPEDITION_LOADOUT_ALIASES = {
+  tunnel: 'expedition01',
+  theTunnel: 'expedition01',
+  chemical: 'expedition02',
+  chemicalPlant: 'expedition02',
+  shatterConvoy: 'expedition02',
+};
 const MISSION_BRIEFING_STORAGE_KEY = 'killbox.onboard.missionBriefing.v1';
 const MISSION_HINT_STORAGE_KEY = 'killbox.onboard.missionHints.v1';
 let missionHintHideTimer = 0;
@@ -8960,12 +9027,12 @@ const EXPEDITION_RIFT_UPGRADES = {
   shield: {
     name: 'Bone Halo',
     desc: 'The Rift grows armor and periodically throws up a brutal shield.',
-    icon: `<svg class="riftCardArt" viewBox="0 0 96 96" aria-hidden="true"><defs><radialGradient id="riftShieldGlow" cx="50%" cy="45%" r="55%"><stop offset="0" stop-color="#fff7bf"/><stop offset=".38" stop-color="#8edcff"/><stop offset="1" stop-color="#130816"/></radialGradient></defs><circle cx="48" cy="48" r="38" fill="none" stroke="#8edcff" stroke-width="9"/><path d="M48 10 59 25 78 19 72 38 88 48 72 58 78 77 59 71 48 86 37 71 18 77 24 58 8 48 24 38 18 19 37 25Z" fill="#16202a" stroke="#fff7bf" stroke-width="4"/><ellipse cx="48" cy="48" rx="18" ry="12" fill="#12040a" stroke="#f0b8ff" stroke-width="3"/><circle cx="51" cy="46" r="7" fill="url(#riftShieldGlow)"/></svg>`,
+    icon: `<svg class="riftCardArt" viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="36" fill="none" stroke="#6f2cff" stroke-width="5" opacity=".45"/><circle cx="48" cy="48" r="35" fill="none" stroke="#d8b8ff" stroke-width="2"/><g fill="#eadfc8" stroke="#1a0b16" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M25 24 36 35M60 61 71 72M71 24 60 35M36 61 25 72" stroke-width="7"/><circle cx="22" cy="21" r="4"/><circle cx="38" cy="37" r="4"/><circle cx="74" cy="21" r="4"/><circle cx="58" cy="37" r="4"/><circle cx="22" cy="75" r="4"/><circle cx="38" cy="59" r="4"/><circle cx="74" cy="75" r="4"/><circle cx="58" cy="59" r="4"/></g><g fill="#f2e6cc" stroke="#1a0b16" stroke-width="3"><ellipse cx="48" cy="13" rx="8" ry="9"/><ellipse cx="48" cy="83" rx="8" ry="9"/><ellipse cx="13" cy="48" rx="9" ry="8"/><ellipse cx="83" cy="48" rx="9" ry="8"/></g><g fill="#10060f"><circle cx="45" cy="12" r="2"/><circle cx="51" cy="12" r="2"/><circle cx="45" cy="82" r="2"/><circle cx="51" cy="82" r="2"/><circle cx="12" cy="45" r="2"/><circle cx="12" cy="51" r="2"/><circle cx="82" cy="45" r="2"/><circle cx="82" cy="51" r="2"/></g><ellipse cx="48" cy="48" rx="16" ry="12" fill="#12040a" stroke="#b47cff" stroke-width="3"/></svg>`,
   },
   pulse: {
     name: 'Blood Crown',
     desc: 'The Rift grows a spinning meat-saw aura that chews nearby enemies.',
-    icon: `<svg class="riftCardArt" viewBox="0 0 96 96" aria-hidden="true"><path d="M48 5 55 28 75 14 68 38 93 34 72 48 93 62 68 58 75 82 55 68 48 91 41 68 21 82 28 58 3 62 24 48 3 34 28 38 21 14 41 28Z" fill="#6a0a0f" stroke="#ff9b8a" stroke-width="4"/><ellipse cx="48" cy="48" rx="24" ry="17" fill="#18040b" stroke="#2a0205" stroke-width="7"/><circle cx="48" cy="48" r="10" fill="#ff1f4f"/><path d="M34 65c8 10 20 10 29 0" fill="none" stroke="#2a0205" stroke-width="5"/></svg>`,
+    icon: `<svg class="riftCardArt" viewBox="0 0 96 96" aria-hidden="true"><defs><radialGradient id="bloodSawHeat" cx="50%" cy="50%" r="55%"><stop offset=".42" stop-color="#220005"/><stop offset=".72" stop-color="#7b0615"/><stop offset="1" stop-color="#ff3040"/></radialGradient></defs><circle cx="48" cy="48" r="42" fill="url(#bloodSawHeat)" opacity=".38"/><path d="M48 4 53 22 65 8 65 27 82 18 74 35 93 34 78 47 93 61 74 61 82 78 65 69 65 88 53 74 48 92 43 74 31 88 31 69 14 78 22 61 3 61 18 47 3 34 22 35 14 18 31 27 31 8 43 22Z" fill="#070809" stroke="#2d3134" stroke-width="5" stroke-linejoin="round"/><circle cx="48" cy="48" r="26" fill="none" stroke="#15181a" stroke-width="13"/><circle cx="48" cy="48" r="13" fill="#08090a" stroke="#3a3d40" stroke-width="4"/><path d="M24 22 72 74M72 22 24 74" stroke="#ff3040" stroke-width="3" opacity=".55"/><path d="M77 34 87 31M17 60 27 64M63 13 60 25" stroke="#fff0b8" stroke-width="3" stroke-linecap="round"/></svg>`,
   },
   field: {
     name: 'Black Orbit',
@@ -9014,6 +9081,28 @@ function expeditionSawCrownProfile(e) {
     return { mult: .58, bloodHits: 2, killHits: 4, execute: false };
   }
   return { mult: .74, bloodHits: 2, killHits: 4, execute: false };
+}
+
+function spawnBloodCrownHitSpray(x, y, cx, cy, threat = 0) {
+  const a = Math.atan2(y - cy, x - cx);
+  const count = 3 + Math.floor(threat * 3);
+  for (let i = 0; i < count; i++) {
+    const spread = (Math.random() - .5) * .85;
+    const len = 18 + Math.random() * (26 + threat * 18);
+    const sx = x + Math.cos(a + spread) * 5;
+    const sy = y + Math.sin(a + spread) * 5;
+    S.parts.push({
+      kind: 'bolt',
+      x: sx,
+      y: sy,
+      x2: sx + Math.cos(a + spread) * len,
+      y2: sy + Math.sin(a + spread) * len,
+      life: .14 + Math.random() * .07,
+      maxLife: .18,
+      c: i === 0 ? '#ff3040' : '#8a1118',
+      w: i === 0 ? 4 : 2,
+    });
+  }
 }
 
 function expeditionApplyBlackOrbitMovement(e, rift, dt, threat = 0) {
@@ -9085,6 +9174,9 @@ const TETHERED_RIFT_DRAW_SIZE = CORE_CARRIED_DRAW_H;
 const DEPLOYED_RIFT_DRAW_SIZE = CORE_DEPLOYED_DRAW_H;
 const RIFT_SETTLE_DURATION = CORE_DEPLOY_GROW_TIME / 1000;
 const RIFT_STATUS_BAR_GAP = 22;
+const RIFT_REGEN_DELAY_MS = 5000;
+const RIFT_REGEN_PER_SECOND = 15;
+const RIFT_REGEN_VISUAL_FADE_MS = 900;
 const PLAYER_HP_BAR_Y_OFFSET = 38;
 const TETHERED_CORE_HP_BAR_Y_OFFSET = 24;
 const SHOW_TETHERED_CORE_LABELS = false;
@@ -9137,6 +9229,51 @@ function updateExpeditionRiftVisual(dt) {
     ex.riftVisualX = rift.x;
     ex.riftVisualY = rift.y;
     ex.riftSettleTime = Math.max(0, (ex.riftSettleTime || 0) - dt);
+  }
+}
+
+function resetExpeditionRiftPassiveRegenDelay() {
+  const ex = S.expedition;
+  if (!ex) return;
+  ex.riftPassiveRegenDelay = RIFT_REGEN_DELAY_MS / 1000;
+  ex.riftPassiveRegenActive = false;
+  ex.riftRegenVisualAmount = 0;
+  ex.riftRegenVisualFade = 0;
+}
+
+function updateExpeditionRiftPassiveRegen(dt) {
+  const ex = S.expedition;
+  const rift = ex?.rift;
+  if (ex) {
+    const fadeSeconds = Math.max(0.001, RIFT_REGEN_VISUAL_FADE_MS / 1000);
+    ex.riftRegenVisualFade = Math.max(0, (ex.riftRegenVisualFade || 0) - dt / fadeSeconds);
+    ex.riftRegenVisualAmount = Math.max(0, (ex.riftRegenVisualAmount || 0) * (1 - Math.min(1, dt / fadeSeconds)));
+    if (ex.riftRegenVisualFade <= 0 || ex.riftRegenVisualAmount <= 0) {
+      ex.riftRegenVisualFade = 0;
+      ex.riftRegenVisualAmount = 0;
+    }
+  }
+  if (!isExpeditionRun() || !ex?.riftActivated || !rift || ex.completed || S.gameOver || rift.max <= 0 || rift.hp <= 0) {
+    if (ex) ex.riftPassiveRegenActive = false;
+    return;
+  }
+  if (ex.riftCarried || rift.hp >= rift.max) {
+    ex.riftPassiveRegenDelay = Math.max(0, ex.riftPassiveRegenDelay ?? RIFT_REGEN_DELAY_MS / 1000);
+    ex.riftPassiveRegenActive = false;
+    return;
+  }
+  ex.riftPassiveRegenDelay = Math.max(0, (ex.riftPassiveRegenDelay ?? RIFT_REGEN_DELAY_MS / 1000) - dt);
+  if (ex.riftPassiveRegenDelay > 0) {
+    ex.riftPassiveRegenActive = false;
+    return;
+  }
+  const before = rift.hp;
+  rift.hp = Math.min(rift.max, rift.hp + RIFT_REGEN_PER_SECOND * dt);
+  const healed = Math.max(0, rift.hp - before);
+  ex.riftPassiveRegenActive = healed > 0;
+  if (healed > 0) {
+    ex.riftRegenVisualAmount = Math.min(rift.hp, (ex.riftRegenVisualAmount || 0) + healed);
+    ex.riftRegenVisualFade = 1;
   }
 }
 
@@ -9218,26 +9355,30 @@ function expeditionApplyRiftUpgrades(dt) {
   }
   if (upgrades.has('pulse') && (ex.riftUpgradeTimers.pulse || 0) <= now) {
     ex.riftUpgradeTimers.pulse = now + Math.max(2.8, 4.5 - threat * 1.6);
+    const crownX = rift.x;
+    const crownY = rift.y;
     let hitCount = 0;
     let bloodHits = 0;
     for (const e of S.enemies) {
       if (!e || e.dead) continue;
-      const d = dist(rift.x, rift.y, e.x, e.y);
+      const d = dist(crownX, crownY, e.x, e.y);
       if (d > 150 + threat * 40) continue;
       const saw = expeditionSawCrownProfile(e);
       const wasAlive = !e.dead;
       const baseDmg = 12 + Math.floor((S.wave || 0) * .16) + Math.floor(threat * 6);
       hit(e, baseDmg * saw.mult, null);
       e.slow = Math.max(e.slow || 0, .32 + threat * .12);
-      const a = Math.atan2(e.y - rift.y, e.x - rift.x);
+      const a = Math.atan2(e.y - crownY, e.x - crownX);
       e.kx = (e.kx || 0) + Math.cos(a) * (34 + threat * 18);
       e.ky = (e.ky || 0) + Math.sin(a) * (34 + threat * 18);
       e.stun = Math.max(e.stun || 0, .04 + threat * .03);
       if (bloodHits < 16) {
         for (let i = 0; i < saw.bloodHits; i++) spawnBloodSplats(e.x, e.y, e);
+        spawnBloodCrownHitSpray(e.x, e.y, crownX, crownY, threat);
         burst(e.x, e.y, '#8a1118', 28 + Math.floor(threat * 22), 'blood', 240);
         if (wasAlive && e.dead) {
           for (let i = 0; i < saw.killHits; i++) spawnBloodSplats(e.x, e.y, e);
+          spawnBloodCrownHitSpray(e.x, e.y, crownX, crownY, threat + .35);
           burst(e.x, e.y, '#b01822', 42 + Math.floor(threat * 24), 'blood', 280);
         } else if (saw.execute && e.hp > 0 && e.hp <= Math.max(6, e.max * .26)) {
           e.hp = 0;
@@ -9247,8 +9388,8 @@ function expeditionApplyRiftUpgrades(dt) {
       hitCount++;
     }
     if (hitCount) {
-      shockwave(rift.x, rift.y, threat >= .65 ? '#6a0a0f' : '#2b0010', 120 + threat * 26, .22);
-      burst(rift.x, rift.y, threat >= .65 ? '#3b0107' : '#080208', 7 + Math.floor(threat * 4), 'spark', 90);
+      shockwave(crownX, crownY, threat >= .65 ? '#6a0a0f' : '#2b0010', 120 + threat * 26, .22);
+      burst(crownX, crownY, threat >= .65 ? '#5a0509' : '#180305', 8 + Math.floor(threat * 5), 'spark', 110);
     }
   }
   if (upgrades.has('field')) {
@@ -9905,6 +10046,10 @@ function createExpeditionState(levelId = S.levelId) {
     riftWarnPulse: 0,
     riftWarnFlash: 0,
     riftWarnBeep: 0,
+    riftPassiveRegenDelay: RIFT_REGEN_DELAY_MS / 1000,
+    riftPassiveRegenActive: false,
+    riftRegenVisualAmount: 0,
+    riftRegenVisualFade: 0,
     riftInstability: 0,
     riftInstabilityPressureTimer: 0,
     roomStates: {},
@@ -10740,6 +10885,85 @@ function expeditionEscapeCleanupEnemies() {
   return S.enemies.filter(e => e && !e.dead && e.escapePurgeSurvivor);
 }
 
+const RIFT_CLEANUP_INNER_RING_RADIUS = 150;
+const RIFT_CLEANUP_KILL_RING_RADIUS = 188;
+
+function isPostDefenseCleanupActive() {
+  const ex = S.expedition;
+  return !!(isExpeditionRun() && ex?.escapeActive && ex.escapeCleanupActive && ex.riftCarried && !ex.completed);
+}
+
+function riftCleanupRingCenter() {
+  const ex = S.expedition;
+  if (!ex?.riftCarried || !Number.isFinite(S.hero?.x) || !Number.isFinite(S.hero?.y)) return null;
+  return { x: S.hero.x, y: S.hero.y };
+}
+
+function enemyInsideRiftCleanupRing(e, center, radius = RIFT_CLEANUP_KILL_RING_RADIUS) {
+  if (!e || e.dead || !center) return false;
+  return dist(e.x, e.y, center.x, center.y) <= radius + (e.rad || 0);
+}
+
+function expeditionRiftCleanupKillCandidates() {
+  if (!isPostDefenseCleanupActive()) return [];
+  return S.enemies.filter(e => {
+    if (!e || e.dead) return false;
+    if (e.escapePurgeSurvivor) return true;
+    return !!(isShatterConvoyExpedition() && e.expeditionCollapse && e.expeditionTarget === 'hero');
+  });
+}
+
+function updateRiftCleanupDebug(stats) {
+  S.riftCleanupDebug = stats;
+  const now = performance.now() / 1000;
+  if (!stats.active || now < (S.nextRiftCleanupDebugLog || 0)) return;
+  S.nextRiftCleanupDebugLog = now + 1;
+  console.log('[rift-cleanup]', stats);
+}
+
+function applyRiftCleanupKillField() {
+  const active = isPostDefenseCleanupActive();
+  const stats = {
+    active,
+    checked: 0,
+    inside: 0,
+    killed: 0,
+    escapePurgeSurvivors: 0,
+    collapseRushers: 0,
+  };
+  if (!active) {
+    updateRiftCleanupDebug(stats);
+    return 0;
+  }
+  const center = riftCleanupRingCenter();
+  if (!center) {
+    updateRiftCleanupDebug(stats);
+    return 0;
+  }
+  let killed = 0;
+  const candidates = expeditionRiftCleanupKillCandidates();
+  stats.checked = candidates.length;
+  for (const e of candidates) {
+    if (e.escapePurgeSurvivor) stats.escapePurgeSurvivors++;
+    else if (e.expeditionCollapse && e.expeditionTarget === 'hero') stats.collapseRushers++;
+    if (!enemyInsideRiftCleanupRing(e, center)) continue;
+    stats.inside++;
+    e.riftCleanupKilled = true;
+    e.escapePurgeSurvivor = false;
+    kill(e, null, false);
+    burst(e.x, e.y, '#b37cff', 10, 'spark', 180);
+    shockwave(e.x, e.y, '#6f2cff', Math.max(42, (e.rad || 14) * 2.2), .18);
+    killed++;
+  }
+  if (killed) {
+    shockwave(center.x, center.y, '#6f2cff', RIFT_CLEANUP_KILL_RING_RADIUS, .18);
+    playSfx('threatDown');
+  }
+  stats.killed = killed;
+  updateRiftCleanupDebug(stats);
+  return killed;
+}
+
 function applyExpeditionCoreOverload() {
   const ex = S.expedition;
   if (!ex?.escapeActive || !ex.riftCarried) return;
@@ -10750,7 +10974,7 @@ function applyExpeditionCoreOverload() {
         e.flash = Math.max(e.flash || 0, .18);
         if (Math.random() < .18) burst(e.x, e.y, '#b37cff', 2, 'spark', 50);
       }
-      if (Math.random() < .28) shockwave(S.hero.x, S.hero.y, '#6f2cff', 120 + Math.random() * 80, .14);
+      if (Math.random() < .28) shockwave(S.hero.x, S.hero.y, '#6f2cff', RIFT_CLEANUP_KILL_RING_RADIUS + (Math.random() - .5) * 16, .14);
     }
     return;
   }
@@ -10966,6 +11190,20 @@ function updateExpeditionEscapeSequence(dt) {
 }
 
 function clearExpeditionRoomCombatLeftovers(roomId) {
+  if (!roomId) return 0;
+  let removed = 0;
+  for (const e of S.enemies) {
+    if (!e || e.dead || e.expeditionRoomId !== roomId) continue;
+    e.dead = true;
+    e.hp = 0;
+    e.expeditionClearedWithRoom = true;
+    removed++;
+    burst(e.x, e.y, '#f0c96b', 5, 'spark', 80);
+  }
+  if (removed) {
+    console.log('[expedition] cleared room leftovers', { roomId, removed });
+  }
+  return removed;
 }
 
 function expeditionRoomAtPoint(x, y) {
@@ -11223,13 +11461,48 @@ function completeShatterConvoyRoom(room, message = '') {
   return true;
 }
 
+function purgeDeadRelayRushEnemies(room) {
+  const ex = S.expedition;
+  const rift = ex?.rift;
+  if (!isShatterConvoyExpedition() || room?.id !== 'deadRelay' || !rift) return 0;
+  let purged = 0;
+  for (const e of S.enemies) {
+    if (!e || e.dead) continue;
+    if (e.expeditionRoomId !== room.id && e.lockedRoomId !== room.id) continue;
+    e.hp = 0;
+    e.dead = true;
+    e.deadRelayRiftPurged = true;
+    e.expeditionTarget = 'hero';
+    e.riftHunter = false;
+    const a = Math.atan2(e.y - rift.y, e.x - rift.x);
+    const large = isLargeEnemy(e) || ['brute', 'ogre', 'siege', 'warden'].includes(e.type);
+    e.kx = (e.kx || 0) + Math.cos(a) * (large ? 520 : 760);
+    e.ky = (e.ky || 0) + Math.sin(a) * (large ? 520 : 760);
+    for (let i = 0; i < (large ? 2 : 4); i++) spawnBloodSplats(e.x, e.y, e);
+    burst(e.x, e.y, '#b01822', large ? 28 : 44, 'blood', 340);
+    burst(e.x, e.y, '#120018', large ? 10 : 16, 'smoke', 180);
+    if (purged < 12) floatText('PURGED', e.x - 22, e.y - 30, '#fff1a8');
+    purged++;
+  }
+  if (ex?.roomSpawnQueues) delete ex.roomSpawnQueues[room.id];
+  if (purged) {
+    shockwave(rift.x, rift.y, '#ffffff', 420, .44);
+    shockwave(rift.x, rift.y, '#6f2cff', 620, .65);
+    burst(rift.x, rift.y, '#f0b8ff', 58, 'spark', 520);
+    shake(Math.min(28, 12 + purged * .55), .75);
+    playSfx('bossWarning');
+    console.log('[expedition] dead relay rift purge', { purged });
+  }
+  return purged;
+}
+
 function shatterConvoyStartHold(room) {
   const ex = S.expedition;
   if (!ex || !room) return false;
   const relayHold = room.id === 'deadRelay';
   const buildDuration = relayHold ? 20 : 0;
   const duration = room.holdSeconds || (room.id === 'deadRelay' ? 75 : 30);
-  const label = relayHold ? 'Build Phase' : 'Hold Rift';
+  const label = relayHold ? 'Defend Rift' : 'Hold Rift';
   ex.riftEverCarried = true;
   ex.riftAwakeningTime = 0;
   ex.roomObjective = {
@@ -11251,17 +11524,17 @@ function shatterConvoyStartHold(room) {
     delete ex.roomDoorsUnlocked?.[room.id];
     primeExpeditionRoomBoundarySides(room);
   }
-  ex.message = label;
+  ex.message = relayHold ? 'Defend the Rift while the Relay charges.' : label;
   ex.messageTime = 4;
-  announceWave(room.id === 'deadRelay' ? 'RELAY BUILD PHASE' : 'AMBUSH HOLD STARTED', room.id === 'deadRelay' ? 'resting' : 'danger', 1.1);
+  announceWave(room.id === 'deadRelay' ? 'RELAY CHARGING' : 'AMBUSH HOLD STARTED', room.id === 'deadRelay' ? 'resting' : 'danger', 1.1);
   playSfx(room.id === 'deadRelay' ? 'bossWarning' : 'waveStart');
   const point = shatterConvoyRoomPoint(room);
   if (point) {
     shockwave(point.x, point.y, '#f0b8ff', room.id === 'deadRelay' ? 245 : 190, .4);
     burst(point.x, point.y, '#f0b8ff', room.id === 'deadRelay' ? 24 : 14, 'spark', 190);
-    floatText(room.id === 'deadRelay' ? 'BUILD PHASE' : 'HOLD STARTED', point.x - 58, point.y - 52, '#fff1ff');
+    floatText(room.id === 'deadRelay' ? 'DEFEND RIFT' : 'HOLD STARTED', point.x - 58, point.y - 52, '#fff1ff');
   }
-  showMissionHint(room.id === 'deadRelay' ? 'Build defenses around the Relay.' : 'Hold Rift', `expedition02-${room.id}-hold-start`, 3);
+  showMissionHint(room.id === 'deadRelay' ? 'Defend the Rift while the Relay charges.' : 'Hold Rift', `expedition02-${room.id}-hold-start`, 3);
   updateShatterConvoyHold(0, room);
   return true;
 }
@@ -11349,13 +11622,13 @@ function updateShatterConvoyHold(dt, activeRoom) {
   const relayHold = activeRoom.id === 'deadRelay';
   if (relayHold && (objective.buildTimer || 0) > 0) {
     objective.buildTimer = Math.max(0, (objective.buildTimer || 0) - dt);
-    objective.label = 'Build Phase';
+    objective.label = 'Defend Rift';
     if (objective.buildTimer > 0) return true;
     objective.buildTimer = 0;
-    objective.label = 'Relay Assault';
-    ex.message = 'Relay assault incoming.';
+    objective.label = 'Defend Rift';
+    ex.message = 'Relay defense incoming.';
     ex.messageTime = 4;
-    announceWave('RELAY ASSAULT', 'danger', 1.25);
+    announceWave('DEFEND THE RIFT', 'danger', 1.25);
     playSfx('waveStart');
     const point = shatterConvoyRoomPoint(activeRoom);
     if (point) {
@@ -11364,6 +11637,16 @@ function updateShatterConvoyHold(dt, activeRoom) {
     }
   }
   objective.timer = Math.max(0, (objective.timer || 0) - dt);
+  if (objective.timer <= 0) {
+    if (relayHold) {
+      purgeDeadRelayRushEnemies(activeRoom);
+      completeShatterConvoyRoom(activeRoom, 'Dead Relay charged.');
+      startExpeditionEscapeSequence();
+    } else {
+      completeShatterConvoyRoom(activeRoom, 'Ambush survived. Exit open.');
+    }
+    return true;
+  }
   const elapsed = (objective.duration || 0) - objective.timer;
   const waves = activeRoom.holdWaves || [];
   while ((objective.waveIndex || 0) < waves.length && waves[objective.waveIndex].at <= elapsed) {
@@ -11372,11 +11655,11 @@ function updateShatterConvoyHold(dt, activeRoom) {
     const waveBanner = wave.banner || (wave.spike ? 'INTENSITY SPIKE' : `${activeRoom.name.toUpperCase()} WAVE`);
     announceWave(waveBanner, 'danger', wave.spike || wave.phase === 'final' ? 1.4 : .9);
     if (wave.spike) {
-      ex.message = 'Relay surge. Hold the line.';
+      ex.message = 'Relay surge. Defend the Rift.';
       ex.messageTime = 4;
       shake(14, .55);
     } else if (wave.phase === 'final') {
-      ex.message = 'Final push. Keep the Relay alive.';
+      ex.message = 'Final push. Keep the Rift alive.';
       ex.messageTime = 4;
       shake(10, .38);
     } else if (wave.phase === 'early') {
@@ -11384,21 +11667,7 @@ function updateShatterConvoyHold(dt, activeRoom) {
       ex.messageTime = 3;
     }
   }
-  objective.label = activeRoom.id === 'deadRelay' ? 'Relay Assault' : 'Hold Rift';
-  if (relayHold) {
-    const liveRelayEnemies = S.enemies.some(e => e && !e.dead && e.expeditionRoomId === activeRoom.id);
-    if ((objective.waveIndex || 0) >= waves.length && !liveRelayEnemies) {
-      completeShatterConvoyRoom(activeRoom, 'Dead Relay charged.');
-      startExpeditionEscapeSequence();
-    }
-  } else if (objective.timer <= 0) {
-    if (activeRoom.id === 'deadRelay') {
-      completeShatterConvoyRoom(activeRoom, 'Dead Relay charged.');
-      startExpeditionEscapeSequence();
-    } else {
-      completeShatterConvoyRoom(activeRoom, 'Ambush survived. Exit open.');
-    }
-  }
+  objective.label = activeRoom.id === 'deadRelay' ? 'Defend Rift' : 'Hold Rift';
   return true;
 }
 
@@ -11769,6 +12038,7 @@ function spawnExpeditionRoomRouteThreat(room, threat, i = 0) {
   const ex = S.expedition;
   if (!ex || !room || !threat || !threat.type || !isRoad(threat.c, threat.r)) return null;
   if (!expeditionRoomContainsCell(room, threat.c, threat.r)) return null;
+  if (isBlockedTerrain(threat.c, threat.r) || isExpeditionRoomBlockedCell(threat.c, threat.r) || expeditionRoomLavaCell(threat.c, threat.r, room)) return null;
   const spawnKey = `${room.id}:${i}`;
   if (ex.roomThreatsSpawned?.[spawnKey]) return null;
   const e = spawnExpeditionRoomEnemy(threat.type, room, { c: threat.c, r: threat.r, x: cx(threat.c), y: cy(threat.r) }, !!threat.elite);
@@ -11897,12 +12167,12 @@ function damageExpeditionRift(e, dt) {
     }
     return true;
   }
-  if (S.devRiftNoHpLoss) {
+  if (S.devInvincible || S.devRiftNoHpLoss) {
     rift.flash = Math.max(rift.flash || 0, .35);
     e.slow = Math.max(e.slow || 0, .25);
     e.riftBiteText = Math.max(0, (e.riftBiteText || 0) - dt);
     if (e.riftBiteText <= 0) {
-    floatText('CORE SAFE', rift.x - 28, rift.y - 42, '#8edcff');
+      floatText('CORE SAFE', rift.x - 28, rift.y - 42, '#8edcff');
       e.riftBiteText = .9;
     }
     return true;
@@ -11912,7 +12182,9 @@ function damageExpeditionRift(e, dt) {
   S.lastDeathCause = `core:${e.type || 'enemy'}`;
   S.lastDamageTaken = base * mult * dt;
   S.lastDeathSource = { x: rift.x, y: rift.y };
+  const beforeHp = rift.hp;
   rift.hp = Math.max(0, rift.hp - base * mult * dt);
+  if (rift.hp < beforeHp) resetExpeditionRiftPassiveRegenDelay();
   rift.flash = Math.max(rift.flash || 0, .55);
   if (ex && !ex.riftCarried) {
     const pct = rift.max > 0 ? rift.hp / rift.max : 0;
@@ -12228,6 +12500,7 @@ function tryToggleExpeditionRiftCarry() {
   ex.riftVisualX = ex.rift.x;
   ex.riftVisualY = ex.rift.y;
   ex.riftSettleTime = 0;
+  resetExpeditionRiftPassiveRegenDelay();
   if (isShatterConvoyExpedition()) {
     playSfx('secondaryReady');
     floatText(ex.escapeActive ? 'ESCAPE!' : ex.roomObjective?.type === 'shatterHold' ? 'REPOSITION' : 'RIFT SECURED', S.hero.x - 42, S.hero.y - 46, '#8edcff');
@@ -13545,7 +13818,7 @@ function expeditionEnemyPreferredTarget(e) {
     case 'playerHunter':
       return coreD < 100 && heroD > coreD + 230 ? 'rift' : 'hero';
     case 'coreBreaker':
-      return heroD + 145 < coreD ? 'hero' : 'rift';
+      return coreD < 230 ? 'rift' : heroD + 145 < coreD ? 'hero' : 'rift';
     case 'rangedHarasser': {
       const range = Math.max(220, Math.min(430, (e.range || 260) + 70));
       if (coreExposed && coreD < range && heroD > coreD + 125) return 'rift';
@@ -13553,7 +13826,7 @@ function expeditionEnemyPreferredTarget(e) {
     }
     case 'opportunist':
     default:
-      return coreD <= heroD + 60 ? 'rift' : 'hero';
+      return coreD < 150 || coreD <= heroD + 60 ? 'rift' : 'hero';
   }
 }
 
@@ -14020,7 +14293,9 @@ function devGrantRiftUpgrade() {
 function devDamageCore(amount = 100) {
   const ex = S.expedition;
   if (isExpeditionRun() && ex?.rift) {
+    const beforeHp = ex.rift.hp;
     ex.rift.hp = Math.max(0, ex.rift.hp - amount);
+    if (ex.rift.hp < beforeHp) resetExpeditionRiftPassiveRegenDelay();
     ex.rift.flash = Math.max(ex.rift.flash || 0, .55);
     showCoreHitText(`CORE -${amount}`, ex.rift, '#ff9b8a');
     if (ex.rift.hp <= 0) offerRestart('The Rift collapsed');
@@ -15004,7 +15279,8 @@ function loadoutSavePayload() {
   return {
     missionType: LOADOUT_STATE.missionType === 'expedition' ? 'expedition' : 'arena',
     arenaId: LEVELS[LOADOUT_STATE.arenaId] && !isExpeditionLevel(LOADOUT_STATE.arenaId) ? LOADOUT_STATE.arenaId : 'field',
-    expeditionId: isExpeditionLevel(LOADOUT_STATE.expeditionId) ? LOADOUT_STATE.expeditionId : 'expedition01',
+    expeditionId: loadoutExpeditionDestination(LOADOUT_STATE.expeditionId),
+    expeditionRouteVersion: LOADOUT_EXPEDITION_ROUTE_VERSION,
     selectedIds: LOADOUT_STATE.selectedIds.filter(k => WEAPONS[k] || TOWERS[k] || TRINKETS[k]).slice(0, LOADOUT_MAX_SLOTS),
     inspectedId: LOADOUT_STATE.inspectedId || null,
   };
@@ -15018,6 +15294,72 @@ function persistLoadoutState() {
   }
 }
 
+function normalizeLoadoutExpeditionId(id) {
+  const key = String(id || '').trim();
+  if (EXPEDITION_LOADOUT_ROUTES[key]) return key;
+  return EXPEDITION_LOADOUT_ALIASES[key] || 'expedition01';
+}
+
+function normalizeSavedLoadoutExpeditionId(data) {
+  const expeditionId = data?.expeditionId;
+  const normalized = normalizeLoadoutExpeditionId(expeditionId);
+  if (data?.expeditionRouteVersion === LOADOUT_EXPEDITION_ROUTE_VERSION) return normalized;
+  if (expeditionId === 'expedition01') return 'expedition02';
+  if (expeditionId === 'expedition02') return 'expedition01';
+  return normalized;
+}
+
+function loadoutExpeditionDefinition(id) {
+  return EXPEDITION_LOADOUT_ROUTES[normalizeLoadoutExpeditionId(id)] || EXPEDITION_LOADOUT_ROUTES.expedition01;
+}
+
+function loadoutExpeditionDestination(id) {
+  return loadoutExpeditionDefinition(id).levelId;
+}
+
+function loadoutExpeditionRouteLog(source, rawId = LOADOUT_STATE.expeditionId) {
+  const expedition = loadoutExpeditionDefinition(rawId);
+  const level = LEVELS[expedition.levelId];
+  const roomNames = (level?.expedition?.rooms || []).slice(0, 5).map(room => room.name);
+  const ok = !!(level && level.mode === 'expedition' && level.label === expedition.title);
+  const payload = {
+    source,
+    selectedExpeditionId: expedition.id,
+    loadedLevelId: expedition.levelId,
+    label: level?.label || '',
+    expectedTitle: expedition.title,
+    missionKind: level?.expedition?.missionKind || 'expedition01',
+    firstRooms: roomNames,
+    ok,
+  };
+  if (ok) console.log('[loadout] expedition route', payload);
+  else console.warn('[loadout] expedition route mismatch', payload);
+  return payload;
+}
+
+function logActiveExpeditionRoute(source = 'active') {
+  const level = LEVELS[S.levelId];
+  const selected = loadoutExpeditionDefinition(LOADOUT_STATE.expeditionId);
+  const rooms = (level?.expedition?.rooms || []).slice(0, 5).map(room => room.name);
+  const payload = {
+    source,
+    selectedExpeditionId: selected.id,
+    loadedLevelId: S.levelId,
+    levelLabel: S.levelLabel,
+    expectedLevelId: selected.levelId,
+    missionKind: level?.expedition?.missionKind || 'expedition01',
+    firstRooms: rooms,
+    ok: S.levelId === selected.levelId && S.levelLabel === selected.title,
+  };
+  if (payload.ok) console.log('[loadout] expedition active route', payload);
+  else console.warn('[loadout] expedition active route mismatch', payload);
+  return payload;
+}
+
+function sameLoadoutIds(a, b) {
+  return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((id, i) => id === b[i]);
+}
+
 function restoreLoadoutState(options = {}) {
   const restoreMission = options.restoreMission !== false;
   let data = null;
@@ -15029,10 +15371,16 @@ function restoreLoadoutState(options = {}) {
   if (!data || typeof data !== 'object') return false;
   if (restoreMission) LOADOUT_STATE.missionType = data.missionType === 'arena' ? 'arena' : 'expedition';
   if (LEVELS[data.arenaId] && !isExpeditionLevel(data.arenaId)) LOADOUT_STATE.arenaId = data.arenaId;
-  if (isExpeditionLevel(data.expeditionId)) LOADOUT_STATE.expeditionId = data.expeditionId;
-  LOADOUT_STATE.selectedIds = Array.isArray(data.selectedIds)
+  if (restoreMission) {
+    const expeditionId = normalizeSavedLoadoutExpeditionId(data);
+    if (isExpeditionLevel(loadoutExpeditionDestination(expeditionId))) LOADOUT_STATE.expeditionId = loadoutExpeditionDestination(expeditionId);
+  }
+  const restoredIds = Array.isArray(data.selectedIds)
     ? data.selectedIds.filter(k => WEAPONS[k] || TOWERS[k] || TRINKETS[k]).slice(0, LOADOUT_MAX_SLOTS)
     : [];
+  LOADOUT_STATE.selectedIds = sameLoadoutIds(restoredIds, OLD_DEFAULT_LOADOUT_IDS)
+    ? DEFAULT_LOADOUT_IDS.slice(0, LOADOUT_MAX_SLOTS)
+    : restoredIds;
   LOADOUT_STATE.inspectedId = LOADOUT_STATE.selectedIds.includes(data.inspectedId) ? data.inspectedId : (LOADOUT_STATE.selectedIds[0] || null);
   S.devArenaChoice = getSelectedMissionLevel();
   return true;
@@ -15047,38 +15395,9 @@ function applyDefaultLoadoutState() {
 
 function getSelectedMissionLevel() {
   return LOADOUT_STATE.missionType === 'expedition'
-    ? (LOADOUT_STATE.expeditionId || 'expedition01')
+    ? loadoutExpeditionDestination(LOADOUT_STATE.expeditionId)
     : (LOADOUT_STATE.arenaId || 'field');
 }
-
-const EXPEDITION_MENU_DETAILS = {
-  expedition01: {
-    kicker: 'Expedition Details',
-    title: '1. The Tunnel',
-    body: 'The first step into hostile ground. Establish your Core. Find the first Relay.',
-    thumbClass: 'thumbTunnel',
-    image: 'assets/menu/the-tunnel.jpg',
-    objectives: [
-      'Carry the Core forward.',
-      'Build defenses inside the Core radius.',
-      'Activate Relays to expand your route.',
-    ],
-    expect: 'Small rooms, early enemies, and simple threats. Built for learning the basics.',
-  },
-  expedition02: {
-    kicker: 'Expedition Details',
-    title: '2. Chemical Plant',
-    body: 'Toxic spills, volatile machines, and heavier resistance. Push the Core through industrial danger.',
-    thumbClass: 'thumbChemical',
-    image: 'assets/menu/chemical-plant.jpg',
-    objectives: [
-      'Protect the Core.',
-      'Control lanes with defenses.',
-      'Activate the next Relay.',
-    ],
-    expect: 'More hazards, stronger enemy pressure, and more demanding Core placement.',
-  },
-};
 
 const ARENA_MENU_DETAILS = {
   kicker: 'Arena Details',
@@ -15095,9 +15414,10 @@ const ARENA_MENU_DETAILS = {
 };
 
 function updateExpeditionDetailsPanel() {
+  const expeditionId = loadoutExpeditionDestination(LOADOUT_STATE.expeditionId);
   const details = LOADOUT_STATE.missionType === 'arena'
     ? ARENA_MENU_DETAILS
-    : (EXPEDITION_MENU_DETAILS[LOADOUT_STATE.expeditionId] || EXPEDITION_MENU_DETAILS.expedition01);
+    : { kicker: 'Expedition Details', ...loadoutExpeditionDefinition(expeditionId) };
   const kicker = $('expeditionDetailsKicker');
   const title = $('expeditionDetailsTitle');
   const body = $('expeditionDetailsBody');
@@ -15138,11 +15458,11 @@ function updateMissionSelectionUI() {
     if (arenaSelect.value !== want) arenaSelect.value = want;
   }
   if (expeditionSelect && document.activeElement !== expeditionSelect) {
-    const want = LOADOUT_STATE.expeditionId || 'expedition01';
+    const want = loadoutExpeditionDestination(LOADOUT_STATE.expeditionId);
     if (expeditionSelect.value !== want) expeditionSelect.value = want;
   }
   document.querySelectorAll('#start [data-expedition-id]').forEach(btn => {
-    const active = btn.dataset.expeditionId === (LOADOUT_STATE.expeditionId || 'expedition01');
+    const active = loadoutExpeditionDestination(btn.dataset.expeditionId) === loadoutExpeditionDestination(LOADOUT_STATE.expeditionId);
     btn.classList.toggle('active', active);
     btn.setAttribute('aria-pressed', active ? 'true' : 'false');
   });
@@ -15224,7 +15544,7 @@ function updateLoadoutSummary() {
     beginBtn.disabled = !enabled;
     beginBtn.classList.toggle('disabled', !enabled);
     const missionType = LOADOUT_STATE.missionType === 'expedition' ? 'expedition' : 'arena';
-    const expeditionName = LOADOUT_STATE.expeditionId === 'expedition02' ? 'Expedition 2: Chemical Plant' : 'Expedition 1: The Tunnel';
+    const expeditionName = loadoutExpeditionDefinition(LOADOUT_STATE.expeditionId).startLabel;
     beginBtn.innerHTML = missionType === 'expedition'
       ? `<span class="startButtonPrimary">START EXPEDITION</span><span class="startButtonSub">${expeditionName}</span>`
       : `<span class="startButtonPrimary">START ARENA</span><span class="startButtonSub">Quick Survival</span>`;
@@ -15483,8 +15803,8 @@ function missionObjectiveText() {
       if (ex.escapeActive) return 'Escape';
       if (ex.roomObjective?.type === 'shatterHold' && ex.riftCarried) return 'Redeploy Rift';
       if (ex.roomObjective?.type === 'shatterHold') {
-        if (ex.roomObjective.roomId === 'deadRelay' && (ex.roomObjective.buildTimer || 0) > 0) return 'Build Phase';
-        return ex.roomObjective.roomId === 'deadRelay' ? 'Relay Assault' : 'Hold Rift';
+        if (ex.roomObjective.roomId === 'deadRelay' && (ex.roomObjective.buildTimer || 0) > 0) return 'Defend Rift';
+        return ex.roomObjective.roomId === 'deadRelay' ? 'Defend Rift' : 'Hold Rift';
       }
       if (ex.roomObjective?.type === 'breachGate' || ex.roomObjective?.type === 'ambushDeploy' || ex.roomObjective?.type === 'relayDeploy') return 'Dock Rift';
       return 'Move Forward';
@@ -15528,9 +15848,9 @@ function missionObjectiveHudState() {
       if (ex.escapeActive) return { title: 'ESCAPE', sub: '' };
       if (ex.roomObjective?.type === 'shatterHold') {
         if (ex.riftCarried) return { title: 'REDEPLOY RIFT', sub: '' };
-        if (ex.roomObjective.roomId === 'deadRelay' && (ex.roomObjective.buildTimer || 0) > 0) return { title: 'BUILD PHASE', sub: 'FORTIFY RELAY' };
+        if (ex.roomObjective.roomId === 'deadRelay' && (ex.roomObjective.buildTimer || 0) > 0) return { title: 'DEFEND RIFT', sub: 'RELAY CHARGING' };
         return ex.roomObjective.roomId === 'deadRelay'
-          ? { title: 'RELAY ASSAULT', sub: '' }
+          ? { title: 'DEFEND RIFT', sub: 'TIMER IS THE WIN CONDITION' }
           : { title: 'HOLD RIFT', sub: '' };
       }
       if (ex.roomObjective?.type === 'breachGate' || ex.roomObjective?.type === 'ambushDeploy' || ex.roomObjective?.type === 'relayDeploy') return { title: 'DOCK RIFT', sub: '' };
@@ -15828,6 +16148,7 @@ function startGameFromLoadout() {
   if (!validateLoadoutState()) return;
   persistLoadoutState();
   const missionLevel = getSelectedMissionLevel();
+  if (LOADOUT_STATE.missionType === 'expedition') loadoutExpeditionRouteLog('start', LOADOUT_STATE.expeditionId);
   if (missionLevel && missionLevel !== S.levelId && switchArena(missionLevel) === false) {
     console.log('[loadout] validation fails', 'arena switch failed');
     return;
@@ -15848,6 +16169,7 @@ function startGameFromLoadout() {
   clearCombatInputState();
   if (expeditionStart) {
     startPlayerSpawnIntro(S.hero, 0, true);
+    logActiveExpeditionRoute('start-applied');
   } else {
     startPlayerSpawnIntro(S.hero, 0);
   }
@@ -17272,9 +17594,8 @@ function renderPreview() {
   if (isExpeditionLevel(selectedLevel)) {
     $('preview').dataset.previewKey = `expedition-${selectedLevel}`;
     const desc = LEVELS[selectedLevel]?.description;
-    $('preview').innerHTML = selectedLevel === 'expedition02'
-      ? `<b>Expedition 02: Shatter Convoy</b><br>${desc || 'Move the unstable Rift through a collapsing route. Build fast, abandon defenses, escape alive.'}`
-      : '<b>Expedition:</b> Explore the facility, find four keys, unlock extraction, then hold out long enough to escape.';
+    const expedition = loadoutExpeditionDefinition(selectedLevel);
+    $('preview').innerHTML = `<b>${expedition.startLabel}</b><br>${desc || expedition.preview}`;
     return;
   }
   // Only recompute when the wave number has changed (cache via data attribute)
@@ -24602,6 +24923,7 @@ function step(dt) {
     updateCornerSkulls(dt);
     updateCornerGhosts(dt);
     updateLowHealthWarning(dt);
+    updateExpeditionRiftPassiveRegen(dt);
     updateExpeditionRiftWarning(dt);
   });
   if (S.started && !isExpeditionRun() && !S.gameOver && !S.waveActive && S.phase === 'build' && S.gameState !== 'upgradeChoice' && !S.pendingUpgrade) {
@@ -24646,6 +24968,7 @@ function step(dt) {
       }
     }
   });
+  if (isExpeditionRun()) applyRiftCleanupKillField();
 
   // Clean destroyed entities; rebuild path if road changed
   const prevBarrierCount = S.barriers.length;
@@ -24816,6 +25139,7 @@ function draw(t) {
   ctx.save();
   ctx.translate(-CAMERA.x, -CAMERA.y);
   profileMeasure('render map terrain', () => drawMap(t));
+  drawShatterConvoyRelayTimerOverlay(t);
   profileMeasure('render decals and gibs', () => {
     drawBloodDecals();
     drawGibDebris();
@@ -25150,16 +25474,15 @@ function draw(t) {
     }
     ctx.globalAlpha = 1;
   }
-  drawShatterConvoyRelayTimerOverlay(t);
-
   ctx.restore();
   profileMeasure('render overlays', () => {
     drawLowHealthOverlay(t);
-    drawAtmosphere(t);
-    drawExpeditionHud(t);
-    drawPowerupDebugHud(t);
-    drawExpeditionRiftWarningOverlay(t);
-  });
+      drawAtmosphere(t);
+      drawExpeditionHud(t);
+      drawPowerupDebugHud(t);
+      drawExpeditionRiftWarningOverlay(t);
+      drawExpeditionRiftHealthBar();
+    });
 
   // Pause overlay
   if (S.paused && $('clear').classList.contains('hidden')) {
@@ -25970,45 +26293,92 @@ function drawShatterConvoyRelay(room, visual, t) {
   ctx.restore();
 }
 
+function drawShatterConvoyRiftChargeClock(progress, t, label) {
+  const pct = clamp(progress || 0, 0, 1);
+  const start = -Math.PI / 2;
+  const end = start + Math.PI * 2 * pct;
+  const outer = 118;
+  const inner = 44;
+  const totalSegments = 44;
+  ctx.save();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = .76;
+  ctx.fillStyle = 'rgba(4, 10, 18, .82)';
+  ctx.beginPath();
+  ctx.arc(0, 0, outer + 9, 0, 7);
+  ctx.arc(0, 0, inner - 4, 0, -7, true);
+  ctx.fill('evenodd');
+  ctx.globalAlpha = .55 + Math.sin(t * 7) * .06;
+  ctx.strokeStyle = 'rgba(255, 255, 255, .58)';
+  ctx.lineWidth = 3;
+  ctx.setLineDash([5, 9]);
+  ctx.beginPath();
+  ctx.arc(0, 0, outer + 2, 0, 7);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.globalCompositeOperation = 'screen';
+  for (let i = 0; i < totalSegments; i++) {
+    const segmentStart = start + Math.PI * 2 * (i / totalSegments);
+    const segmentEnd = Math.min(end, start + Math.PI * 2 * ((i + 1) / totalSegments));
+    if (segmentEnd <= segmentStart) break;
+    const hue = (i * 360 / totalSegments + t * 95) % 360;
+    ctx.globalAlpha = .64;
+    ctx.fillStyle = `hsla(${hue}, 100%, 62%, .82)`;
+    ctx.beginPath();
+    ctx.arc(0, 0, outer, segmentStart, segmentEnd);
+    ctx.arc(0, 0, inner, segmentEnd, segmentStart, true);
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalAlpha = .42;
+    ctx.strokeStyle = `hsla(${(hue + 34) % 360}, 100%, 72%, .72)`;
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.arc(0, 0, outer - 8, segmentStart, segmentEnd);
+    ctx.stroke();
+  }
+  if (pct > 0) {
+    const headRadius = 11 + Math.sin(t * 10) * 2;
+    ctx.globalAlpha = .95;
+    ctx.fillStyle = '#fff8c8';
+    ctx.beginPath();
+    ctx.arc(Math.cos(end) * 102, Math.sin(end) * 102, headRadius, 0, 7);
+    ctx.fill();
+    ctx.globalAlpha = .72;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(end) * inner, Math.sin(end) * inner);
+    ctx.lineTo(Math.cos(end) * outer, Math.sin(end) * outer);
+    ctx.stroke();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = .94;
+  ctx.fillStyle = '#f7fbff';
+  ctx.font = '800 13px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label, 0, -outer - 22);
+  ctx.font = '800 12px system-ui, sans-serif';
+  ctx.fillText(`${Math.round(pct * 100)}%`, 0, outer + 23);
+  ctx.restore();
+}
+
 function drawShatterConvoyRelayTimerOverlay(t) {
   const ex = S.expedition;
   if (!isShatterConvoyExpedition() || !ex?.roomObjective || ex.roomObjective.type !== 'shatterHold' || ex.roomObjective.roomId !== 'deadRelay' || ex.riftCarried) return;
-  if (!(ex.roomObjective.buildDuration > 0)) return;
   const room = expeditionRoomById('deadRelay');
   const point = shatterConvoyRoomPoint(room);
   if (!point) return;
-  const duration = Math.max(1, ex.roomObjective.buildDuration || 20);
-  const progress = clamp(1 - (ex.roomObjective.buildTimer || 0) / duration, 0, 1);
-  const start = -Math.PI / 2;
-  const end = start + Math.PI * 2 * progress;
+  const building = (ex.roomObjective.buildTimer || 0) > 0;
+  const duration = building
+    ? Math.max(1, ex.roomObjective.buildDuration || 20)
+    : Math.max(1, ex.roomObjective.duration || room?.holdSeconds || 75);
+  const remaining = building ? ex.roomObjective.buildTimer : ex.roomObjective.timer;
+  const progress = clamp(1 - (remaining || 0) / duration, 0, 1);
   ctx.save();
   ctx.translate(point.x, point.y);
-  ctx.globalCompositeOperation = 'source-over';
-  ctx.lineCap = 'round';
-  ctx.globalAlpha = .98;
-  ctx.strokeStyle = 'rgba(5, 23, 38, .86)';
-  ctx.lineWidth = 14;
-  ctx.beginPath();
-  ctx.arc(0, 0, 94, 0, 7);
-  ctx.stroke();
-  ctx.globalCompositeOperation = 'screen';
-  ctx.globalAlpha = .42 + Math.sin(t * 9) * .08;
-  ctx.strokeStyle = '#18d8ff';
-  ctx.lineWidth = 18;
-  ctx.beginPath();
-  ctx.arc(0, 0, 94, start, end);
-  ctx.stroke();
-  ctx.globalAlpha = 1;
-  ctx.strokeStyle = '#5eeaff';
-  ctx.lineWidth = 9;
-  ctx.beginPath();
-  ctx.arc(0, 0, 94, start, end);
-  ctx.stroke();
-  ctx.strokeStyle = '#e8fbff';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.arc(0, 0, 94, Math.max(start, end - .24), end + .08);
-  ctx.stroke();
+  // Dead Relay charge uses the deployed Rift as a clock face; this is a visual-only cue.
+  drawShatterConvoyRiftChargeClock(progress, t, building ? 'CHARGE THE RELAY' : 'DEFEND THE RIFT');
   ctx.restore();
 }
 
@@ -26751,6 +27121,227 @@ function drawScrapWeaponRelic(i, t, p) {
   ctx.restore();
 }
 
+function drawBoneHaloRing(t, opts = {}) {
+  const scale = opts.scale || 1;
+  const alpha = opts.alpha ?? .94;
+  const radius = (opts.radius || 62) * scale;
+  const rot = t * (opts.speed || .42);
+  const boneCount = 8;
+  const skullCount = 4;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.globalCompositeOperation = 'screen';
+  ctx.strokeStyle = '#b47cff';
+  ctx.lineWidth = 2.2 * scale;
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, 7);
+  ctx.stroke();
+  ctx.globalAlpha = alpha * .22;
+  ctx.strokeStyle = '#6f2cff';
+  ctx.lineWidth = 7 * scale;
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, 7);
+  ctx.stroke();
+  ctx.globalAlpha = alpha * .18;
+  ctx.fillStyle = '#2a0738';
+  ctx.beginPath();
+  ctx.arc(0, 0, radius + 16 * scale, 0, 7);
+  ctx.arc(0, 0, radius - 18 * scale, 0, -7, true);
+  ctx.fill('evenodd');
+  ctx.restore();
+
+  // Deliberate Rift-centered ring: fewer large pieces stay readable at gameplay zoom.
+  for (let i = 0; i < boneCount; i++) {
+    const a = rot + i * Math.PI * 2 / boneCount;
+    const r = radius;
+    ctx.save();
+    ctx.translate(Math.cos(a) * r, Math.sin(a) * r);
+    ctx.rotate(a + Math.PI / 2);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = alpha;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#180a18';
+    ctx.lineWidth = 10 * scale;
+    ctx.beginPath();
+    ctx.moveTo(-20 * scale, 0);
+    ctx.lineTo(20 * scale, 0);
+    ctx.stroke();
+    ctx.strokeStyle = '#d8c8aa';
+    ctx.lineWidth = 6 * scale;
+    ctx.beginPath();
+    ctx.moveTo(-20 * scale, 0);
+    ctx.lineTo(20 * scale, 0);
+    ctx.stroke();
+    ctx.fillStyle = '#eadfc8';
+    ctx.strokeStyle = '#2b1324';
+    ctx.lineWidth = 2 * scale;
+    for (const end of [-1, 1]) {
+      ctx.beginPath();
+      ctx.ellipse(end * 24 * scale, -3.2 * scale, 5.8 * scale, 4.9 * scale, .16 * end, 0, 7);
+      ctx.ellipse(end * 24 * scale, 3.2 * scale, 5.8 * scale, 4.9 * scale, -.16 * end, 0, 7);
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = alpha * .28;
+    ctx.strokeStyle = '#b47cff';
+    ctx.lineWidth = 2 * scale;
+    ctx.beginPath();
+    ctx.moveTo(-16 * scale, 0);
+    ctx.lineTo(16 * scale, 0);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  for (let i = 0; i < skullCount; i++) {
+    const a = rot + i * Math.PI * 2 / skullCount;
+    const r = radius;
+    ctx.save();
+    ctx.translate(Math.cos(a) * r, Math.sin(a) * r);
+    ctx.rotate(a + Math.PI / 2);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = '#f0e3c9';
+    ctx.strokeStyle = '#1a0b16';
+    ctx.lineWidth = 3 * scale;
+    ctx.beginPath();
+    ctx.ellipse(0, -2 * scale, 13 * scale, 15 * scale, 0, 0, 7);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#14070f';
+    ctx.beginPath();
+    ctx.arc(-5 * scale, -4 * scale, 3 * scale, 0, 7);
+    ctx.arc(5 * scale, -4 * scale, 3 * scale, 0, 7);
+    ctx.ellipse(0, 5 * scale, 3.5 * scale, 5.5 * scale, 0, 0, 7);
+    ctx.fill();
+    ctx.strokeStyle = '#8a72a8';
+    ctx.lineWidth = 1.2 * scale;
+    for (let tooth = -2; tooth <= 2; tooth++) {
+      ctx.beginPath();
+      ctx.moveTo(tooth * 2 * scale, 10 * scale);
+      ctx.lineTo(tooth * 2 * scale, 14 * scale);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+
+function drawBloodCrownSawBlade(x, y, t, opts = {}) {
+  const scale = opts.scale || 1;
+  const threat = opts.threat || 0;
+  const alpha = opts.alpha ?? .96;
+  const teeth = 28;
+  const innerR = 82 * scale;
+  const bodyR = 106 * scale;
+  const outerR = 128 * scale;
+  const spin = t * (opts.speed || 18.5);
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = alpha;
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 5; i++) {
+    const a = spin - i * .22;
+    ctx.globalAlpha = (.12 - i * .015) * alpha;
+    ctx.strokeStyle = i % 2 ? '#ff2638' : '#2b0004';
+    ctx.lineWidth = (12 - i) * scale;
+    ctx.beginPath();
+    ctx.arc(0, 0, (outerR - 7 * scale) - i * 2 * scale, a, a + Math.PI * (1.18 - i * .08));
+    ctx.stroke();
+  }
+  ctx.globalAlpha = (.22 + threat * .12) * alpha;
+  ctx.strokeStyle = '#9c0811';
+  ctx.lineWidth = 5 * scale;
+  ctx.setLineDash([5 * scale, 9 * scale]);
+  ctx.lineDashOffset = -t * 180;
+  ctx.beginPath();
+  ctx.arc(0, 0, bodyR + 5 * scale, 0, 7);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  ctx.rotate(spin);
+  ctx.fillStyle = '#070809';
+  ctx.strokeStyle = '#202326';
+  ctx.lineWidth = 5 * scale;
+  ctx.beginPath();
+  for (let i = 0; i < teeth * 2; i++) {
+    const a = i * Math.PI / teeth;
+    const r = i % 2 === 0 ? outerR : bodyR;
+    const px = Math.cos(a) * r;
+    const py = Math.sin(a) * r;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+  ctx.moveTo(innerR, 0);
+  ctx.arc(0, 0, innerR, 0, -7, true);
+  ctx.fill('evenodd');
+  ctx.stroke();
+
+  ctx.strokeStyle = '#0e1113';
+  ctx.lineWidth = 13 * scale;
+  ctx.beginPath();
+  ctx.arc(0, 0, bodyR - 13 * scale, 0, 7);
+  ctx.stroke();
+  ctx.strokeStyle = '#2f3337';
+  ctx.lineWidth = 3 * scale;
+  ctx.beginPath();
+  ctx.arc(0, 0, bodyR - 22 * scale, 0, 7);
+  ctx.stroke();
+  ctx.strokeStyle = '#050607';
+  ctx.lineWidth = 8 * scale;
+  ctx.beginPath();
+  ctx.arc(0, 0, innerR + 3 * scale, 0, 7);
+  ctx.stroke();
+
+  ctx.fillStyle = '#2d3134';
+  for (let i = 0; i < teeth; i++) {
+    if (i % 2) continue;
+    const a = i * Math.PI * 2 / teeth + .055;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a - .035) * (outerR - 7 * scale), Math.sin(a - .035) * (outerR - 7 * scale));
+    ctx.lineTo(Math.cos(a) * (outerR + 2 * scale), Math.sin(a) * (outerR + 2 * scale));
+    ctx.lineTo(Math.cos(a + .035) * (outerR - 8 * scale), Math.sin(a + .035) * (outerR - 8 * scale));
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  ctx.fillStyle = '#8a1118';
+  for (let i = 0; i < 11; i++) {
+    const a = i * 2.03 + Math.sin(i * 4.7) * .2;
+    const r = bodyR + (i % 3) * 4 * scale;
+    ctx.save();
+    ctx.translate(Math.cos(a) * r, Math.sin(a) * r);
+    ctx.rotate(a);
+    ctx.globalAlpha = alpha * (.65 + (i % 4) * .07);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, (3 + (i % 3)) * scale, (1.4 + (i % 2)) * scale, 0, 0, 7);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  ctx.globalCompositeOperation = 'screen';
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 6; i++) {
+    const flash = Math.max(0, Math.sin(t * 13 + i * 2.41) - .62);
+    if (!flash) continue;
+    const a = i * Math.PI * 2 / 6 - spin * .18;
+    const r = bodyR + 10 * scale;
+    ctx.globalAlpha = alpha * flash;
+    ctx.strokeStyle = i % 2 ? '#fff0b8' : '#ff8a3a';
+    ctx.lineWidth = (2 + flash * 2) * scale;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a) * (r - 10 * scale), Math.sin(a) * (r - 10 * scale));
+    ctx.lineTo(Math.cos(a + .08) * (r + 15 * scale), Math.sin(a + .08) * (r + 15 * scale));
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 function drawCorruptionWisp(i, t, baseR = 72, alpha = .3) {
   const p = riftRelicOrbitPoint(i, t, baseR + (i % 5) * 12, .22 + (i % 4) * .05, 1.4);
   ctx.save();
@@ -26802,39 +27393,39 @@ function drawRiftProgressionCorruption(visual, t) {
   const vt = visual.visualT || t;
   ctx.save();
   ctx.globalCompositeOperation = 'screen';
-  const breath = 1 + Math.sin(t * 2.4) * (.035 + count * .01);
-  ctx.globalAlpha = .16 + count * .035;
-  ctx.fillStyle = count >= 4 ? '#2b0010' : '#3d0648';
-  ctx.beginPath();
-  ctx.ellipse(0, 4, (74 + count * 10) * breath, (52 + count * 7) / breath, Math.sin(t * .6) * .18, 0, 7);
-  ctx.fill();
-  ctx.strokeStyle = count >= 3 ? '#6f2cff' : '#b47cff';
-  ctx.lineWidth = 2 + count * .4;
-  ctx.globalAlpha = .18 + count * .04;
-  ctx.beginPath();
-  ctx.ellipse(0, 0, 62 + count * 13 + Math.sin(t * 4) * 4, 46 + count * 8 + Math.cos(t * 3.3) * 3, vt * .08, 0, 7);
-  ctx.stroke();
-  if (count >= 3) {
-    ctx.globalAlpha = .28;
-    ctx.strokeStyle = '#120018';
-    ctx.lineWidth = 5;
-    for (let i = 0; i < 5 + count; i++) {
-      const p = riftRelicOrbitPoint(i + 60, t, 70 + i * 7, .18, 1.2);
-      ctx.beginPath();
-      ctx.moveTo(p.x * .5, p.y * .5);
-      ctx.quadraticCurveTo(p.x * .72 + Math.sin(t + i) * 18, p.y * .78, p.x, p.y);
-      ctx.stroke();
-    }
-  }
-  if (count >= 5) {
-    ctx.globalAlpha = .18 + Math.sin(t * 5) * .05;
-    ctx.strokeStyle = '#e0c8ff';
-    ctx.lineWidth = 2;
-    ctx.setLineDash([8, 18, 3, 14]);
+  // Black Orbit is energy and distortion only, not a third solid physical ring.
+  for (let i = 0; i < 5; i++) {
+    const breath = 1 + Math.sin(t * (1.5 + i * .13) + i) * .045;
+    const rx = (128 + i * 13 + threat * 22) * breath;
+    const ry = (84 + i * 8 + threat * 12) / breath;
+    const start = vt * (.2 + i * .035) + i * 1.31;
+    ctx.globalAlpha = (.08 + threat * .035) * (1 - i * .09);
+    ctx.strokeStyle = i % 2 ? '#6f2cff' : '#120018';
+    ctx.lineWidth = i % 2 ? 2 : 8;
     ctx.beginPath();
-    ctx.ellipse(Math.sin(t * .7) * 6, Math.cos(t * .9) * 5, 132 + threat * 34, 82 + threat * 18, Math.sin(t * .4) * .35, 0, 7);
+    ctx.ellipse(0, 2, rx, ry, Math.sin(t * .34 + i) * .24, start, start + Math.PI * (1.05 + i * .12));
     ctx.stroke();
-    ctx.setLineDash([]);
+  }
+  ctx.globalCompositeOperation = 'source-over';
+  for (let i = 0; i < 10 + count * 2; i++) {
+    const p = riftRelicOrbitPoint(i + 60, t, 124 + (i % 5) * 14, .16 + (i % 4) * .025, 1.1);
+    ctx.save();
+    ctx.translate(p.x, p.y + p.bob * .4);
+    ctx.rotate(p.a + Math.sin(t + i) * .28);
+    ctx.globalAlpha = .18 + threat * .08;
+    ctx.fillStyle = i % 3 ? '#070309' : '#17051e';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 7 + (i % 3) * 3, 18 + (i % 4) * 5, .35, 0, 7);
+    ctx.fill();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = .12 + threat * .06;
+    ctx.strokeStyle = '#b47cff';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-4, -10);
+    ctx.bezierCurveTo(14, -3, -16, 10, 4, 22);
+    ctx.stroke();
+    ctx.restore();
   }
   ctx.restore();
 }
@@ -26843,10 +27434,10 @@ function drawRiftCursedParticles(visual, t) {
   const count = Math.max(1, visual.count || 0);
   ctx.save();
   ctx.globalCompositeOperation = 'source-over';
-  for (let i = 0; i < 12 + count * 5; i++) {
-    const p = riftRelicOrbitPoint(i + 120, t, 42 + (i % 7) * 17, .12 + (i % 5) * .025, 1.8);
+  for (let i = 0; i < 8 + count * 2; i++) {
+    const p = riftRelicOrbitPoint(i + 120, t, 118 + (i % 6) * 15, .1 + (i % 5) * .018, 1.05);
     const ember = i % 4 === 0;
-    ctx.globalAlpha = ember ? .36 : .18;
+    ctx.globalAlpha = ember ? .28 : .13;
     ctx.fillStyle = ember ? '#b47cff' : '#060208';
     ctx.beginPath();
     ctx.ellipse(p.x, p.y + p.bob, ember ? 2.4 : 3.8, ember ? 3.8 : 2.4, p.a, 0, 7);
@@ -26862,44 +27453,21 @@ function drawExpeditionRiftUpgradeOrbitEffects(x, y, t) {
   const vt = visual.visualT || t;
   ctx.save();
   ctx.translate(x, y);
-  drawRiftProgressionCorruption(visual, t);
-  drawRiftCursedParticles(visual, t);
-  if (visual.hasField || visual.count >= 4) {
-    for (let i = 0; i < 14 + visual.count * 2; i++) drawCorruptionWisp(i, vt, 68 + (i % 6) * 10, .18 + visual.threat * .16);
-    for (let i = 0; i < 5 + visual.count; i++) {
-      const p = riftRelicOrbitPoint(i + 30, vt, 98 + (i % 4) * 14, .31 + (i % 3) * .04, 1.6);
-      if (i % 2 === 0) drawGhostFaceRelic(i, vt, p);
-      else {
-        ctx.save();
-        ctx.translate(p.x, p.y + p.bob);
-        ctx.rotate(p.a + Math.sin(vt + i) * .4);
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.globalAlpha = .36;
-        ctx.fillStyle = '#09040b';
-        ctx.beginPath();
-        ctx.moveTo(-16, -10);
-        ctx.lineTo(14 + Math.sin(vt + i) * 8, -4);
-        ctx.lineTo(8, 18);
-        ctx.lineTo(-20, 8);
-        ctx.closePath();
-        ctx.fill();
-        ctx.restore();
-      }
-    }
+  if (visual.hasField) {
+    drawRiftProgressionCorruption(visual, t);
+    drawRiftCursedParticles(visual, t);
+    for (let i = 0; i < 10 + visual.count; i++) drawCorruptionWisp(i, vt, 120 + (i % 5) * 14, .12 + visual.threat * .08);
   }
-  if (visual.hasShield || visual.count >= 2) {
-    const boneCount = visual.hasShield ? 11 : 5;
-    for (let i = 0; i < boneCount; i++) {
-      const p = riftRelicOrbitPoint(i, vt, 82 + (i % 4) * 9, .28 + (i % 5) * .035, 1.35);
-      drawCursedBoneRelic(i, vt, p);
-    }
+  if (visual.hasPulse) {
+    drawBloodCrownSawBlade(0, 0, t, { threat: visual.threat, scale: 1, alpha: .82, speed: 22 + visual.threat * 4 });
   }
-  if (visual.hasPulse || visual.count >= 3) {
-    const weaponCount = visual.hasPulse ? 10 : 5;
-    for (let i = 0; i < weaponCount; i++) {
-      const p = riftRelicOrbitPoint(i + 15, vt, 96 + (i % 3) * 10, .5 + (i % 5) * .055, 1.25);
-      drawScrapWeaponRelic(i, vt, p);
-    }
+  if (visual.hasShield) {
+    drawBoneHaloRing(vt, {
+      scale: 1,
+      alpha: visual.shieldActive ? .98 : .88,
+      speed: .38,
+      radius: visual.shieldActive ? 67 : 62,
+    });
   }
   ctx.restore();
 }
@@ -26941,6 +27509,22 @@ function drawExpeditionRiftBoonAcquisitionFx(x, y, t) {
   ctx.beginPath();
   ctx.arc(0, 0, 120 + progress * 190, 0, 7);
   ctx.fill();
+  if (fx.upgradeId === 'pulse') {
+    drawBloodCrownSawBlade(0, 0, t + progress * 2, { threat: expeditionRiftThreatScale(), scale: .72 + progress * .34, alpha: fade, speed: 24 });
+    ctx.restore();
+    return;
+  }
+  if (fx.upgradeId === 'shield') {
+    drawBoneHaloRing(t + progress, { scale: .78 + progress * .22, alpha: fade, speed: .46, radius: 62 });
+    ctx.restore();
+    return;
+  }
+  if (fx.upgradeId === 'field') {
+    drawRiftProgressionCorruption({ count: fx.count || 3, threat: expeditionRiftThreatScale(), visualT: t + progress }, t + progress);
+    drawRiftCursedParticles({ count: fx.count || 3, visualT: t + progress }, t + progress);
+    ctx.restore();
+    return;
+  }
   for (let i = 0; i < 22; i++) {
     const a = i * 2.399 + progress * (2.2 + (i % 4) * .28);
     const r = 28 + progress * (70 + i * 7);
@@ -27156,6 +27740,61 @@ function drawCarriedRiftHeroHealth() {
   return;
 }
 
+function drawExpeditionRiftHealthBar() {
+  const ex = S.expedition;
+  const cfg = expeditionConfig();
+  const rift = ex?.rift;
+  if (!isExpeditionRun() || !ex?.riftActivated || !rift || !cfg) return;
+  const staticX = cx(cfg.rift.c);
+  const staticY = cy(cfg.rift.r);
+  const carriedRiftX = Number.isFinite(ex.riftVisualX) ? ex.riftVisualX : rift.x;
+  const carriedRiftY = Number.isFinite(ex.riftVisualY) ? ex.riftVisualY : rift.y;
+  const carriedRiftBob = ex.riftCarried ? Math.sin((ex.riftVisualBobPhase || 0)) * TETHERED_RIFT_BOB_AMPLITUDE : 0;
+  const riftRenderX = (ex.riftCarried ? carriedRiftX : rift.x) - CAMERA.x;
+  const riftRenderY = (ex.riftCarried ? carriedRiftY + carriedRiftBob : rift.y) - CAMERA.y;
+  const nearRift = ex.riftActivated || ex.riftFound || dist(S.hero.x, S.hero.y, staticX, staticY) < 360;
+  if (!nearRift) return;
+  const pct = Math.max(0, Math.min(1, rift.hp / Math.max(1, rift.max)));
+  const showTetheredCoreHp = !ex.riftCarried && (!SHOW_TETHERED_CORE_HP_ONLY_WHEN_DAMAGED || pct < .999);
+  if (!showTetheredCoreHp) return;
+  const warnState = ex.riftWarnState || 0;
+  const barW = ex.riftCarried ? 44 : 116;
+  const barH = ex.riftCarried ? 5 : 8;
+  const barX = riftRenderX - barW / 2;
+  const barY = ex.riftCarried
+    ? riftRenderY - TETHERED_CORE_HP_BAR_Y_OFFSET
+    : riftRenderY - DEPLOYED_RIFT_DRAW_SIZE * .72 - RIFT_STATUS_BAR_GAP;
+  ctx.save();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = '#1a070f';
+  ctx.fillRect(barX, barY, barW, barH);
+  ctx.fillStyle = ex.riftCarried ? '#8edcff' : warnState >= 3 ? '#ff1f1f' : warnState >= 2 ? '#ff5a3a' : pct > .45 ? '#e6b8ff' : '#ff7b7b';
+  ctx.fillRect(barX, barY, barW * pct, barH);
+  if (!ex.riftCarried && (ex.riftRegenVisualAmount || 0) > 0 && (ex.riftRegenVisualFade || 0) > 0) {
+    const regenHp = Math.min(ex.riftRegenVisualAmount || 0, Math.max(0, rift.hp || 0));
+    const regenStartPct = Math.max(0, Math.min(1, ((rift.hp || 0) - regenHp) / Math.max(1, rift.max || 1)));
+    const regenEndPct = Math.max(regenStartPct, pct);
+    const regenW = Math.max(0, (regenEndPct - regenStartPct) * barW);
+    if (regenW > 0) {
+      ctx.globalAlpha = Math.min(.75, .18 + (ex.riftRegenVisualFade || 0) * .5);
+      ctx.fillStyle = '#72d7ff';
+      ctx.fillRect(barX + barW * regenStartPct, barY, regenW, barH);
+      ctx.globalAlpha = Math.min(.55, (ex.riftRegenVisualFade || 0) * .35);
+      ctx.fillStyle = '#d8fbff';
+      ctx.fillRect(barX + barW * regenStartPct, barY, regenW, Math.max(1, barH * .35));
+      ctx.globalAlpha = 1;
+    }
+  }
+  if (!ex.riftCarried || SHOW_TETHERED_CORE_LABELS) {
+    ctx.fillStyle = '#fff4ff';
+    ctx.font = 'bold 11px Georgia';
+    ctx.textAlign = 'center';
+    ctx.fillText(warnState >= 2 ? 'RIFT CRITICAL' : warnState === 1 ? 'RIFT DAMAGED' : 'RIFT', riftRenderX, barY - 6);
+  }
+  ctx.restore();
+}
+
 function drawExpeditionKeyContainer(container, t) {
   if (!container) return;
   const ex = S.expedition;
@@ -27220,14 +27859,14 @@ function drawExpeditionObjects(t) {
     ctx.lineWidth = 12;
     ctx.setLineDash([28, 13, 9, 16]);
     ctx.beginPath();
-    ctx.arc(0, 0, 150 + Math.sin(t * 11) * 12, 0, 7);
+    ctx.arc(0, 0, RIFT_CLEANUP_INNER_RING_RADIUS + Math.sin(t * 11) * 12, 0, 7);
     ctx.stroke();
     ctx.rotate(-t * 7.2);
     ctx.strokeStyle = '#fff1a8';
     ctx.lineWidth = 5;
     ctx.setLineDash([13, 18]);
     ctx.beginPath();
-    ctx.arc(0, 0, 188 + Math.sin(t * 15) * 8, 0, 7);
+    ctx.arc(0, 0, RIFT_CLEANUP_KILL_RING_RADIUS + Math.sin(t * 15) * 8, 0, 7);
     ctx.stroke();
     ctx.setLineDash([]);
     ctx.restore();
@@ -27262,9 +27901,6 @@ function drawExpeditionObjects(t) {
 
   if (ex.riftActivated) {
     ctx.save();
-    const pct = Math.max(0, ex.rift.hp / ex.rift.max);
-    const warnState = ex.riftWarnState || 0;
-    const showTetheredCoreHp = !ex.riftCarried && (!SHOW_TETHERED_CORE_HP_ONLY_WHEN_DAMAGED || pct < .999);
     if ((ex.rift.flash || 0) > 0) {
       if (abstractGouacheEnabled()) {
         drawGouacheArc(ex.rift.x, ex.rift.y, 78 + Math.sin(t * 18) * 4, 58, t * .4, .25, Math.PI * 1.68, ABSTRACT_GOUACHE_PALETTE.red, 12, Math.min(.8, ex.rift.flash));
@@ -27282,23 +27918,22 @@ function drawExpeditionObjects(t) {
       }
       ex.rift.flash = Math.max(0, (ex.rift.flash || 0) - .08);
     }
-    if (showTetheredCoreHp) {
-      const barW = ex.riftCarried ? 44 : 116;
-      const barH = ex.riftCarried ? 5 : 8;
-      const barX = riftRenderX - barW / 2;
-      const barY = ex.riftCarried
-        ? riftRenderY - TETHERED_CORE_HP_BAR_Y_OFFSET
-        : riftRenderY - DEPLOYED_RIFT_DRAW_SIZE * .72 - RIFT_STATUS_BAR_GAP;
-      ctx.fillStyle = '#1a070f';
-      ctx.fillRect(barX, barY, barW, barH);
-      ctx.fillStyle = ex.riftCarried ? '#8edcff' : warnState >= 3 ? '#ff1f1f' : warnState >= 2 ? '#ff5a3a' : pct > .45 ? '#e6b8ff' : '#ff7b7b';
-      ctx.fillRect(barX, barY, barW * pct, barH);
-      if (!ex.riftCarried || SHOW_TETHERED_CORE_LABELS) {
-        ctx.fillStyle = '#fff4ff';
-        ctx.font = 'bold 11px Georgia';
-        ctx.textAlign = 'center';
-        ctx.fillText(warnState >= 2 ? 'RIFT CRITICAL' : warnState === 1 ? 'RIFT DAMAGED' : 'RIFT', riftRenderX, barY - 6);
-      }
+    if (!ex.riftCarried && ex.riftPassiveRegenActive) {
+      const regenPulse = .5 + Math.sin(t * 5.2) * .5;
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      ctx.globalAlpha = .12 + regenPulse * .14;
+      ctx.strokeStyle = '#9fffc8';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(riftRenderX, riftRenderY, 54 + regenPulse * 7, 0, 7);
+      ctx.stroke();
+      ctx.globalAlpha = .18 + regenPulse * .12;
+      ctx.fillStyle = '#9fffc8';
+      ctx.beginPath();
+      ctx.arc(riftRenderX, riftRenderY - DEPLOYED_RIFT_DRAW_SIZE * .36, 4 + regenPulse * 2, 0, 7);
+      ctx.fill();
+      ctx.restore();
     }
     ctx.restore();
 
@@ -29977,7 +30612,7 @@ function enemyShowsRiftDiamond(e) {
 function drawEnemySprite(e, base) {
   if (e.type === 'grunt') return drawGoblinGruntSprite(e);
   const img = ENEMY_SPRITES[e.type];
-  const pad = e.type === 'slinger' ? 4.3 : e.type === 'slimeking' ? 2.8 : e.type === 'siege' ? 2.45 : e.type === 'ogre' || e.type === 'brute' ? 2.35 : 2.15;
+  const pad = e.type === 'slinger' ? 6.45 : e.type === 'slimeking' ? 2.8 : e.type === 'siege' ? 2.45 : e.type === 'ogre' || e.type === 'brute' ? 2.35 : 2.15;
   const size = e.rad * pad;
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'source-over';
@@ -31278,8 +31913,9 @@ $('devToggle').onclick = () => {
     S.devInvincible = true;
     S.devUnlimitedGold = true;
     S.devNoclip = true;
+    S.devRiftNoHpLoss = true;
     syncDevGold();
-    toast('Debug Tools ON: God Mode, Infinite Gold, and Walk Through Walls enabled.');
+    toast('Debug Tools ON: God Mode, Rift Safe, Infinite Gold, and Walk Through Walls enabled.');
   }
   ui();
 };
@@ -31332,9 +31968,10 @@ $('startArenaSelect').onchange = e => {
   renderPreview();
 };
 if ($('startExpeditionSelect')) $('startExpeditionSelect').onchange = e => {
-  LOADOUT_STATE.expeditionId = e.target.value || 'expedition01';
+  LOADOUT_STATE.expeditionId = loadoutExpeditionDestination(e.target.value);
   LOADOUT_STATE.missionType = 'expedition';
   S.devArenaChoice = getSelectedMissionLevel();
+  loadoutExpeditionRouteLog('select', e.target.value);
   persistLoadoutState();
   updateMissionSelectionUI();
   updateLoadoutSummary();
@@ -31345,9 +31982,10 @@ document.querySelectorAll('#start [data-mission-type]').forEach(btn => {
 });
 document.querySelectorAll('#start [data-expedition-id]').forEach(btn => {
   btn.addEventListener('click', () => {
-    LOADOUT_STATE.expeditionId = isExpeditionLevel(btn.dataset.expeditionId) ? btn.dataset.expeditionId : 'expedition01';
+    LOADOUT_STATE.expeditionId = loadoutExpeditionDestination(btn.dataset.expeditionId);
     LOADOUT_STATE.missionType = 'expedition';
     S.devArenaChoice = getSelectedMissionLevel();
+    loadoutExpeditionRouteLog('card', btn.dataset.expeditionId);
     persistLoadoutState();
     updateMissionSelectionUI();
     updateLoadoutSummary();
