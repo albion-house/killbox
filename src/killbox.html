@@ -6503,8 +6503,8 @@ body.expeditionGameplay #combatHud {
                 <option value="eastwest">East / West</option>
                 <option value="spiral">Spiral Keep</option>
                 <option value="citadel">Outer Loops</option>
-                <option value="expedition01">Expedition 01</option>
-                <option value="expedition02">Expedition 02: Shatter Convoy</option>
+                <option value="expedition01">Chemical Plant</option>
+                <option value="expedition02">Tunnel</option>
               </select>
               <button id="devLoadArena">Load</button>
             </div>
@@ -6609,8 +6609,8 @@ body.expeditionGameplay #combatHud {
       <button id="exitToLoadoutBtn" class="exitRunButton danger" title="Return to loadout screen" aria-label="Return to loadout screen">Return To Loadout</button>
     </section>
     <div class="warRoomBuildInfo" aria-label="Build information">
-      <b id="warRoomVersion">v7.45.1</b>
-      <span id="warRoomBuildName">WardenFeet</span>
+      <b id="warRoomVersion">v7.45.7</b>
+      <span id="warRoomBuildName">DecalSheet</span>
     </div>
     <div class="projectAttribution" aria-label="Project attribution">
       <b>ALBION HOUSE</b>
@@ -6680,11 +6680,11 @@ body.expeditionGameplay #combatHud {
           </div>
           <div class="loadoutTitle">
             <h1>Killbox</h1>
-            <div class="loadoutVersion" id="loadoutVersion"><span>v7.45.1</span><span>WardenFeet</span></div>
+            <div class="loadoutVersion" id="loadoutVersion"><span>v7.45.7</span><span>DecalSheet</span></div>
             <a class="albionHouseLink" href="https://albionhouse.games/">↩ An Albion House game</a>
           </div>
           <div class="mastheadActions">
-            <button id="begin" class="primary wide"><span class="startButtonPrimary">START EXPEDITION</span><span class="startButtonSub">Expedition 1: The Tunnel</span></button>
+            <button id="begin" class="primary wide"><span class="startButtonPrimary">START EXPEDITION</span><span class="startButtonSub">Chemical Plant</span></button>
           </div>
         </div>
         <div class="loadoutBody">
@@ -6693,22 +6693,21 @@ body.expeditionGameplay #combatHud {
               <div class="sectionKicker">2. Choose Expedition</div>
               <div class="expeditionCardGrid" role="group" aria-label="Choose expedition">
                 <button class="expeditionCard active" data-expedition-id="expedition01" type="button" aria-pressed="true">
-                  <span class="expeditionThumb thumbTunnel" aria-hidden="true"><img src="assets/menu/the-tunnel.jpg" alt="" draggable="false" onerror="this.hidden=true"></span>
-                  <strong>1. The Tunnel</strong>
-                  <span class="routeNote">Recommended First Run</span>
-                  <p>The route begins underground. Explore, survive, and find your first Relay.</p>
+                  <span class="expeditionThumb thumbChemical" aria-hidden="true"><img src="assets/menu/chemical-plant.jpg" alt="" draggable="false" onerror="this.hidden=true"></span>
+                  <strong>Chemical Plant</strong>
+                  <p>Toxic spills, volatile machines, and heavier resistance.</p>
                   <span class="expeditionMeta"><span>Difficulty: Easy</span><span>Players: 1-2 Players</span></span>
                 </button>
                 <button class="expeditionCard" data-expedition-id="expedition02" type="button" aria-pressed="false">
-                  <span class="expeditionThumb thumbChemical" aria-hidden="true"><img src="assets/menu/chemical-plant.jpg" alt="" draggable="false" onerror="this.hidden=true"></span>
-                  <strong>2. Chemical Plant</strong>
-                  <p>Toxic spills, volatile machines, and heavier resistance.</p>
+                  <span class="expeditionThumb thumbTunnel" aria-hidden="true"><img src="assets/menu/the-tunnel.jpg" alt="" draggable="false" onerror="this.hidden=true"></span>
+                  <strong>Tunnel</strong>
+                  <p>The route begins underground. Explore, survive, and find your first Relay.</p>
                   <span class="expeditionMeta"><span>Difficulty: Medium</span><span>Players: 1-2 Players</span></span>
                 </button>
               </div>
               <select id="startExpeditionSelect" class="arenaSelect" aria-label="Select expedition before starting" hidden>
-                <option value="expedition01">1. The Tunnel</option>
-                <option value="expedition02">2. Chemical Plant</option>
+                <option value="expedition01">Chemical Plant</option>
+                <option value="expedition02">Tunnel</option>
               </select>
             </div>
             <div class="arenaMissionPanel" id="arenaMissionOptions" hidden>
@@ -6732,10 +6731,10 @@ body.expeditionGameplay #combatHud {
           </section>
           <aside class="expeditionDetailsPanel" id="expeditionDetailsPanel" aria-label="Expedition details">
             <div class="sectionKicker" id="expeditionDetailsKicker">Expedition Details</div>
-            <div class="expeditionDetailsThumb thumbTunnel" id="expeditionDetailsThumb" aria-hidden="true"><img id="expeditionDetailsImage" src="assets/menu/the-tunnel.jpg" alt="" draggable="false" onerror="this.hidden=true"></div>
+            <div class="expeditionDetailsThumb thumbChemical" id="expeditionDetailsThumb" aria-hidden="true"><img id="expeditionDetailsImage" src="assets/menu/chemical-plant.jpg" alt="" draggable="false" onerror="this.hidden=true"></div>
             <div class="expeditionDetailsCopy">
-              <h2 id="expeditionDetailsTitle">1. The Tunnel</h2>
-              <p id="expeditionDetailsBody">The first step into hostile ground. Establish your Core. Find the first Relay.</p>
+              <h2 id="expeditionDetailsTitle">Chemical Plant</h2>
+              <p id="expeditionDetailsBody">Toxic spills, volatile machines, and heavier resistance. Push the Core through industrial danger.</p>
               <div class="detailsColumns">
                 <div>
                   <h3>Objectives</h3>
@@ -7207,7 +7206,8 @@ const LEVELS = {
     heroSpawn: { c: 24, r: 18 },
   },
   expedition01: {
-    label: '1. The Tunnel',
+    label: 'Chemical Plant',
+    description: 'Toxic spills, volatile machines, and heavier resistance.',
     mode: 'expedition',
     cols: 64,
     rows: 42,
@@ -7529,8 +7529,8 @@ const LEVELS = {
     },
   },
   expedition02: {
-    label: '2. Chemical Plant',
-    description: 'Toxic spills, volatile machines, and heavier resistance.',
+    label: 'Tunnel',
+    description: 'Underground breach rooms, directed holdouts, and a collapse escape.',
     mode: 'expedition',
     cols: 46,
     rows: 18,
@@ -8440,11 +8440,17 @@ const LOADOUT_TRINKET_COPY = {
   lastStandBeacon: ['Emergency save', '120s cooldown'],
 };
 // Release metadata is currently maintained manually in this file for GitHub Pages builds.
-const GAME_VERSION = '7.45.1';
+const GAME_VERSION = '7.45.7';
 const BUILD_VERSION = GAME_VERSION;
-const BUILD_NAME = 'WardenFeet';
+const BUILD_NAME = 'DecalSheet';
 const CHANGELOG = [
-  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Moved the Aegis Warden weak point to its feet so players can counter front-facing Wardens by aiming low.' },
+  { version: GAME_VERSION, name: BUILD_NAME, changes: 'Integrated the Expedition floor decal sprite sheet with conservative theme placement and placeholder fallback rendering.' },
+  { version: '7.45.6', name: 'FloorCraft', changes: 'Tightened Expedition floor dressing into smaller physical details with improved Flesh Garden identity.' },
+  { version: '7.45.5', name: 'RoomMarks', changes: 'Strengthened Expedition room identity with broader theme floor marks and cleaner low-noise battlefields.' },
+  { version: '7.45.4', name: 'RoomTone', changes: 'Improved Expedition floor dressing readability with explicit Reactor, Chemical Plant, Tunnel, and default theme treatments.' },
+  { version: '7.45.3', name: 'FloorMarks', changes: 'Added a cached Expedition floor decal foundation with subtle placeholder cracks, grime, rubble, and stains.' },
+  { version: '7.45.2', name: 'RouteFix', changes: 'Corrected Expedition loadout routing so Chemical Plant starts expedition01 and Tunnel starts expedition02.' },
+  { version: '7.45.1', name: 'WardenFeet', changes: 'Moved the Aegis Warden weak point to its feet so players can counter front-facing Wardens by aiming low.' },
   { version: '7.45.0', name: 'WardenEye', changes: 'Made Aegis Warden shield arcs and exposed weak points readable, with clearer flank-hit feedback and reduced blocked popup spam.' },
   { version: '7.44.0', name: 'RoomVariants', changes: 'Added randomized Expedition room encounter variants with count, timing, elite, and composition modifiers.' },
   { version: '7.43.0', name: 'CorePurge', changes: 'Redesigned Expedition escape collapse with routed mixed attackers, a devastating Core purge, and survivor cleanup combat.' },
@@ -8826,6 +8832,7 @@ const LOADOUT_STATE = {
   expeditionId: 'expedition01'
 };
 const LOADOUT_STORAGE_KEY = 'killbox.lastLoadout.v2';
+const LOADOUT_EXPEDITION_ROUTE_VERSION = 2;
 const DEFAULT_LOADOUT_IDS = ['ranger', 'freeze', 'archer', 'cauldron', 'ballista', 'healingFlask', 'lastStandBeacon', 'goblinCoinPurse'];
 const MISSION_BRIEFING_STORAGE_KEY = 'killbox.onboard.missionBriefing.v1';
 const MISSION_HINT_STORAGE_KEY = 'killbox.onboard.missionHints.v1';
@@ -9855,6 +9862,214 @@ function expeditionRiftStartCell(level, cfg) {
   return fallbacks.find(cell => validStartCell(cell.c, cell.r)) || cfg?.rift || spawn;
 }
 
+const ENABLE_ENVIRONMENT_DRESSING = true;
+const EXPEDITION_ENV_DECAL_THEME = 'default_stone';
+const ENV_DECAL_SHEET_SRC = 'assets/environment/decals/floor-sprites.png';
+const ENV_DECAL_SHEET_COLUMNS = 3;
+const ENV_DECAL_SHEET_ROWS = 4;
+const ENV_DECAL_SHEET = new Image();
+let envDecalSheetReady = false;
+ENV_DECAL_SHEET.onload = () => { envDecalSheetReady = true; };
+ENV_DECAL_SHEET.onerror = () => { envDecalSheetReady = false; };
+ENV_DECAL_SHEET.src = ENV_DECAL_SHEET_SRC;
+function envDecalSheetAsset(col, row) {
+  return { image: ENV_DECAL_SHEET, col, row };
+}
+const ENV_DECAL_ASSETS = {
+  crack: null,
+  grime: null,
+  rubble: null,
+  stain: null,
+  floorPatch: null,
+  wornPath: null,
+  metalSeam: null,
+  grate: null,
+  cable: null,
+  hazardStripe: null,
+  chemicalSpill: null,
+  pipeHint: null,
+  wallGrime: null,
+  organicVein: null,
+  fleshyGrowth: null,
+  cracked_stone_chunk: envDecalSheetAsset(0, 0),
+  broken_tile_cluster: envDecalSheetAsset(1, 0),
+  grime_smear: envDecalSheetAsset(2, 0),
+  blood_stain: envDecalSheetAsset(0, 1),
+  bone_pile: envDecalSheetAsset(1, 1),
+  rubble_pile: envDecalSheetAsset(2, 1),
+  cable_coil: envDecalSheetAsset(0, 2),
+  metal_grate: envDecalSheetAsset(1, 2),
+  hazard_plate: envDecalSheetAsset(2, 2),
+  flesh_vein_patch: envDecalSheetAsset(0, 3),
+  flesh_growth_cluster: envDecalSheetAsset(1, 3),
+  rift_energy_crack: envDecalSheetAsset(2, 3),
+};
+const ENV_DECAL_PLACEHOLDER_TYPES = {
+  cracked_stone_chunk: 'crack',
+  broken_tile_cluster: 'crack',
+  grime_smear: 'grime',
+  blood_stain: 'stain',
+  bone_pile: 'rubble',
+  rubble_pile: 'rubble',
+  cable_coil: 'cable',
+  metal_grate: 'grate',
+  hazard_plate: 'hazardStripe',
+  flesh_vein_patch: 'organicVein',
+  flesh_growth_cluster: 'fleshyGrowth',
+  rift_energy_crack: 'crack',
+};
+
+function envDecalSeed(text) {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function expeditionPointInRoomBlockedRect(room, c, r) {
+  return (room?.blockedRects || []).some(rect => c >= rect[0] && c <= rect[2] && r >= rect[1] && r <= rect[3]);
+}
+
+function expeditionEnvironmentTheme(levelId, room) {
+  if (levelId === 'expedition01' && room?.id === 'reactor') return 'reactor_complex';
+  if (levelId === 'expedition01' && room?.id === 'lab') return 'reactor_lab';
+  if (levelId === 'expedition01' && room?.id === 'flesh') return 'flesh_garden';
+  if (levelId === 'expedition01' && room?.id === 'rift') return 'rift_chamber';
+  if (levelId === 'expedition01') return 'chemical_plant';
+  if (levelId === 'expedition02') return 'tunnel';
+  return EXPEDITION_ENV_DECAL_THEME;
+}
+
+function expeditionRoomDecalPoint(room, rng, placement = 'edge') {
+  const [x1, y1, x2, y2] = room.rect || [];
+  const w = Math.max(1, x2 - x1 + 1);
+  const h = Math.max(1, y2 - y1 + 1);
+  const blockerPoints = [];
+  for (const rect of room.blockedRects || []) {
+    blockerPoints.push({
+      x: ((rect[0] + rect[2] + 1) / 2 - x1) / w,
+      y: ((rect[1] + rect[3] + 1) / 2 - y1) / h,
+    });
+  }
+  const entrancePoints = (room.entrances || []).map(entrance => ({
+    x: ((entrance.c || x1) - x1) / w,
+    y: ((entrance.r || y1) - y1) / h,
+  }));
+  for (let attempt = 0; attempt < 24; attempt++) {
+    let nx = rng();
+    let ny = rng();
+    if (placement === 'center') {
+      nx = .34 + rng() * .32;
+      ny = .32 + rng() * .36;
+    } else if (placement === 'blocker' && blockerPoints.length) {
+      const p = blockerPoints[Math.floor(rng() * blockerPoints.length)];
+      nx = clamp(p.x + (rng() - .5) * .22, .06, .94);
+      ny = clamp(p.y + (rng() - .5) * .22, .06, .94);
+    } else if (placement === 'door' && entrancePoints.length) {
+      const p = entrancePoints[Math.floor(rng() * entrancePoints.length)];
+      nx = clamp(p.x + (rng() - .5) * .18, .05, .95);
+      ny = clamp(p.y + (rng() - .5) * .18, .05, .95);
+    } else if (placement === 'corner') {
+      nx = rng() < .5 ? .08 + rng() * .16 : .76 + rng() * .16;
+      ny = rng() < .5 ? .08 + rng() * .16 : .76 + rng() * .16;
+    } else {
+      const side = Math.floor(rng() * 4);
+      const inset = .04 + rng() * .18;
+      if (side === 0) ny = inset;
+      else if (side === 1) ny = 1 - inset;
+      else if (side === 2) nx = inset;
+      else nx = 1 - inset;
+    }
+    const c = Math.floor(x1 + nx * w);
+    const r = Math.floor(y1 + ny * h);
+    if (expeditionPointInRoomBlockedRect(room, c, r)) continue;
+    const central = nx > .32 && nx < .68 && ny > .30 && ny < .70;
+    if (placement !== 'center' && central && rng() < .84) continue;
+    return { x: OX + (x1 + nx * w) * G, y: OY + (y1 + ny * h) * G };
+  }
+  return { x: OX + (x1 + .18 * w) * G, y: OY + (y1 + .18 * h) * G };
+}
+
+function buildRoomThemeDecals(levelId, room, theme) {
+  const [x1, y1, x2, y2] = room.rect || [];
+  const area = Math.max(1, (x2 - x1 + 1) * (y2 - y1 + 1));
+  const rng = makeWaveRng(envDecalSeed(`${levelId}:${room.id}:${theme}:4`));
+  const decals = [];
+  const push = (type, placement, sizeMin, sizeMax, alphaMin, alphaMax, extra = {}) => {
+    const p = expeditionRoomDecalPoint(room, rng, placement);
+    decals.push({
+      type,
+      x: p.x,
+      y: p.y,
+      size: sizeMin + rng() * (sizeMax - sizeMin),
+      scaleX: extra.scaleX || 1,
+      scaleY: extra.scaleY || 1,
+      rotation: rng() * Math.PI * 2,
+      alpha: alphaMin + rng() * (alphaMax - alphaMin),
+      theme,
+      palette: extra.palette || null,
+    });
+  };
+  const large = Math.max(1, Math.floor(area / 130));
+  const edge = Math.max(1, Math.floor(area / 155));
+  push('grime_smear', 'edge', 44, 86, .12, .20, { scaleX: 1.05, scaleY: .72 });
+  if (theme === 'reactor_complex' || theme === 'reactor_lab') {
+    for (let i = 0; i < Math.min(2, edge); i++) push('metal_grate', i % 2 ? 'door' : 'blocker', 38, 58, .42, .58);
+    for (let i = 0; i < Math.min(3, edge + 1); i++) push('cable_coil', i % 2 ? 'blocker' : 'edge', 46, 72, .34, .52);
+    for (let i = 0; i < Math.min(2, edge); i++) push('hazard_plate', i % 2 ? 'door' : 'blocker', 54, 84, .38, .55);
+    for (let i = 0; i < Math.min(2, large); i++) push('grime_smear', i % 2 ? 'blocker' : 'corner', 42, 76, .12, .20);
+  } else if (theme === 'chemical_plant') {
+    for (let i = 0; i < Math.min(2, edge); i++) push('grime_smear', i % 2 ? 'blocker' : 'corner', 46, 84, .14, .24);
+    if (rng() < .5) push('blood_stain', 'edge', 42, 76, .16, .26);
+    for (let i = 0; i < Math.min(2, edge); i++) push('cable_coil', i % 2 ? 'blocker' : 'edge', 44, 70, .30, .46);
+    for (let i = 0; i < Math.min(2, edge); i++) push('metal_grate', i % 2 ? 'door' : 'edge', 38, 58, .35, .50);
+    for (let i = 0; i < Math.min(2, edge); i++) push('hazard_plate', i % 2 ? 'door' : 'blocker', 52, 80, .34, .50);
+  } else if (theme === 'tunnel') {
+    for (let i = 0; i < Math.min(3, edge + 1); i++) push('rubble_pile', i % 2 ? 'corner' : 'edge', 38, 64, .34, .52);
+    for (let i = 0; i < Math.min(2, edge); i++) push(i % 2 ? 'broken_tile_cluster' : 'cracked_stone_chunk', i % 2 ? 'corner' : 'edge', 48, 82, .34, .52);
+    for (let i = 0; i < Math.min(2, edge); i++) push('grime_smear', 'edge', 42, 78, .12, .20);
+  } else if (theme === 'flesh_garden') {
+    for (let i = 0; i < Math.min(3, edge + 1); i++) push('flesh_vein_patch', i % 2 ? 'blocker' : 'edge', 56, 96, .36, .55);
+    for (let i = 0; i < Math.min(3, edge); i++) push('flesh_growth_cluster', i % 2 ? 'corner' : 'blocker', 42, 68, .36, .55);
+    for (let i = 0; i < Math.min(2, edge); i++) push('blood_stain', i % 2 ? 'corner' : 'edge', 44, 78, .18, .28, { palette: 'flesh' });
+    for (let i = 0; i < Math.min(2, large); i++) push('grime_smear', 'edge', 38, 72, .12, .20, { palette: 'flesh' });
+  } else if (theme === 'rift_chamber') {
+    for (let i = 0; i < Math.min(3, edge + 1); i++) push('rift_energy_crack', i % 2 ? 'blocker' : 'edge', 54, 86, .38, .56);
+    for (let i = 0; i < Math.min(2, edge); i++) push(i % 2 ? 'cracked_stone_chunk' : 'broken_tile_cluster', i % 2 ? 'corner' : 'edge', 46, 76, .30, .46);
+    if (area > 72) push('grime_smear', 'edge', 42, 74, .10, .18);
+  } else {
+    for (let i = 0; i < Math.min(2, edge); i++) push(i % 2 ? 'broken_tile_cluster' : 'cracked_stone_chunk', 'edge', 46, 82, .30, .48);
+    for (let i = 0; i < Math.min(2, edge); i++) push('rubble_pile', 'corner', 38, 64, .30, .48);
+    for (let i = 0; i < Math.min(2, edge); i++) push('grime_smear', 'corner', 42, 76, .12, .20);
+  }
+  return decals;
+}
+
+function buildExpeditionEnvironmentDecals(levelId, cfg) {
+  if (!ENABLE_ENVIRONMENT_DRESSING) return {};
+  const byRoom = {};
+  for (const room of cfg?.rooms || []) {
+    const theme = expeditionEnvironmentTheme(levelId, room);
+    byRoom[room.id] = buildRoomThemeDecals(levelId, room, theme);
+  }
+  return byRoom;
+}
+
+function ensureExpeditionEnvironmentDecals() {
+  const ex = S.expedition;
+  const cfg = expeditionConfig();
+  if (!ENABLE_ENVIRONMENT_DRESSING || !ex || !cfg) return {};
+  const cacheKey = `${S.levelId}:environmentThemes:4`;
+  if (ex.environmentDecalCacheKey !== cacheKey) {
+    ex.environmentDecalTheme = 'explicit_room_themes';
+    ex.environmentDecals = buildExpeditionEnvironmentDecals(S.levelId, cfg);
+    ex.environmentDecalCacheKey = cacheKey;
+  }
+  return ex.environmentDecals || {};
+}
+
 function createExpeditionState(levelId = S.levelId) {
   const lvl = levelDef(levelId);
   const cfg = lvl?.expedition;
@@ -9923,6 +10138,9 @@ function createExpeditionState(levelId = S.levelId) {
     roomThreatsSpawned: {},
     roomEncounterVariants: {},
     roomSpawnQueues: {},
+    environmentDecalTheme: 'explicit_room_themes',
+    environmentDecals: buildExpeditionEnvironmentDecals(levelId, cfg),
+    environmentDecalCacheKey: `${levelId}:environmentThemes:4`,
     pressureReleaseTimer: 0,
     storedSurge: null,
     storedSurges: [],
@@ -15005,6 +15223,7 @@ function loadoutSavePayload() {
     missionType: LOADOUT_STATE.missionType === 'expedition' ? 'expedition' : 'arena',
     arenaId: LEVELS[LOADOUT_STATE.arenaId] && !isExpeditionLevel(LOADOUT_STATE.arenaId) ? LOADOUT_STATE.arenaId : 'field',
     expeditionId: isExpeditionLevel(LOADOUT_STATE.expeditionId) ? LOADOUT_STATE.expeditionId : 'expedition01',
+    expeditionRouteVersion: LOADOUT_EXPEDITION_ROUTE_VERSION,
     selectedIds: LOADOUT_STATE.selectedIds.filter(k => WEAPONS[k] || TOWERS[k] || TRINKETS[k]).slice(0, LOADOUT_MAX_SLOTS),
     inspectedId: LOADOUT_STATE.inspectedId || null,
   };
@@ -15018,6 +15237,16 @@ function persistLoadoutState() {
   }
 }
 
+function normalizeSavedLoadoutExpeditionId(data) {
+  const expeditionId = data?.expeditionId;
+  if (data?.expeditionRouteVersion === LOADOUT_EXPEDITION_ROUTE_VERSION) {
+    return isExpeditionLevel(expeditionId) ? expeditionId : 'expedition01';
+  }
+  if (expeditionId === 'expedition01') return 'expedition02';
+  if (expeditionId === 'expedition02') return 'expedition01';
+  return isExpeditionLevel(expeditionId) ? expeditionId : 'expedition01';
+}
+
 function restoreLoadoutState(options = {}) {
   const restoreMission = options.restoreMission !== false;
   let data = null;
@@ -15029,12 +15258,13 @@ function restoreLoadoutState(options = {}) {
   if (!data || typeof data !== 'object') return false;
   if (restoreMission) LOADOUT_STATE.missionType = data.missionType === 'arena' ? 'arena' : 'expedition';
   if (LEVELS[data.arenaId] && !isExpeditionLevel(data.arenaId)) LOADOUT_STATE.arenaId = data.arenaId;
-  if (isExpeditionLevel(data.expeditionId)) LOADOUT_STATE.expeditionId = data.expeditionId;
+  if (restoreMission) LOADOUT_STATE.expeditionId = normalizeSavedLoadoutExpeditionId(data);
   LOADOUT_STATE.selectedIds = Array.isArray(data.selectedIds)
     ? data.selectedIds.filter(k => WEAPONS[k] || TOWERS[k] || TRINKETS[k]).slice(0, LOADOUT_MAX_SLOTS)
     : [];
   LOADOUT_STATE.inspectedId = LOADOUT_STATE.selectedIds.includes(data.inspectedId) ? data.inspectedId : (LOADOUT_STATE.selectedIds[0] || null);
   S.devArenaChoice = getSelectedMissionLevel();
+  if (restoreMission && data.expeditionRouteVersion !== LOADOUT_EXPEDITION_ROUTE_VERSION) persistLoadoutState();
   return true;
 }
 
@@ -15054,29 +15284,29 @@ function getSelectedMissionLevel() {
 const EXPEDITION_MENU_DETAILS = {
   expedition01: {
     kicker: 'Expedition Details',
-    title: '1. The Tunnel',
-    body: 'The first step into hostile ground. Establish your Core. Find the first Relay.',
-    thumbClass: 'thumbTunnel',
-    image: 'assets/menu/the-tunnel.jpg',
+    title: 'Chemical Plant',
+    body: 'Toxic spills, volatile machines, and heavier resistance. Push the Core through industrial danger.',
+    thumbClass: 'thumbChemical',
+    image: 'assets/menu/chemical-plant.jpg',
     objectives: [
       'Carry the Core forward.',
       'Build defenses inside the Core radius.',
       'Activate Relays to expand your route.',
     ],
-    expect: 'Small rooms, early enemies, and simple threats. Built for learning the basics.',
+    expect: 'Toxic hazards, facility rooms, and industrial resistance across a longer route.',
   },
   expedition02: {
     kicker: 'Expedition Details',
-    title: '2. Chemical Plant',
-    body: 'Toxic spills, volatile machines, and heavier resistance. Push the Core through industrial danger.',
-    thumbClass: 'thumbChemical',
-    image: 'assets/menu/chemical-plant.jpg',
+    title: 'Tunnel',
+    body: 'The route begins underground. Move the unstable Rift through hostile tunnel rooms.',
+    thumbClass: 'thumbTunnel',
+    image: 'assets/menu/the-tunnel.jpg',
     objectives: [
       'Protect the Core.',
       'Control lanes with defenses.',
       'Activate the next Relay.',
     ],
-    expect: 'More hazards, stronger enemy pressure, and more demanding Core placement.',
+    expect: 'Compact tunnel rooms, directed holdouts, and a collapse escape finale.',
   },
 };
 
@@ -15224,7 +15454,7 @@ function updateLoadoutSummary() {
     beginBtn.disabled = !enabled;
     beginBtn.classList.toggle('disabled', !enabled);
     const missionType = LOADOUT_STATE.missionType === 'expedition' ? 'expedition' : 'arena';
-    const expeditionName = LOADOUT_STATE.expeditionId === 'expedition02' ? 'Expedition 2: Chemical Plant' : 'Expedition 1: The Tunnel';
+    const expeditionName = LOADOUT_STATE.expeditionId === 'expedition02' ? 'Tunnel' : 'Chemical Plant';
     beginBtn.innerHTML = missionType === 'expedition'
       ? `<span class="startButtonPrimary">START EXPEDITION</span><span class="startButtonSub">${expeditionName}</span>`
       : `<span class="startButtonPrimary">START ARENA</span><span class="startButtonSub">Quick Survival</span>`;
@@ -17273,8 +17503,8 @@ function renderPreview() {
     $('preview').dataset.previewKey = `expedition-${selectedLevel}`;
     const desc = LEVELS[selectedLevel]?.description;
     $('preview').innerHTML = selectedLevel === 'expedition02'
-      ? `<b>Expedition 02: Shatter Convoy</b><br>${desc || 'Move the unstable Rift through a collapsing route. Build fast, abandon defenses, escape alive.'}`
-      : '<b>Expedition:</b> Explore the facility, find four keys, unlock extraction, then hold out long enough to escape.';
+      ? `<b>Tunnel</b><br>${desc || 'Move the unstable Rift through a collapsing route. Build fast, abandon defenses, escape alive.'}`
+      : `<b>Chemical Plant</b><br>${desc || 'Explore the facility, find four keys, unlock extraction, then hold out long enough to escape.'}`;
     return;
   }
   // Only recompute when the wave number has changed (cache via data attribute)
@@ -26074,6 +26304,342 @@ function drawShatterConvoyEnvironmentalCue(room, t) {
   }
 }
 
+function drawEnvironmentDecalPlaceholder(decal) {
+  const size = decal.size || 32;
+  const sx = decal.scaleX || 1;
+  const sy = decal.scaleY || 1;
+  const industrialInk = decal.theme === 'reactor_complex' || decal.theme === 'reactor_lab' ? '#1d2930' : '#3d382f';
+  ctx.save();
+  ctx.translate(decal.x, decal.y);
+  ctx.rotate(decal.rotation || 0);
+  ctx.globalAlpha = decal.alpha ?? .2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  if (decal.type === 'floorPatch') {
+    ctx.fillStyle = decal.theme === 'tunnel' ? '#2f3537' : decal.theme === 'chemical_plant' ? '#26363a' : decal.theme === 'reactor_complex' || decal.theme === 'reactor_lab' ? '#24313a' : '#4b4338';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, size * .38 * sx, size * .18 * sy, 0, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (decal.type === 'wornPath') {
+    ctx.fillStyle = decal.theme === 'tunnel' ? '#776c58' : decal.theme === 'chemical_plant' ? '#59666a' : '#8d8067';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, size * .42 * sx, size * .10 * sy, 0, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (decal.type === 'metalSeam') {
+    ctx.strokeStyle = '#263640';
+    ctx.lineWidth = Math.max(2, size * .035);
+    ctx.beginPath();
+    ctx.moveTo(-size * .5 * sx, 0);
+    ctx.lineTo(size * .5 * sx, 0);
+    ctx.stroke();
+    ctx.globalAlpha *= .55;
+    ctx.strokeStyle = '#7a8c8f';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-size * .45 * sx, -size * .025);
+    ctx.lineTo(size * .45 * sx, -size * .025);
+    ctx.stroke();
+  } else if (decal.type === 'grate') {
+    const w = size * .9, h = size * .52;
+    ctx.fillStyle = '#18242a';
+    ctx.fillRect(-w / 2, -h / 2, w, h);
+    ctx.strokeStyle = '#7a8c8f';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(-w / 2, -h / 2, w, h);
+    ctx.lineWidth = 1.5;
+    for (let i = -2; i <= 2; i++) {
+      ctx.beginPath();
+      ctx.moveTo(i * w / 6, -h * .42);
+      ctx.lineTo(i * w / 6, h * .42);
+      ctx.stroke();
+    }
+  } else if (decal.type === 'cable' || decal.type === 'pipeHint') {
+    ctx.strokeStyle = decal.type === 'pipeHint' ? '#587b84' : '#1a2025';
+    ctx.lineWidth = decal.type === 'pipeHint' ? Math.max(3, size * .035) : Math.max(2.5, size * .03);
+    ctx.beginPath();
+    ctx.moveTo(-size * .5 * sx, 0);
+    ctx.quadraticCurveTo(-size * .18 * sx, -size * .12, size * .06 * sx, size * .04);
+    ctx.quadraticCurveTo(size * .25 * sx, size * .15, size * .5 * sx, 0);
+    ctx.stroke();
+    ctx.globalAlpha *= .55;
+    ctx.strokeStyle = decal.type === 'pipeHint' ? '#9ec2c8' : '#78828a';
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+  } else if (decal.type === 'hazardStripe') {
+    const w = size * sx, h = Math.max(10, size * .18 * sy);
+    ctx.fillStyle = '#201914';
+    ctx.fillRect(-w / 2, -h / 2, w, h);
+    ctx.strokeStyle = '#0d0b08';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(-w / 2, -h / 2, w, h);
+    ctx.strokeStyle = '#d9a33a';
+    ctx.lineWidth = Math.max(4, h * .42);
+    for (let x = -w * .55; x < w * .55; x += h * 1.35) {
+      ctx.beginPath();
+      ctx.moveTo(x, h * .55);
+      ctx.lineTo(x + h, -h * .55);
+      ctx.stroke();
+    }
+  } else if (decal.type === 'chemicalSpill') {
+    ctx.fillStyle = '#6f9b63';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, size * .36, size * .19, .12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha *= .65;
+    ctx.fillStyle = '#9fcf6c';
+    ctx.beginPath();
+    ctx.ellipse(size * .12, -size * .02, size * .16, size * .07, -.2, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (decal.type === 'wallGrime') {
+    ctx.fillStyle = decal.palette === 'flesh' ? '#512229' : decal.theme === 'tunnel' ? '#221a14' : '#252820';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, size * .40 * sx, size * .14 * sy, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha *= .55;
+    ctx.fillRect(-size * .34 * sx, -size * .05, size * .68 * sx, size * .08);
+  } else if (decal.type === 'organicVein') {
+    ctx.strokeStyle = '#7b2430';
+    ctx.lineWidth = Math.max(2, size * .026);
+    ctx.beginPath();
+    ctx.moveTo(-size * .48 * sx, 0);
+    ctx.quadraticCurveTo(-size * .18 * sx, -size * .10, size * .08 * sx, size * .02);
+    ctx.quadraticCurveTo(size * .28 * sx, size * .12, size * .48 * sx, -size * .03);
+    ctx.stroke();
+    ctx.lineWidth = Math.max(1, size * .014);
+    ctx.beginPath();
+    ctx.moveTo(-size * .08 * sx, size * .01);
+    ctx.lineTo(-size * .16 * sx, size * .18);
+    ctx.moveTo(size * .18 * sx, size * .04);
+    ctx.lineTo(size * .26 * sx, -size * .14);
+    ctx.stroke();
+  } else if (decal.type === 'fleshyGrowth') {
+    ctx.fillStyle = '#5f2631';
+    for (let i = 0; i < 4; i++) {
+      const a = i * Math.PI * .5;
+      ctx.beginPath();
+      ctx.ellipse(Math.cos(a) * size * .12, Math.sin(a) * size * .08, size * .12, size * .07, a, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha *= .7;
+    ctx.fillStyle = '#9d4552';
+    ctx.beginPath();
+    ctx.arc(0, 0, size * .08, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (decal.type === 'crack') {
+    ctx.strokeStyle = '#5f5547';
+    ctx.lineWidth = Math.max(1.2, size * .045);
+    ctx.beginPath();
+    ctx.moveTo(-size * .45, -size * .08);
+    ctx.lineTo(-size * .20, size * .02);
+    ctx.lineTo(-size * .04, -size * .13);
+    ctx.lineTo(size * .22, size * .06);
+    ctx.lineTo(size * .46, -size * .01);
+    ctx.stroke();
+    ctx.lineWidth = Math.max(1, size * .028);
+    ctx.beginPath();
+    ctx.moveTo(-size * .04, -size * .13);
+    ctx.lineTo(-size * .12, -size * .34);
+    ctx.moveTo(size * .18, size * .04);
+    ctx.lineTo(size * .10, size * .27);
+    ctx.stroke();
+  } else if (decal.type === 'grime') {
+    ctx.fillStyle = industrialInk;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, size * .55, size * .24, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha *= .55;
+    ctx.beginPath();
+    ctx.ellipse(size * .18, -size * .05, size * .34, size * .12, .3, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (decal.type === 'rubble') {
+    ctx.fillStyle = '#6d6558';
+    for (let i = 0; i < 5; i++) {
+      const a = i * 1.31;
+      const r = size * (.12 + (i % 3) * .055);
+      const x = Math.cos(a) * size * (.08 + i * .045);
+      const y = Math.sin(a) * size * (.08 + i * .035);
+      ctx.beginPath();
+      ctx.rect(x - r * .65, y - r * .45, r * 1.3, r * .9);
+      ctx.fill();
+    }
+  } else if (decal.type === 'stain') {
+    ctx.fillStyle = decal.palette === 'flesh' ? '#4f1722' : '#4b4338';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, size * .34, size * .18, .15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha *= .45;
+    ctx.fillStyle = decal.palette === 'flesh' ? '#7f2633' : '#2f2a25';
+    ctx.beginPath();
+    ctx.ellipse(-size * .08, size * .02, size * .14, size * .07, -.25, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawExpeditionEnvironmentDecals(room, decals) {
+  if (!ENABLE_ENVIRONMENT_DRESSING || !decals?.length) return;
+  const [x1, y1, x2, y2] = room?.rect || [];
+  if (![x1, y1, x2, y2].every(Number.isFinite)) return;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(OX + x1 * G, OY + y1 * G, (x2 - x1 + 1) * G, (y2 - y1 + 1) * G);
+  ctx.clip();
+  for (const decal of decals) {
+    const asset = ENV_DECAL_ASSETS[decal.type];
+    const img = asset?.image;
+    if (envDecalSheetReady && img?.complete && img.naturalWidth && img.naturalHeight) {
+      const sourceW = img.naturalWidth / ENV_DECAL_SHEET_COLUMNS;
+      const sourceH = img.naturalHeight / ENV_DECAL_SHEET_ROWS;
+      const size = decal.size || 32;
+      ctx.save();
+      ctx.globalAlpha = decal.alpha ?? .2;
+      ctx.translate(decal.x, decal.y);
+      ctx.rotate(decal.rotation || 0);
+      ctx.scale(decal.scaleX || 1, decal.scaleY || 1);
+      ctx.drawImage(
+        img,
+        asset.col * sourceW,
+        asset.row * sourceH,
+        sourceW,
+        sourceH,
+        -size / 2,
+        -size / 2,
+        size,
+        size
+      );
+      ctx.restore();
+    } else {
+      drawEnvironmentDecalPlaceholder({ ...decal, type: ENV_DECAL_PLACEHOLDER_TYPES[decal.type] || decal.type });
+    }
+  }
+  ctx.restore();
+}
+
+function drawExpeditionEnvironmentRoomTone(room, theme) {
+  if (!ENABLE_ENVIRONMENT_DRESSING || !room) return;
+  const [x1, y1, x2, y2] = room.rect || [];
+  if (![x1, y1, x2, y2].every(Number.isFinite)) return;
+  const x = OX + x1 * G;
+  const y = OY + y1 * G;
+  const w = (x2 - x1 + 1) * G;
+  const h = (y2 - y1 + 1) * G;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+  ctx.globalAlpha = theme === 'reactor_complex' || theme === 'reactor_lab' ? .055 : theme === 'chemical_plant' ? .06 : theme === 'tunnel' ? .055 : theme === 'flesh_garden' ? .055 : .05;
+  ctx.fillStyle = theme === 'reactor_complex' || theme === 'reactor_lab' ? '#22343b' : theme === 'chemical_plant' ? '#2d4245' : theme === 'tunnel' ? '#2d2921' : '#3d382f';
+  ctx.beginPath();
+  ctx.ellipse(x + w * .44, y + h * .48, w * .24, h * .14, -.08, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha *= .75;
+  ctx.fillStyle = theme === 'flesh_garden' ? '#6f2d38' : theme === 'tunnel' ? '#7a6a4e' : theme === 'chemical_plant' ? '#62706a' : '#748083';
+  ctx.beginPath();
+  ctx.ellipse(x + w * .58, y + h * .55, w * .22, h * .06, .08, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = theme === 'reactor_complex' || theme === 'reactor_lab' ? .12 : .09;
+  ctx.strokeStyle = theme === 'flesh_garden' ? '#35121a' : theme === 'tunnel' ? '#1f1812' : '#17232a';
+  ctx.lineWidth = Math.max(3, Math.min(w, h) * .012);
+  ctx.strokeRect(x + 8, y + 8, w - 16, h - 16);
+  ctx.restore();
+}
+
+function drawExpeditionThemeFloorMarks(room, theme) {
+  if (!ENABLE_ENVIRONMENT_DRESSING || !room) return;
+  const [x1, y1, x2, y2] = room.rect || [];
+  if (![x1, y1, x2, y2].every(Number.isFinite)) return;
+  const x = OX + x1 * G;
+  const y = OY + y1 * G;
+  const w = (x2 - x1 + 1) * G;
+  const h = (y2 - y1 + 1) * G;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+  if (theme === 'reactor_complex' || theme === 'reactor_lab') {
+    ctx.globalAlpha = .045;
+    ctx.fillStyle = '#18252c';
+    ctx.fillRect(x + w * .10, y + h * .18, w * .30, Math.max(10, h * .06));
+    ctx.fillRect(x + w * .60, y + h * .72, w * .30, Math.max(10, h * .055));
+    ctx.globalAlpha = .10;
+    ctx.strokeStyle = '#5f7176';
+    ctx.lineWidth = 2;
+    for (let i = 1; i <= 2; i++) {
+      const yy = y + h * (i === 1 ? .24 : .76);
+      ctx.beginPath();
+      ctx.moveTo(x + w * .12, yy);
+      ctx.lineTo(x + w * .38, yy);
+      ctx.moveTo(x + w * .62, yy + h * .02);
+      ctx.lineTo(x + w * .88, yy + h * .02);
+      ctx.stroke();
+    }
+  } else if (theme === 'chemical_plant') {
+    ctx.globalAlpha = .035;
+    ctx.fillStyle = '#23363a';
+    ctx.fillRect(x + w * .10, y + h * .18, w * .26, h * .20);
+    ctx.fillStyle = '#43564f';
+    ctx.fillRect(x + w * .56, y + h * .62, w * .28, h * .18);
+    ctx.globalAlpha = .08;
+    ctx.strokeStyle = '#6f8076';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x + w * .12, y + h * .52);
+    ctx.lineTo(x + w * .34, y + h * .50);
+    ctx.moveTo(x + w * .62, y + h * .38);
+    ctx.lineTo(x + w * .86, y + h * .40);
+    ctx.stroke();
+    ctx.globalAlpha = .045;
+    ctx.fillStyle = '#7ca865';
+    ctx.beginPath();
+    ctx.ellipse(x + w * .18, y + h * .80, w * .10, h * .045, -.22, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (theme === 'tunnel') {
+    ctx.globalAlpha = .065;
+    ctx.fillStyle = '#211b16';
+    ctx.fillRect(x, y, w, Math.max(8, h * .07));
+    ctx.fillRect(x, y + h - Math.max(8, h * .07), w, Math.max(8, h * .07));
+    ctx.fillRect(x, y, Math.max(8, w * .05), h);
+    ctx.fillRect(x + w - Math.max(8, w * .05), y, Math.max(8, w * .05), h);
+    ctx.globalAlpha = .045;
+    ctx.fillStyle = '#74684f';
+    ctx.beginPath();
+    ctx.ellipse(x + w * .52, y + h * .51, w * .24, h * .07, .04, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = .09;
+    ctx.strokeStyle = '#3a2f23';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x + w * .10, y + h * .20);
+    ctx.lineTo(x + w * .24, y + h * .13);
+    ctx.lineTo(x + w * .38, y + h * .22);
+    ctx.moveTo(x + w * .62, y + h * .82);
+    ctx.lineTo(x + w * .76, y + h * .90);
+    ctx.lineTo(x + w * .90, y + h * .78);
+    ctx.stroke();
+  } else if (theme === 'flesh_garden') {
+    ctx.globalAlpha = .055;
+    ctx.strokeStyle = '#5b1d27';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x + w * .08, y + h * .18);
+    ctx.quadraticCurveTo(x + w * .20, y + h * .12, x + w * .34, y + h * .20);
+    ctx.moveTo(x + w * .66, y + h * .84);
+    ctx.quadraticCurveTo(x + w * .80, y + h * .92, x + w * .92, y + h * .78);
+    ctx.stroke();
+    ctx.globalAlpha = .035;
+    ctx.fillStyle = '#4a1720';
+    ctx.beginPath();
+    ctx.ellipse(x + w * .18, y + h * .76, w * .10, h * .04, -.2, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    ctx.globalAlpha = .035;
+    ctx.fillStyle = '#514839';
+    ctx.fillRect(x + w * .10, y + h * .14, w * .36, h * .12);
+    ctx.fillRect(x + w * .52, y + h * .66, w * .32, h * .10);
+  }
+  ctx.restore();
+}
+
 function drawExpeditionDressing(t) {
   const cfg = expeditionConfig();
   const ex = S.expedition;
@@ -26087,14 +26653,19 @@ function drawExpeditionDressing(t) {
     ctx.restore();
     return;
   }
+  const environmentDecals = ensureExpeditionEnvironmentDecals();
   for (const room of cfg.rooms || []) {
     const [x1, y1, x2, y2] = room.rect;
     const x = OX + x1 * G;
     const y = OY + y1 * G;
     const w = (x2 - x1 + 1) * G;
     const h = (y2 - y1 + 1) * G;
+    const theme = expeditionEnvironmentTheme(S.levelId, room);
     if (room.id === 'lab') {
       drawExpeditionGraphicLab(room, t);
+      drawExpeditionEnvironmentRoomTone(room, theme);
+      drawExpeditionThemeFloorMarks(room, theme);
+      drawExpeditionEnvironmentDecals(room, environmentDecals[room.id] || []);
       continue;
     }
     ctx.globalAlpha = .22;
@@ -26111,6 +26682,9 @@ function drawExpeditionDressing(t) {
       ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
       ctx.globalAlpha = .75;
     }
+    drawExpeditionEnvironmentRoomTone(room, theme);
+    drawExpeditionThemeFloorMarks(room, theme);
+    drawExpeditionEnvironmentDecals(room, environmentDecals[room.id] || []);
     if (isShatterConvoyExpedition()) drawShatterConvoyEnvironmentalCue(room, t);
     ctx.globalAlpha = .75;
     if (room.id !== 'extraction' || S.expedition?.extractionRevealed) {
@@ -28426,32 +29000,45 @@ function drawMap(t) {
         continue;
       }
       if (isRoad(c, r) && !(isExpeditionRun() && isBlockedTerrain(c, r))) {
+        const expeditionFloor = isExpeditionRun();
         // Warm bridge / worn stone path
-        ctx.fillStyle = v > .66 ? '#e1d6be' : v > .33 ? '#d2c4a8' : '#c0b08f';
+        ctx.fillStyle = expeditionFloor
+          ? (v > .66 ? '#d4c7ad' : v > .33 ? '#bfb296' : '#a99c80')
+          : (v > .66 ? '#e1d6be' : v > .33 ? '#d2c4a8' : '#c0b08f');
         ctx.fillRect(x, y, G, G);
-        ctx.strokeStyle = '#9a8c70';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(x + .5, y + .5, G - 1, G - 1);
-        // Cobble seams
-        ctx.strokeStyle = '#6f624bcc';
-        ctx.beginPath();
-        ctx.moveTo(x + 6, y + G * .48); ctx.lineTo(x + G - 6, y + G * .44);
-        ctx.moveTo(x + G * .48, y + 5); ctx.lineTo(x + G * .52, y + G - 5);
-        ctx.stroke();
-        // Cracks and moss
-        if (v > .72) {
+        if (expeditionFloor) {
+          if ((c * 3 + r * 5) % 11 === 0) {
+            ctx.globalAlpha = .18;
+            ctx.strokeStyle = '#7a6c5555';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x + 2.5, y + 2.5, G - 5, G - 5);
+            ctx.globalAlpha = 1;
+          }
+        } else {
+          ctx.strokeStyle = '#9a8c70';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(x + .5, y + .5, G - 1, G - 1);
+          // Cobble seams
+          ctx.strokeStyle = '#6f624bcc';
+          ctx.beginPath();
+          ctx.moveTo(x + 6, y + G * .48); ctx.lineTo(x + G - 6, y + G * .44);
+          ctx.moveTo(x + G * .48, y + 5); ctx.lineTo(x + G * .52, y + G - 5);
+          ctx.stroke();
+        }
+        // Arena keeps small per-tile wear; Expedition pushes readable dressing to room-level decals.
+        if (!expeditionFloor && v > .72) {
           ctx.strokeStyle = '#907f62aa';
           ctx.beginPath();
           ctx.moveTo(x + 9, y + 12); ctx.lineTo(x + 18, y + 17); ctx.lineTo(x + 23, y + 31);
           ctx.stroke();
         }
-        if (v < .12) {
+        if (!expeditionFloor && v < .12) {
           ctx.fillStyle = '#7fb0ad88';
           ctx.fillRect(x + 3, y + G - 7, 14, 3);
           ctx.fillRect(x + G - 14, y + 4, 9, 2);
         }
         // Dirt wear down middle
-        ctx.globalAlpha = .18;
+        ctx.globalAlpha = expeditionFloor ? .055 : .18;
         ctx.fillStyle = '#b29c71';
         ctx.beginPath(); ctx.ellipse(x + G / 2, y + G / 2, 18, 10, .15, 0, 7); ctx.fill();
         ctx.globalAlpha = 1;
@@ -31667,7 +32254,7 @@ function loop(now) {
 requestAnimationFrame(loop);
 preloadEnemySprites();
 // Co-op UI disabled in 5.5.1 Waymark.
-restoreLoadoutState({ restoreMission: false });
+restoreLoadoutState();
 updateMissionSelectionUI();
 ui();
 renderSetupPickers();
