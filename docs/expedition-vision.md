@@ -62,7 +62,7 @@ Characteristics:
 
 - Locked rooms
 - Ambushes
-- Core or Rift management
+- Core management
 - Defensive play
 - High tension
 
@@ -101,8 +101,7 @@ Expedition is working when the player:
 
 - Wants to push forward
 - Wants to stop and search
-- Cares where the Rift goes
+- Cares where the Core goes
 - Feels rewarded by discovery
 - Feels tension from risk
 - Remembers specific rooms
-

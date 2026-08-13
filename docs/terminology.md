@@ -2,6 +2,15 @@
 
 ## Locked-In Terms
 
+The canonical player-facing terminology is:
+
+- **Core**
+- **Relay**
+- **Boon**
+- **Surge**
+
+Use these terms consistently in current UI copy, objectives, tooltips, reward labels, mission text, design docs, and agent guidance.
+
 ### Arena
 The fast, chaotic, escalating mode.
 
@@ -27,30 +36,30 @@ Expedition should feel like:
 
 Expedition alternates between exploration, combat waves, dungeons, and Relays.
 
-### Rift
+### Core
 The portable civilization engine.
 
-- Carry the Rift
-- Deploy the Rift
-- Protect the Rift
-- Move the Rift
-- Install the Rift into a Relay
+- Carry the Core
+- Deploy the Core
+- Protect the Core
+- Move the Core
+- Connect the Core to a Relay
 
-The Rift is the heart of Expedition gameplay.
+The Core is the heart of Expedition gameplay.
 
 ### Relay
 A permanent network expansion point.
 
 Relays are discovered throughout Expedition maps.
 
-Installing the Rift into a Relay expands the network and advances progression.
+Connecting the Core to a Relay expands the network and advances progression.
 
 Desired feeling:
 
 > We found another Relay.
 
-### Boons
-Permanent upgrade choices.
+### Boon
+A permanent upgrade choice.
 
 Examples:
 
@@ -62,8 +71,10 @@ Examples:
 Meaning:
 Choose a permanent upgrade.
 
-### Powerups
-Temporary power spikes.
+Plural: **Boons**.
+
+### Surge
+A temporary high-power effect.
 
 Examples:
 
@@ -74,6 +85,8 @@ Examples:
 
 Meaning:
 Gain a temporary power boost.
+
+Plural: **Surges**.
 
 ---
 
@@ -89,10 +102,10 @@ Represents:
 - Civilization
 - Territory
 
-The Rift functions as the player's Hearth.
+The Core functions as the player's Hearth.
 
 ### Network
-The collection of active Relays connected through the Rift.
+The collection of active Relays connected through the Core.
 
 Example messaging:
 
@@ -118,9 +131,18 @@ This means:
 
 - Locked rooms
 - Ambushes
-- Core or Rift management
+- Core management
 - Defensive play
 - High tension
+
+---
+
+## Legacy Terms
+
+- **Rift** is legacy terminology when it refers to the portable Expedition object. Use **Core** instead.
+- **Powerup** is legacy terminology for a temporary high-power effect. Use **Surge** instead.
+- Internal code identifiers may retain legacy names when renaming them would create unnecessary implementation risk. Player-facing language and current documentation should use the canonical terms.
+- Do not mechanically replace every occurrence of the ordinary word "rift" if it refers to a literal anomaly, location, or unrelated world concept rather than the portable Core.
 
 ---
 
@@ -141,15 +163,24 @@ Killbox is moving toward strange technology, exploration, facilities, biomechani
 
 ---
 
+## Naming Check
+
+Before changing UI copy, docs, tooltips, objectives, HUD labels, reward labels, or mission text:
+
+1. Portable civilization engine? **Core**
+2. Permanent network installation point? **Relay**
+3. Permanent run upgrade choice? **Boon**
+4. Temporary high-power effect? **Surge**
+
 ## North Star Test
 
 Does a new term feel like it belongs alongside:
 
 - Arena
 - Expedition
-- Rift
+- Core
 - Relay
-- Boons
-- Powerups
+- Boon
+- Surge
 
 If not, reconsider it.
