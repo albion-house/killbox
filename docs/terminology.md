@@ -1,155 +1,54 @@
 # KILLBOX TERMINOLOGY GUIDE
 
-## Locked-In Terms
+## Canonical Terms
 
-### Arena
-The fast, chaotic, escalating mode.
+The canonical player-facing terminology is:
 
-Arena is the power-fantasy survival loop.
+- **Core**
+- **Relay**
+- **Boon**
+- **Surge**
 
-Arena should feel like:
+Use these terms consistently in current UI copy, objectives, tooltips, reward labels, mission text, design docs, and agent guidance.
 
-- Fast
-- Chaotic
-- Escalating
-- Power-fantasy focused
+### Core
+The portable civilization engine and mobile progression anchor.
 
-### Expedition
-The exploration and adventure mode.
+- Carry the Core
+- Deploy the Core
+- Protect the Core
+- Move the Core
+- Connect the Core to a Relay
 
-Expedition should feel like:
-
-- Exploration
-- Discovery
-- Resource management
-- Risk and reward
-- Adventure
-
-Expedition alternates between exploration, combat waves, dungeons, and Relays.
-
-### Rift
-The portable civilization engine.
-
-- Carry the Rift
-- Deploy the Rift
-- Protect the Rift
-- Move the Rift
-- Install the Rift into a Relay
-
-The Rift is the heart of Expedition gameplay.
+The Core enables tower deployment and carries the player's settlement deeper into hostile territory. Its position should create meaningful decisions about where to establish defenses and when to move.
 
 ### Relay
 A permanent network expansion point.
 
-Relays are discovered throughout Expedition maps.
+Connecting the Core to a Relay expands the network and advances progression.
 
-Installing the Rift into a Relay expands the network and advances progression.
+### Boon
+A permanent upgrade choice that lasts for the run.
 
-Desired feeling:
+Plural: **Boons**.
 
-> We found another Relay.
+### Surge
+A temporary high-power effect, usually lasting for one encounter, wave, or short combat window.
 
-### Boons
-Permanent upgrade choices.
+Plural: **Surges**.
 
-Examples:
+## Legacy Terms
 
-- Increased damage
-- Faster reloads
-- Improved tower range
-- Additional projectiles
+- **Rift** is legacy terminology when it refers to the portable Expedition object. Use **Core** instead.
+- **Powerup** is legacy terminology for a temporary high-power effect. Use **Surge** instead.
+- Internal code identifiers may retain legacy names when renaming them would create unnecessary implementation risk. Player-facing language and current documentation should use the canonical terms.
+- Do not replace the ordinary word "rift" when it refers to a literal anomaly, location, or unrelated world concept rather than the portable Core.
 
-Meaning:
-Choose a permanent upgrade.
+## Naming Check
 
-### Powerups
-Temporary power spikes.
+Before changing UI copy, docs, objectives, HUD labels, reward labels, or mission text:
 
-Examples:
-
-- Bullet Hell
-- Rocket Storm
-- Double Fire Rate
-- Infinite Ammo
-
-Meaning:
-Gain a temporary power boost.
-
----
-
-## Design Language
-
-### Hearth
-A design concept, not necessarily an in-world object.
-
-Represents:
-
-- Home
-- Safety
-- Civilization
-- Territory
-
-The Rift functions as the player's Hearth.
-
-### Network
-The collection of active Relays connected through the Rift.
-
-Example messaging:
-
-- Network Expanded
-- Relay Online
-- Network Stabilized
-
-### Dungeon Archetype
-A named shape for an Expedition level.
-
-Examples:
-
-- Pressure Cooker
-- Fortress
-- Exploration-focused
-- Defense-focused
-- Boss-focused
-
-### Pressure Cooker
-The current Expedition 01 dungeon archetype.
-
-This means:
-
-- Locked rooms
-- Ambushes
-- Core or Rift management
-- Defensive play
-- High tension
-
----
-
-## Terms To Avoid
-
-- Mutation
-- Trial
-- Sacred Flame
-- Heartfire
-- Altar
-- Blessing
-- Prophecy
-- Chosen One
-- Generic kingdom language
-- Standard RPG lore
-
-Killbox is moving toward strange technology, exploration, facilities, biomechanical systems, and network expansion rather than traditional fantasy.
-
----
-
-## North Star Test
-
-Does a new term feel like it belongs alongside:
-
-- Arena
-- Expedition
-- Rift
-- Relay
-- Boons
-- Powerups
-
-If not, reconsider it.
+1. Portable civilization engine? **Core**
+2. Permanent network installation point? **Relay**
+3. Permanent run upgrade choice? **Boon**
+4. Temporary high-power effect? **Surge**
