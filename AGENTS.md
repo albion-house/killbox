@@ -1,6 +1,6 @@
 # Agent Notes
 
-Killbox is a strange, readable, chaotic co-op survival adventure about exploring hostile spaces, protecting a living Rift, and creating memorable player stories. It is published to GitHub Pages.
+Killbox is a strange, readable, chaotic co-op survival adventure about exploring hostile spaces, protecting a living Core, and creating memorable player stories. It is published to GitHub Pages.
 
 ## Repository Memory and Structure
 
@@ -22,7 +22,7 @@ Killbox is a strange, readable, chaotic co-op survival adventure about exploring
 Read only the docs relevant to the task. Do not load unrelated long docs just because they exist.
 
 - Default for any task: read this `AGENTS.md` file.
-- Substantial gameplay, combat, Rift, Arena, or general design work: read `docs/north-star.md`, `docs/terminology.md`, and `docs/lessons-learned.md`.
+- Substantial gameplay, combat, Core, Arena, or general design work: read `docs/north-star.md`, `docs/terminology.md`, and `docs/lessons-learned.md`.
 - Expedition-specific work: also read `docs/expedition-vision.md`.
 - UI, layout, readability, or information hierarchy work: read `docs/north-star.md`, `docs/lessons-learned.md`, and `docs/ui-audit-typography-reset.md`. Add `docs/terminology.md` if labels, item names, mode names, or player-facing copy change.
 - Naming, copy, enemies, items, lore, world tone, or content flavor: read `docs/north-star.md`, `docs/terminology.md`, and `docs/world-flavor.md`.
