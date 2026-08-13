@@ -1,8 +1,8 @@
 # KILLBOX NORTH STAR
 
-## Rift Vision
+## Core Vision
 
-Killbox is a strange, readable, chaotic co-op survival adventure about moving through dangerous places, protecting a living Rift, and creating ridiculous stories with another player.
+Killbox is a strange, readable, chaotic co-op survival adventure about moving through dangerous places, protecting a living Core, and creating ridiculous stories with another player.
 
 The long-term dream is not just to make a tower defense game.
 
@@ -50,10 +50,10 @@ The player should feel like:
 
 - “We found something dangerous.”
 - “We need to hold this room.”
-- “Put the Rift over there.”
+- “Put the Core over there.”
 - “Build walls before they come through that hallway.”
 - “I’ll kite them, you repair.”
-- “Don’t move the Rift yet.”
+- “Don’t move the Core yet.”
 - “That was stupid, but it worked.”
 
 The best Killbox moments should sound like stories players tell each other afterward.
@@ -71,12 +71,12 @@ Design choices should avoid trapping the project in a solo-only corner.
 The ideal future co-op loop:
 
 1. Players enter a dangerous room or zone.
-2. They place or protect the Rift.
-3. The Rift creates the buildable safe or defense area.
+2. They place or protect the Core.
+3. The Core creates the buildable safe or defense area.
 4. Enemies attack from readable directions.
 5. Players shoot, build, repair, kite, revive, and improvise.
 6. The room is cleared.
-7. The Rift is moved forward.
+7. The Core is moved forward.
 8. The team chooses where to make the next stand.
 
 ---
@@ -97,9 +97,9 @@ The player is advancing through a hostile world and deciding when to push, when 
 
 ---
 
-## The Rift
+## The Core
 
-The Rift is the heart of Killbox.
+The Core is the heart of Killbox.
 
 It should eventually feel like:
 
@@ -110,11 +110,11 @@ It should eventually feel like:
 - A thing players risk themselves to save
 - The reason rooms matter
 
-The Rift should not just be a marker.
+The Core should not just be a marker.
 
-The Rift should create decisions.
+The Core should create decisions.
 
-Good Rift gameplay:
+Good Core gameplay:
 
 - Players want to hide it.
 - Players want to defend it.
@@ -168,7 +168,7 @@ Good future-proof systems:
 - Revives
 - Defensible positions
 - Chokepoints
-- Rift placement
+- Core placement
 - Room clearing
 - Enemy pressure from multiple angles
 - Roles that emerge naturally
@@ -201,9 +201,9 @@ The screen can be wild, but players should still understand what is happening.
 
 Even before multiplayer exists, systems should imagine a second player eventually standing nearby.
 
-### 3. The Rift Matters
+### 3. The Core Matters
 
-The Rift should drive movement, building, defense, and progression.
+The Core should drive movement, building, defense, and progression.
 
 ### 4. Rooms Create Stories
 
@@ -256,7 +256,7 @@ When making changes, protect these qualities:
 Before implementing a new feature, ask:
 
 1. Does this create a memorable player story?
-2. Does this make the Rift more important?
+2. Does this make the Core more important?
 3. Does this support future co-op?
 4. Does this improve readable chaos?
 5. Does this add meaningful decisions?
@@ -272,4 +272,4 @@ Do not build large systems until the gameplay need is proven.
 
 ## One-Sentence North Star
 
-**Killbox is a weird co-op survival adventure where players explore hostile territory, defend a living Rift, and create stories by surviving chaos together.**
+**Killbox is a weird co-op survival adventure where players explore hostile territory, defend a living Core, and create stories by surviving chaos together.**
